@@ -1,4 +1,5 @@
-# Kind: `ExecAccessTemplate`, Group: `wizardoz.io/v1alpha1`
+# Group: `wizardoz.io/v1alpha1`
+# Kind: `ExecAccessTemplate`
 
 [kubernetes_group]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-binding-examples
 

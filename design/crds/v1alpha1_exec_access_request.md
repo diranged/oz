@@ -1,4 +1,5 @@
-# Kind: `ExecAccessRequest`, Group: `wizardoz.io/v1alpha1`
+# Group: `wizardoz.io/v1alpha1`
+# Kind: `ExecAccessRequest`
 
 **Phase: One**
 
@@ -11,8 +12,8 @@ metadata:
   name: <dynamically generated name>
   namespace: <target namespace>
 spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: targetApp
+  accessTemplateRef:
+    apiVersion: wizardoz.io/v1alpha1
+    kind: AccessTemplate
+    name: targetTemplateName
 ```

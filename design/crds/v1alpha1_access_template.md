@@ -1,4 +1,5 @@
-# Kind: `AccessTemplate`, Group: `wizardoz.io/v1alpha1`
+# Group: `wizardoz.io/v1alpha1`
+# Kind: `AccessTemplate`
 
 **Phase: One**
 

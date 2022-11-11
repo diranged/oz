@@ -1,4 +1,5 @@
-# Kind: `AccessRequest`, Group: `wizardoz.io/v1alpha1`
+# Group: `wizardoz.io/v1alpha1`
+# Kind: `AccessRequest`
 
 **Phase: One**
 

@@ -1,4 +1,5 @@
-# Kind: `AccessRequestApproval`, Group: `wizardoz.io/v1alpha1`
+# Group: `wizardoz.io/v1alpha1`
+# Kind: `AccessRequestApproval`
 
 **Phase: Two**
 
