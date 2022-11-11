@@ -1,0 +1,9 @@
+domain: wizardoz.io
+layout:
+- go.kubebuilder.io/v4-alpha
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: oz
+repo: github.com/diranged/oz
+version: "3"
