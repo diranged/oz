@@ -23,19 +23,26 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	templatesv1alpha1 "github.com/diranged/oz/api/v1alpha1"
+	"github.com/go-logr/logr"
 )
 
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
 type ExecAccessRequestReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	logger logr.Logger
 }
 
 //+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccessrequests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccessrequests/finalizers,verbs=update
+
+//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execacesstemplates,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -49,7 +56,9 @@ type ExecAccessRequestReconciler struct {
 func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
+	r.logger = ctrllog.FromContext(ctx)
+	r.logger.Info("Starting reconcile loop")
 
 	return ctrl.Result{}, nil
 }

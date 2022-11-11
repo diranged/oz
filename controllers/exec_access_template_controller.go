@@ -101,7 +101,7 @@ func (r *ExecAccessTemplateReconciler) GetResource(ctx context.Context, req ctrl
 func (r *ExecAccessTemplateReconciler) Verify(ctx context.Context, tmpl *templates.ExecAccessTemplate) error {
 	statusType := templates.TemplateAvailability
 
-	if tmpl.Spec.TargetRef.Kind == templates.KindDeployment {
+	if tmpl.Spec.TargetRef.Kind == templates.DeploymentController {
 		if _, err := r.getDeployment(ctx, tmpl.Namespace, tmpl.Spec.TargetRef); err != nil {
 			meta.SetStatusCondition(&tmpl.Status.Conditions, metav1.Condition{
 				Type:               statusType,

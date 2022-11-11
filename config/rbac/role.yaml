@@ -6,6 +6,14 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - apps
   resources:
   - daemonsets
@@ -15,6 +23,45 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.wizardofoz.co
+  resources:
+  - execaccessrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.wizardofoz.co
+  resources:
+  - execaccessrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.wizardofoz.co
+  resources:
+  - execaccessrequests/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - templates.wizardofoz.co
   resources:
@@ -41,3 +88,11 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - templates.wizardofoz.co
+  resources:
+  - execacesstemplates
+  verbs:
+  - get
+  - list
+  - watch

@@ -2,12 +2,12 @@ package v1alpha1
 
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-type Kind string
+type ControllerKind string
 
 const (
-	KindDeployment  Kind = "Deployment"
-	KindDaemonSet   Kind = "DaemonSet"
-	KindStatefulSet Kind = "StatefulSet"
+	DeploymentController  ControllerKind = "Deployment"
+	DaemonSetController   ControllerKind = "DaemonSet"
+	StatefulSetController ControllerKind = "StatefulSet"
 )
 
 const (
@@ -23,6 +23,22 @@ const (
 )
 
 // Important: Run "make" to regenerate code after modifying this file
+type TemplateReference struct {
+	// Defines the "APIVersion" of the resource being referred to. Eg, "apps/v1".
+	// +kubebuilder:validation:Required
+	APIVersion *string `json:"apiVersion"`
+
+	// Defines the "Kind" of resource being referred to.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=ExecAccessTemplate;AccessTemplate
+	Kind string `json:"kind"`
+
+	// Defines the "metadata.name" of the target resource.
+	// +kubebuilder:validation:Required
+	Name *string `json:"name"`
+}
+
+// Important: Run "make" to regenerate code after modifying this file
 type CrossVersionObjectReference struct {
 	// Defines the "APIVersion" of the resource being referred to. Eg, "apps/v1".
 	// +kubebuilder:validation:Required
@@ -31,7 +47,7 @@ type CrossVersionObjectReference struct {
 	// Defines the "Kind" of resource being referred to.
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=Deployment;DaemonSet;StatefulSet
-	Kind Kind `json:"kind"`
+	Kind ControllerKind `json:"kind"`
 
 	// Defines the "metadata.name" of the target resource.
 	// +kubebuilder:validation:Required
