@@ -41,9 +41,9 @@ type ExecAccessTemplateReconciler struct {
 	logger logr.Logger
 }
 
-//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;statefulsets,verbs=get;list;watch
 

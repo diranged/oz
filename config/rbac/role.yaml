@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - templates.wizardoz.co
+  - templates.wizardofoz.co
   resources:
   - execaccesstemplates
   verbs:
@@ -28,13 +28,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - templates.wizardoz.co
+  - templates.wizardofoz.co
   resources:
   - execaccesstemplates/finalizers
   verbs:
   - update
 - apiGroups:
-  - templates.wizardoz.co
+  - templates.wizardofoz.co
   resources:
   - execaccesstemplates/status
   verbs:

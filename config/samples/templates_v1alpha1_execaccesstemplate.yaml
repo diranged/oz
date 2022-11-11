@@ -1,4 +1,4 @@
-apiVersion: templates.wizardoz.co/v1alpha1
+apiVersion: templates.wizardofoz.co/v1alpha1
 kind: ExecAccessTemplate
 metadata:
   labels:
