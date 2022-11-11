@@ -1,0 +1,12 @@
+apiVersion: templates.wizardofoz.co/v1alpha1
+kind: ExecAccessRequest
+metadata:
+  labels:
+    app.kubernetes.io/name: execaccessrequest
+    app.kubernetes.io/instance: execaccessrequest-sample
+    app.kubernetes.io/part-of: oz
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: oz
+  name: execaccessrequest-sample
+spec:
+  # TODO(user): Add fields here
