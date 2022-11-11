@@ -6,4 +6,14 @@ plugins:
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: oz
 repo: github.com/diranged/oz
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: wizardoz.io
+  group: templates
+  kind: ExecAccessTemplate
+  path: github.com/diranged/oz/api/v1alpha1
+  version: v1alpha1
 version: "3"
