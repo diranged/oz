@@ -20,17 +20,15 @@ import (
 	"context"
 	"fmt"
 
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
-	templates "github.com/diranged/oz/api/v1alpha1"
+	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/go-logr/logr"
 )
 
@@ -41,9 +39,9 @@ type ExecAccessTemplateReconciler struct {
 	logger logr.Logger
 }
 
-//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.wizardofoz.co,resources=execaccesstemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;statefulsets,verbs=get;list;watch
 
@@ -87,8 +85,8 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 // GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
 // returns back an error.
-func (r *ExecAccessTemplateReconciler) GetResource(ctx context.Context, req ctrl.Request) (*templates.ExecAccessTemplate, error) {
-	tmpl := &templates.ExecAccessTemplate{}
+func (r *ExecAccessTemplateReconciler) GetResource(ctx context.Context, req ctrl.Request) (*api.ExecAccessTemplate, error) {
+	tmpl := &api.ExecAccessTemplate{}
 	err := r.Get(ctx, req.NamespacedName, tmpl)
 	if err != nil {
 		return nil, err
@@ -98,11 +96,11 @@ func (r *ExecAccessTemplateReconciler) GetResource(ctx context.Context, req ctrl
 
 // Verify provides validation for a ExecAccessTemplate resource. If at any point the validation fails, the status
 // of that resource is updated to indicate that is degraded and cannot be used.
-func (r *ExecAccessTemplateReconciler) Verify(ctx context.Context, tmpl *templates.ExecAccessTemplate) error {
-	statusType := templates.TemplateAvailability
+func (r *ExecAccessTemplateReconciler) Verify(ctx context.Context, tmpl *api.ExecAccessTemplate) error {
+	statusType := api.TemplateAvailability
 
-	if tmpl.Spec.TargetRef.Kind == templates.DeploymentController {
-		if _, err := r.getDeployment(ctx, tmpl.Namespace, tmpl.Spec.TargetRef); err != nil {
+	if tmpl.Spec.TargetRef.Kind == api.DeploymentController {
+		if _, err := tmpl.GetDeployment(r.Client, ctx); err != nil {
 			meta.SetStatusCondition(&tmpl.Status.Conditions, metav1.Condition{
 				Type:               statusType,
 				Status:             metav1.ConditionUnknown,
@@ -120,31 +118,16 @@ func (r *ExecAccessTemplateReconciler) Verify(ctx context.Context, tmpl *templat
 		Status:             metav1.ConditionTrue,
 		ObservedGeneration: 0,
 		LastTransitionTime: metav1.Time{},
-		Reason:             templates.TemplateAvailabilityStatusAvailable,
+		Reason:             api.TemplateAvailabilityStatusAvailable,
 		Message:            "Verification successful",
 	})
 
 	return nil
 }
 
-func (r *ExecAccessTemplateReconciler) getDeployment(ctx context.Context, namespace string, targetRef templates.CrossVersionObjectReference) (*appsv1.Deployment, error) {
-	found := &appsv1.Deployment{}
-	err := r.Get(ctx, types.NamespacedName{
-		Name:      *targetRef.Name,
-		Namespace: namespace,
-	}, found)
-
-	if err != nil {
-		r.logger.Info("Unable to find Deployment")
-		return nil, err
-	}
-
-	return found, nil
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *ExecAccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&templates.ExecAccessTemplate{}).
+		For(&api.ExecAccessTemplate{}).
 		Complete(r)
 }

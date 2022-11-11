@@ -1,0 +1,6 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: ExecAccessRequest
+metadata:
+  name: deployment-example
+spec:
+  templateName: deployment-example

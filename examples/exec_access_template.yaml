@@ -1,4 +1,4 @@
-apiVersion: templates.wizardofoz.co/v1alpha1
+apiVersion: crds.wizardofoz.co/v1alpha1
 kind: ExecAccessTemplate
 metadata:
   name: deployment-example

@@ -5,21 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: execaccesstemplates.templates.wizardofoz.co
+  name: execaccessrequests.crds.wizardofoz.co
 spec:
-  group: templates.wizardofoz.co
+  group: crds.wizardofoz.co
   names:
-    kind: ExecAccessTemplate
-    listKind: ExecAccessTemplateList
-    plural: execaccesstemplates
-    singular: execaccesstemplate
+    kind: ExecAccessRequest
+    listKind: ExecAccessRequestList
+    plural: execaccessrequests
+    singular: execaccessrequest
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ExecAccessTemplate is the Schema for the execaccesstemplates
-          API
+        description: ExecAccessRequest is the Schema for the execaccessrequests API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,41 +33,20 @@ spec:
           metadata:
             type: object
           spec:
-            description: ExecAccessTemplateSpec defines the desired state of ExecAccessTemplate
+            description: ExecAccessRequestSpec defines the desired state of ExecAccessRequest
             properties:
-              targetRef:
-                description: TargetRef provides a pattern for referencing objects
-                  from another API in a generic way.
-                properties:
-                  apiVersion:
-                    description: Defines the "APIVersion" of the resource being referred
-                      to. Eg, "apps/v1".
-                    type: string
-                  kind:
-                    description: Defines the "Kind" of resource being referred to.
-                    enum:
-                    - Deployment
-                    - DaemonSet
-                    - StatefulSet
-                    type: string
-                  name:
-                    description: Defines the "metadata.name" of the target resource.
-                    type: string
-                required:
-                - apiVersion
-                - kind
-                - name
-                type: object
+              templateName:
+                description: Defines the name of the `ExecAcessTemplate` that should
+                  be used to grant access to the target resource.
+                type: string
             required:
-            - targetRef
+            - templateName
             type: object
           status:
-            description: BaseTemplateStatus is the core set of status fields that
-              we expect to be in each and every one of our template (AccessTemplate,
-              ExecAccessTemplate, etc) resources.
+            description: ExecAccessRequestStatus defines the observed state of ExecAccessRequest
             properties:
               conditions:
-                description: Conditions represent the latest state of the resource
+                description: Current status of the Access Request
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
@@ -136,6 +114,9 @@ spec:
                   - type
                   type: object
                 type: array
+              podName:
+                description: The Target Pod Name where access has been granted
+                type: string
             type: object
         type: object
     served: true

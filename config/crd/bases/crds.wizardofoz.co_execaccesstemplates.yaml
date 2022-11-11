@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: execaccesstemplates.templates.wizardofoz.co
+  name: execaccesstemplates.crds.wizardofoz.co
 spec:
-  group: templates.wizardofoz.co
+  group: crds.wizardofoz.co
   names:
     kind: ExecAccessTemplate
     listKind: ExecAccessTemplateList

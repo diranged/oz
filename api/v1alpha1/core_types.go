@@ -20,23 +20,11 @@ const (
 
 	// TemplateAvailabilityStatusDegraded indicates that the Template is unable to be used
 	TemplateAvailabilityStatusDegraded = "Degraded"
+
+	RequestValidated        = "RequestValidated"
+	RequestValidatedSuccess = "Success"
+	RequestValidatedFailed  = "Failed"
 )
-
-// Important: Run "make" to regenerate code after modifying this file
-type TemplateReference struct {
-	// Defines the "APIVersion" of the resource being referred to. Eg, "apps/v1".
-	// +kubebuilder:validation:Required
-	APIVersion *string `json:"apiVersion"`
-
-	// Defines the "Kind" of resource being referred to.
-	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=ExecAccessTemplate;AccessTemplate
-	Kind string `json:"kind"`
-
-	// Defines the "metadata.name" of the target resource.
-	// +kubebuilder:validation:Required
-	Name *string `json:"name"`
-}
 
 // Important: Run "make" to regenerate code after modifying this file
 type CrossVersionObjectReference struct {

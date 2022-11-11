@@ -2,8 +2,8 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/templates.wizardofoz.co_execaccesstemplates.yaml
-- bases/templates.wizardofoz.co_execaccessrequests.yaml
+- bases/crds.wizardofoz.co_execaccesstemplates.yaml
+- bases/crds.wizardofoz.co_execaccessrequests.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

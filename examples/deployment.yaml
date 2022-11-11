@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: example
 spec:
-  replicas: 1
+  replicas: 5
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -27,4 +27,4 @@ spec:
             memory: 128Mi
           requests:
             cpu: 10m
-            memory: 64Mi
+            memory: 10Mi

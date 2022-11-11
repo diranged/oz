@@ -22,16 +22,27 @@ import (
 
 // ExecAccessRequestSpec defines the desired state of ExecAccessRequest
 type ExecAccessRequestSpec struct {
-	// Configures which Template this `ExecAccessRequest` is for.
+	// Defines the name of the `ExecAcessTemplate` that should be used to grant access to the target
+	// resource.
 	//
 	// +kubebuilder:validation:Required
-	TemplateReference TemplateReference `json:"templateRef"`
+	TemplateName string `json:"templateName"`
+
+	// TargetPod is used to explicitly define the target pod that the Exec privilges should be
+	// granted to. If not supplied, then a random pod is chosen.
+	//
+	// TODO: Implement this
+	//
+	// TargetPod string `json:"targetPod,omitempty"`
 }
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest
 type ExecAccessRequestStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Current status of the Access Request
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+
+	// The Target Pod Name where access has been granted
+	PodName string `json:"podName,omitempty"`
 }
 
 //+kubebuilder:object:root=true
