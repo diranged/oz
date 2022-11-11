@@ -36,10 +36,31 @@ spec:
           spec:
             description: ExecAccessTemplateSpec defines the desired state of ExecAccessTemplate
             properties:
-              foo:
-                description: Foo is an example field of ExecAccessTemplate. Edit execaccesstemplate_types.go
-                  to remove/update
-                type: string
+              targetRef:
+                description: TargetRef provides a pattern for referencing objects
+                  from another API in a generic way.
+                properties:
+                  apiVersion:
+                    description: Defines the "APIVersion" of the resource being referred
+                      to. Eg, "apps/v1".
+                    type: string
+                  kind:
+                    description: Defines the "Kind" of resource being referred to.
+                    enum:
+                    - Deployment
+                    - DaemonSet
+                    - StatefulSet
+                    type: string
+                  name:
+                    description: Defines the "metadata.name" of the target resource.
+                    type: string
+                required:
+                - apiVersion
+                - kind
+                - name
+                type: object
+            required:
+            - targetRef
             type: object
           status:
             description: ExecAccessTemplateStatus defines the observed state of ExecAccessTemplate

@@ -5,26 +5,25 @@
 // TODO(user): An in-depth paragraph about your project and overview of use
 
 ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+
+You’ll need a Kubernetes cluster to run against. You can use
+[KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run
+against a remote cluster.
+
+**Note:** Your controller will automatically use the current context in your
+kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Running on the cluster
-1. Install Instances of Custom Resources:
-
-```sh
-kubectl apply -f config/samples/
-```
-
 2. Build and push your image to the location specified by `IMG`:
 	
 ```sh
-make docker-build docker-push IMG=<some-registry>/oz:tag
+make docker-build docker-load manifests deploy
 ```
 	
 3. Deploy the controller to the cluster with the image specified by `IMG`:
 
 ```sh
-make deploy IMG=<some-registry>/oz:tag
+make deploy
 ```
 
 ### Uninstall CRDs

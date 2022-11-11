@@ -1,0 +1,9 @@
+apiVersion: templates.wizardoz.co/v1alpha1
+kind: ExecAccessTemplate
+metadata:
+  name: deployment-example
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example
