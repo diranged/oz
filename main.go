@@ -57,6 +57,8 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+
+	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/#custom-zap-logger
 	opts := zap.Options{
 		Development: true,
 	}

@@ -27,12 +27,6 @@ type ExecAccessTemplateSpec struct {
 	TargetRef CrossVersionObjectReference `json:"targetRef"`
 }
 
-// ExecAccessTemplateStatus defines the observed state of ExecAccessTemplate
-type ExecAccessTemplateStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
@@ -41,8 +35,8 @@ type ExecAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ExecAccessTemplateSpec   `json:"spec,omitempty"`
-	Status ExecAccessTemplateStatus `json:"status,omitempty"`
+	Spec   ExecAccessTemplateSpec `json:"spec,omitempty"`
+	Status BaseTemplateStatus     `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
