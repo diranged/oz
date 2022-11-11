@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - templates.wizardoz.co
+  resources:
+  - execaccesstemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - templates.wizardoz.co
+  resources:
+  - execaccesstemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - templates.wizardoz.co
+  resources:
+  - execaccesstemplates/status
+  verbs:
+  - get
+  - patch
+  - update

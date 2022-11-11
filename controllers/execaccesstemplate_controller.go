@@ -33,9 +33,9 @@ type ExecAccessTemplateReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=templates.wizardoz.io,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=templates.wizardoz.io,resources=execaccesstemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=templates.wizardoz.io,resources=execaccesstemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=templates.wizardoz.co,resources=execaccesstemplates/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

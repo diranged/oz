@@ -77,7 +77,7 @@ func main() {
 		// speeds up voluntary leader transitions as the new leader don't have to wait
 		// LeaseDuration time first.
 		LeaderElection:                enableLeaderElection,
-		LeaderElectionID:              "9b20101a.wizardoz.io",
+		LeaderElectionID:              "9b20101a.wizardoz.co",
 		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
