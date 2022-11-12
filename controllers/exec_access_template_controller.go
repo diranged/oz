@@ -26,17 +26,17 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/go-logr/logr"
 )
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
 type ExecAccessTemplateReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	logger logr.Logger
+
+	// Pass in the common functions from our BaseController
+	*BaseController
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
@@ -58,8 +58,8 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	_ = log.FromContext(ctx)
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	r.logger = ctrllog.FromContext(ctx)
-	r.logger.Info("Starting reconcile loop")
+	logger := r.GetLogger(ctx)
+	logger.Info("Starting reconcile loop")
 
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
@@ -67,7 +67,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// and delete them as well.
 	tmpl, err := r.GetResource(ctx, req)
 	if err != nil {
-		r.logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
+		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
@@ -75,7 +75,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	r.Verify(ctx, tmpl)
 
 	if err := r.Status().Update(ctx, tmpl); err != nil {
-		r.logger.Error(err, "Failed to update ExecAccessTemplate status")
+		logger.Error(err, "Failed to update ExecAccessTemplate status")
 		return ctrl.Result{}, err
 	}
 

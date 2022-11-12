@@ -27,17 +27,17 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/go-logr/logr"
 )
 
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
 type ExecAccessRequestReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	logger logr.Logger
+
+	// Pass in the common functions from our BaseController
+	*BaseController
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
@@ -61,21 +61,21 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	_ = log.FromContext(ctx)
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	r.logger = ctrllog.FromContext(ctx)
-	r.logger.Info("Starting reconcile loop")
+	logger := r.GetLogger(ctx)
+	logger.Info("Starting reconcile loop")
 
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
 	request, err := r.GetResource(ctx, req)
 	if err != nil {
-		r.logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
+		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
 	// Verify the resource is valid
 	r.Verify(ctx, request)
 	if err := r.Status().Update(ctx, request); err != nil {
-		r.logger.Error(err, "Failed to update ExecAccessRequest status")
+		logger.Error(err, "Failed to update ExecAccessRequest status")
 		return ctrl.Result{}, err
 	}
 
@@ -83,7 +83,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// We never mutate the pod that this access request was originally created for. Otherwise, pick
 	// a Pod and populate that status field.
 	if request.Status.PodName != "" {
-		r.logger.Info(fmt.Sprintf("Pod already selected - %s", request.Status.PodName))
+		logger.Info(fmt.Sprintf("Pod already selected - %s", request.Status.PodName))
 	} else {
 		// If the user supplied their own Pod, then get that Pod back to make sure it exists. Otherwise,
 		// randomly select a pod.
@@ -92,7 +92,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if pod != nil {
 			request.Status.PodName = pod.Name
 			if err := r.Status().Update(ctx, request); err != nil {
-				r.logger.Error(err, "Failed to update ExecAccessRequest status")
+				logger.Error(err, "Failed to update ExecAccessRequest status")
 				return ctrl.Result{}, err
 			}
 
@@ -101,7 +101,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			// been modified, please apply your changes to the latest version and try again" which would
 			// re-trigger the reconciliation if we try to update it again in the following operations
 			if err := r.Get(ctx, req.NamespacedName, request); err != nil {
-				r.logger.Error(err, "Failed to re-fetch ExecAccessRequest")
+				logger.Error(err, "Failed to re-fetch ExecAccessRequest")
 				return ctrl.Result{}, err
 			}
 
@@ -152,6 +152,7 @@ func (r *ExecAccessRequestReconciler) Verify(ctx context.Context, req *api.ExecA
 }
 
 func (r *ExecAccessRequestReconciler) getTemplate(ctx context.Context, namespace string, name string) (*api.ExecAccessTemplate, error) {
+	logger := r.GetLogger(ctx)
 	found := &api.ExecAccessTemplate{}
 	err := r.Get(ctx, types.NamespacedName{
 		Name:      name,
@@ -159,7 +160,7 @@ func (r *ExecAccessRequestReconciler) getTemplate(ctx context.Context, namespace
 	}, found)
 
 	if err != nil {
-		r.logger.Info("Unable to find ExecAccessTemplate")
+		logger.Info("Unable to find ExecAccessTemplate")
 		return nil, err
 	}
 
