@@ -22,9 +22,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
@@ -32,11 +30,8 @@ import (
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
 type ExecAccessTemplateReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
-
 	// Pass in the common functions from our BaseController
-	*BaseController
+	*BaseReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete

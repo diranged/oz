@@ -88,17 +88,19 @@ func main() {
 	}
 
 	if err = (&controllers.ExecAccessTemplateReconciler{
-		Client:         mgr.GetClient(),
-		Scheme:         mgr.GetScheme(),
-		BaseController: &controllers.BaseController{},
+		BaseReconciler: &controllers.BaseReconciler{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessTemplate")
 		os.Exit(1)
 	}
 	if err = (&controllers.ExecAccessRequestReconciler{
-		Client:         mgr.GetClient(),
-		Scheme:         mgr.GetScheme(),
-		BaseController: &controllers.BaseController{},
+		BaseReconciler: &controllers.BaseReconciler{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")
 		os.Exit(1)
