@@ -35,6 +35,11 @@ spec:
           spec:
             description: ExecAccessRequestSpec defines the desired state of ExecAccessRequest
             properties:
+              targetPod:
+                description: "TargetPod is used to explicitly define the target pod
+                  that the Exec privilges should be granted to. If not supplied, then
+                  a random pod is chosen. \n TODO: Implement this"
+                type: string
               templateName:
                 description: Defines the name of the `ExecAcessTemplate` that should
                   be used to grant access to the target resource.

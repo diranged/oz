@@ -33,7 +33,7 @@ type ExecAccessRequestSpec struct {
 	//
 	// TODO: Implement this
 	//
-	// TargetPod string `json:"targetPod,omitempty"`
+	TargetPod string `json:"targetPod,omitempty"`
 }
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest

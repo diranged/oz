@@ -20,13 +20,16 @@ import (
 	"context"
 	"fmt"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	"github.com/diranged/oz/controllers/builders"
 )
 
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
@@ -61,110 +64,161 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
-	request, err := r.GetResource(ctx, req)
+	request, err := getExecAccessRequest(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
-		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
+		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
-	// Verify the resource is valid
-	r.Verify(ctx, request)
-	if err := r.Status().Update(ctx, request); err != nil {
-		logger.Error(err, "Failed to update ExecAccessRequest status")
+	// VERIFICATION: Make sure the Target TemplateName field points to a valid Template
+	tmpl, err := r.VerifyTargetTemplate(ctx, request)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// If this resource already has a status.podName field set, then we respect that no matter what.
-	// We never mutate the pod that this access request was originally created for. Otherwise, pick
-	// a Pod and populate that status field.
-	if request.Status.PodName != "" {
-		logger.Info(fmt.Sprintf("Pod already selected - %s", request.Status.PodName))
-	} else {
-		// If the user supplied their own Pod, then get that Pod back to make sure it exists. Otherwise,
-		// randomly select a pod.
-		tmpl, _ := r.getTemplate(ctx, req.Namespace, request.Spec.TemplateName)
-		pod, _ := tmpl.GetRandomPod(r.Client, ctx)
-		if pod != nil {
-			request.Status.PodName = pod.Name
-			if err := r.Status().Update(ctx, request); err != nil {
-				logger.Error(err, "Failed to update ExecAccessRequest status")
-				return ctrl.Result{}, err
-			}
-
-			// Let's re-fetch the Custom Resource after update the status so that we have the latest
-			// state of the resource on the cluster and we will avoid raise the issue "the object has
-			// been modified, please apply your changes to the latest version and try again" which would
-			// re-trigger the reconciliation if we try to update it again in the following operations
-			if err := r.Get(ctx, req.NamespacedName, request); err != nil {
-				logger.Error(err, "Failed to re-fetch ExecAccessRequest")
-				return ctrl.Result{}, err
-			}
-
-		}
+	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
+	builder := &builders.ExecAccessBuilder{
+		Client:   r.Client,
+		Ctx:      ctx,
+		Request:  request,
+		Template: tmpl,
 	}
+
+	// Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
+	// will simply return that value.
+	_, err = r.GetOrSetPodNameStatus(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
+	r.VerifyTargetPodExists(ctx, request, request.Status.PodName)
 
 	return ctrl.Result{}, nil
 }
 
-// GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func (r *ExecAccessRequestReconciler) GetResource(ctx context.Context, req ctrl.Request) (*api.ExecAccessRequest, error) {
-	tmpl := &api.ExecAccessRequest{}
-	err := r.Get(ctx, req.NamespacedName, tmpl)
-	if err != nil {
-		return nil, err
-	}
-	return tmpl, nil
-}
-
-// Verify provides validation for a ExecAccessRequest resource. If at any point the validation fails, the status
-// of that resource is updated to indicate that is degraded and cannot be used.
-func (r *ExecAccessRequestReconciler) Verify(ctx context.Context, req *api.ExecAccessRequest) error {
-	statusType := api.RequestValidated
-
-	if _, err := r.getTemplate(ctx, req.Namespace, req.Spec.TemplateName); err != nil {
-		meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
-			Type:               statusType,
-			Status:             metav1.ConditionUnknown,
-			ObservedGeneration: 0,
-			LastTransitionTime: metav1.Time{},
-			Reason:             string(metav1.StatusReasonNotFound),
-			Message:            fmt.Sprintf("Error: %s", err),
-		})
-		return err
-	}
-
-	meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
-		Type:               statusType,
-		Status:             metav1.ConditionTrue,
-		ObservedGeneration: 0,
-		LastTransitionTime: metav1.Time{},
-		Reason:             api.RequestValidatedSuccess,
-		Message:            "Validation successful",
-	})
-
-	return nil
-}
-
-func (r *ExecAccessRequestReconciler) getTemplate(ctx context.Context, namespace string, name string) (*api.ExecAccessTemplate, error) {
+func (r *ExecAccessRequestReconciler) VerifyTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
 	logger := r.GetLogger(ctx)
-	found := &api.ExecAccessTemplate{}
-	err := r.Get(ctx, types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}, found)
+	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
+	if tmpl, err := getExecAccessTemplate(r.Client, ctx, req.Spec.TemplateName, req.Namespace); err != nil {
+		return nil, r.UpdateCondition(
+			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
+			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
+	} else {
+		return tmpl, r.UpdateCondition(
+			ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
+			"Found Target Template")
+	}
+}
 
-	if err != nil {
-		logger.Info("Unable to find ExecAccessTemplate")
-		return nil, err
+func (r *ExecAccessRequestReconciler) GetOrSetPodNameStatus(builder *builders.ExecAccessBuilder) (string, error) {
+	logger := r.GetLogger(builder.Ctx)
+
+	// If this resource already has a status.podName field set, then we respect that no matter what.
+	// We never mutate the pod that this access request was originally created for. Otherwise, pick
+	// a Pod and populate that status field.
+	if builder.Request.Status.PodName != "" {
+		logger.Info(fmt.Sprintf("Pod already assigned - %s", builder.Request.Status.PodName))
+		return builder.Request.Status.PodName, nil
 	}
 
-	return found, nil
+	if podName, err := builder.GetTargetPodName(); err != nil {
+		return "", err
+	} else {
+		if podName != "" && podName != builder.Request.Status.PodName {
+			builder.Request.Status.PodName = podName
+			err = r.UpdateStatus(builder.Ctx, builder.Request)
+			logger.Info("New Pod Name", "PodName", builder.Request.Status.PodName)
+			return builder.Request.Status.PodName, err
+		}
+		return builder.Request.Status.PodName, nil
+	}
+}
+
+func (r *ExecAccessRequestReconciler) VerifyTargetPodExists(ctx context.Context, req *api.ExecAccessRequest, podName string) error {
+	logger := r.GetLogger(ctx)
+	logger.Info(fmt.Sprintf("Verifying that Pod %s still exists...", podName))
+
+	// Search for the Pod
+	pod := &v1.Pod{}
+	err := r.Get(ctx, types.NamespacedName{
+		Name:      podName,
+		Namespace: req.GetNamespace(),
+	}, pod)
+
+	// On any failure, update the pod status with the failure...
+	if err != nil {
+		logger.Info(fmt.Sprintf("Pod %s is missing. Updating status.", podName))
+		return r.UpdateCondition(
+			ctx, req,
+			ConditionTargetPodExists,
+			metav1.ConditionUnknown,
+			string(metav1.StatusReasonNotFound),
+			fmt.Sprintf("ERROR: %s", err),
+		)
+	}
+	return r.UpdateCondition(
+		ctx, req,
+		ConditionTargetPodExists,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		fmt.Sprintf("Found Pod (UID: %s)", pod.UID),
+	)
+}
+
+func (r *ExecAccessRequestReconciler) UpdateCondition(
+	ctx context.Context,
+	req *api.ExecAccessRequest,
+	conditionType RequestConditionTypes,
+	conditionStatus metav1.ConditionStatus,
+	reason string,
+	message string,
+) error {
+	meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
+		Type:               string(conditionType),
+		Status:             conditionStatus,
+		ObservedGeneration: req.GetGeneration(),
+		LastTransitionTime: metav1.Time{},
+		Reason:             reason,
+		Message:            message,
+	})
+	err := r.UpdateStatus(ctx, req)
+	return err
+
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	// Provide a searchable index in the cached kubernetes client for "metadata.name" - the pod name.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, fieldSelectorMetadataName, func(rawObj client.Object) []string {
+		// grab the job object, extract the name...
+		pod := rawObj.(*v1.Pod)
+		name := pod.GetName()
+		return []string{name}
+	}); err != nil {
+		return err
+	}
+
+	// Provide a searchable index in the cached kubernetes client for "status.phase", allowing us to
+	// search for Running Pods.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, fieldSelectorStatusPhase, func(rawObj client.Object) []string {
+		// grab the job object, extract the phase...
+		pod := rawObj.(*v1.Pod)
+		phase := string(pod.Status.Phase)
+		return []string{phase}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.ExecAccessRequest{}).
 		Complete(r)
+}
+
+// GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
+// returns back an error.
+func getExecAccessRequest(cl client.Client, ctx context.Context, name string, namespace string) (*api.ExecAccessRequest, error) {
+	tmpl := &api.ExecAccessRequest{}
+	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
+	return tmpl, err
 }

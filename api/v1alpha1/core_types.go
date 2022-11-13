@@ -20,10 +20,6 @@ const (
 
 	// TemplateAvailabilityStatusDegraded indicates that the Template is unable to be used
 	TemplateAvailabilityStatusDegraded = "Degraded"
-
-	RequestValidated        = "RequestValidated"
-	RequestValidatedSuccess = "Success"
-	RequestValidatedFailed  = "Failed"
 )
 
 // Important: Run "make" to regenerate code after modifying this file

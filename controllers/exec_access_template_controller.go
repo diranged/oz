@@ -22,15 +22,17 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	"github.com/diranged/oz/controllers/builders"
 )
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
 type ExecAccessTemplateReconciler struct {
-	// Pass in the common functions from our BaseController
 	*BaseReconciler
 }
 
@@ -50,7 +52,8 @@ type ExecAccessTemplateReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
+	log.Info("Starting reconcile loop")
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 	logger := r.GetLogger(ctx)
@@ -60,64 +63,68 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	//
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
-	tmpl, err := r.GetResource(ctx, req)
+	tmpl, err := getExecAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
-	// Verify the resource is valid
-	r.Verify(ctx, tmpl)
+	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
+	builder := builders.ExecAccessBuilder{
+		Client:   r.Client,
+		Ctx:      ctx,
+		Template: tmpl,
+	}
 
-	if err := r.Status().Update(ctx, tmpl); err != nil {
-		logger.Error(err, "Failed to update ExecAccessTemplate status")
+	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
+	err = r.VerifyTargetRef(builder)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
-
 }
 
-// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func (r *ExecAccessTemplateReconciler) GetResource(ctx context.Context, req ctrl.Request) (*api.ExecAccessTemplate, error) {
-	tmpl := &api.ExecAccessTemplate{}
-	err := r.Get(ctx, req.NamespacedName, tmpl)
+func (r *ExecAccessTemplateReconciler) VerifyTargetRef(builder builders.ExecAccessBuilder) error {
+	targetRef := builder.Template.Spec.TargetRef
+	var err error
+	if targetRef.Kind == api.DeploymentController {
+		_, err = builder.GetDeployment()
+	} else if targetRef.Kind == api.DaemonSetController {
+		_, err = builder.GetDaemonSet()
+	} else if targetRef.Kind == api.StatefulSetController {
+		_, err = builder.GetStatefulSet()
+	}
+
 	if err != nil {
-		return nil, err
+		return r.UpdateCondition(
+			builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionFalse,
+			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
-	return tmpl, nil
+
+	return r.UpdateCondition(
+		builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionTrue,
+		string(metav1.StatusSuccess), "Success")
 }
 
-// Verify provides validation for a ExecAccessTemplate resource. If at any point the validation fails, the status
-// of that resource is updated to indicate that is degraded and cannot be used.
-func (r *ExecAccessTemplateReconciler) Verify(ctx context.Context, tmpl *api.ExecAccessTemplate) error {
-	statusType := api.TemplateAvailability
-
-	if tmpl.Spec.TargetRef.Kind == api.DeploymentController {
-		if _, err := tmpl.GetDeployment(r.Client, ctx); err != nil {
-			meta.SetStatusCondition(&tmpl.Status.Conditions, metav1.Condition{
-				Type:               statusType,
-				Status:             metav1.ConditionUnknown,
-				ObservedGeneration: 0,
-				LastTransitionTime: metav1.Time{},
-				Reason:             string(metav1.StatusReasonNotFound),
-				Message:            fmt.Sprintf("Error: %s", err),
-			})
-			return err
-		}
-	}
-
-	meta.SetStatusCondition(&tmpl.Status.Conditions, metav1.Condition{
-		Type:               statusType,
-		Status:             metav1.ConditionTrue,
-		ObservedGeneration: 0,
+func (r *ExecAccessTemplateReconciler) UpdateCondition(
+	ctx context.Context,
+	req *api.ExecAccessTemplate,
+	conditionType RequestConditionTypes,
+	conditionStatus metav1.ConditionStatus,
+	reason string,
+	message string,
+) error {
+	meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
+		Type:               string(conditionType),
+		Status:             conditionStatus,
+		ObservedGeneration: req.GetGeneration(),
 		LastTransitionTime: metav1.Time{},
-		Reason:             api.TemplateAvailabilityStatusAvailable,
-		Message:            "Verification successful",
+		Reason:             reason,
+		Message:            message,
 	})
-
-	return nil
+	err := r.UpdateStatus(ctx, req)
+	return err
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -125,4 +132,15 @@ func (r *ExecAccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.ExecAccessTemplate{}).
 		Complete(r)
+}
+
+// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
+// returns back an error.
+func getExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*api.ExecAccessTemplate, error) {
+	tmpl := &api.ExecAccessTemplate{}
+	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
+	if err != nil {
+		return nil, err
+	}
+	return tmpl, nil
 }
