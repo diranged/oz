@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -53,7 +54,8 @@ type ExecAccessRequestReconciler struct {
 // pods to have Exec/Debug privileges on pods, but we want them to be able to grant those privileges
 // to users.
 //
-//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete;escalate
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete;bind;escalate
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -109,6 +111,15 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
+	// RBAC: Make sure the RoleBinding exists
+	err = r.CreateOrUpdateRoleBindingStatus(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Exit Reconciliation Loop
+	logger.Info("Ending reconcile loop")
 	return ctrl.Result{}, nil
 }
 
@@ -155,9 +166,18 @@ func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders
 
 	// Get a representation of the role that we want.
 	role, _ := builder.GenerateAccessRole()
+	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
+
+	// TEMP
+	logger.Info(fmt.Sprintf("ROLE: %s", role.Rules[0].String()))
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-	op, err := controllerutil.CreateOrUpdate(context.TODO(), builder.Client, role, func() error {
+	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRole, func() error {
+		//
+		emptyRole = role
+		//emptyRole.ObjectMeta = role.ObjectMeta
+		//emptyRole.Rules = role.Rules
+		//emptyRole.OwnerReferences = role.OwnerReferences
 		return nil
 	})
 
@@ -191,6 +211,52 @@ func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders
 	}
 
 	logger.Info(fmt.Sprintf("Role %s successfully reconciled", role.Name), "operation", op)
+	return nil
+}
+
+func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleBindingStatus(builder *builders.ExecAccessBuilder) error {
+	logger := r.GetLogger(builder.Ctx)
+
+	// Get a representation of the role that we want.
+	rb, _ := builder.GenerateAccessRoleBinding()
+	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
+
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
+	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRb, func() error {
+		emptyRb = rb
+		return nil
+	})
+
+	// If there was an error, log it, and update the conditions appropriately
+	if err != nil {
+		logger.Error(err, fmt.Sprintf("Failure reconciling rolebinding %s", rb.Name), "operation", op)
+		if err := r.UpdateCondition(
+			builder.Ctx, builder.Request,
+			ConditionRoleBindingCreated,
+			metav1.ConditionFalse,
+			string(metav1.StatusFailure),
+			fmt.Sprintf("ERROR: %s", err)); err != nil {
+			return err
+		}
+	}
+
+	// Success, update the object condition
+	if err := r.UpdateCondition(
+		builder.Ctx, builder.Request,
+		ConditionRoleBindingCreated,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		"RoleBinding successfully reconciled"); err != nil {
+		return err
+	}
+
+	// Update the request's RoleName field
+	builder.Request.Status.RoleBindingName = rb.Name
+	if err = r.UpdateStatus(builder.Ctx, builder.Request); err != nil {
+		return err
+	}
+
+	logger.Info(fmt.Sprintf("RoleBinding %s successfully reconciled", rb.Name), "operation", op)
 	return nil
 }
 

@@ -210,9 +210,15 @@ func (b *ExecAccessBuilder) GenerateAccessRole() (*rbacv1.Role, error) {
 	role.Rules = []rbacv1.PolicyRule{
 		{
 			APIGroups:     []string{corev1.SchemeGroupVersion.Group},
-			Resources:     []string{corev1.Pod{}.Kind},
+			Resources:     []string{"pods"},
 			ResourceNames: []string{b.Request.Status.PodName},
-			Verbs:         []string{"get", "list", "watch", "exec"},
+			Verbs:         []string{"get", "list", "watch"},
+		},
+		{
+			APIGroups:     []string{corev1.SchemeGroupVersion.Group},
+			Resources:     []string{"pods/exec"},
+			ResourceNames: []string{b.Request.Status.PodName},
+			Verbs:         []string{"create", "update", "delete", "get", "list"},
 		},
 	}
 
@@ -223,4 +229,32 @@ func (b *ExecAccessBuilder) GenerateAccessRole() (*rbacv1.Role, error) {
 	}
 
 	return role, nil
+}
+
+func (b *ExecAccessBuilder) GenerateAccessRoleBinding() (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+
+	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
+	rb.Namespace = b.Template.Namespace
+	rb.RoleRef = rbacv1.RoleRef{
+		APIGroup: rbacv1.SchemeGroupVersion.Group,
+		Kind:     "Role",
+		Name:     rb.Name,
+	}
+	rb.Subjects = []rbacv1.Subject{}
+	for _, group := range b.Template.Spec.AllowedGroups {
+		rb.Subjects = append(rb.Subjects, rbacv1.Subject{
+			APIGroup: rbacv1.SchemeGroupVersion.Group,
+			Kind:     rbacv1.GroupKind,
+			Name:     group,
+		})
+	}
+
+	// Set the ownerRef for the Deployment
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	if err := ctrl.SetControllerReference(b.Request, rb, b.Scheme); err != nil {
+		return nil, err
+	}
+
+	return rb, nil
 }
