@@ -73,6 +73,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	builder := builders.ExecAccessBuilder{
 		Client:   r.Client,
 		Ctx:      ctx,
+		Scheme:   r.Scheme,
 		Template: tmpl,
 	}
 
@@ -81,6 +82,9 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
+	// TODO:
+	// VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	return ctrl.Result{}, nil
 }

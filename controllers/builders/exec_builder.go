@@ -10,9 +10,12 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -20,6 +23,7 @@ import (
 type ExecAccessBuilder struct {
 	Client client.Client
 	Ctx    context.Context
+	Scheme *runtime.Scheme
 
 	Request  *api.ExecAccessRequest
 	Template *api.ExecAccessTemplate
@@ -173,14 +177,6 @@ func (b *ExecAccessBuilder) GetSpecificPod() (*v1.Pod, error) {
 func (b *ExecAccessBuilder) GetTargetPodName() (string, error) {
 	logger := ctrllog.FromContext(b.Ctx)
 
-	// If this resource already has a status.podName field set, then we respect that no matter what.
-	// We never mutate the pod that this access request was originally created for. Otherwise, pick
-	// a Pod and populate that status field.
-	if b.Request.Status.PodName != "" {
-		logger.Info(fmt.Sprintf("Pod already assigned - %s", b.Request.Status.PodName))
-		return b.Request.Status.PodName, nil
-	}
-
 	// If the user supplied their own Pod, then get that Pod back to make sure it exists. Otherwise,
 	// randomly select a pod.
 	if b.Request.Spec.TargetPod == "" {
@@ -201,4 +197,30 @@ func (b *ExecAccessBuilder) GetTargetPodName() (string, error) {
 
 		return pod.Name, nil
 	}
+
+}
+
+func (b *ExecAccessBuilder) GenerateAccessRole() (*rbacv1.Role, error) {
+	role := &rbacv1.Role{
+		TypeMeta: metav1.TypeMeta{APIVersion: rbacv1.SchemeGroupVersion.String(), Kind: "Role"},
+	}
+
+	role.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
+	role.Namespace = b.Template.Namespace
+	role.Rules = []rbacv1.PolicyRule{
+		{
+			APIGroups:     []string{corev1.SchemeGroupVersion.Group},
+			Resources:     []string{corev1.Pod{}.Kind},
+			ResourceNames: []string{b.Request.Status.PodName},
+			Verbs:         []string{"get", "list", "watch", "exec"},
+		},
+	}
+
+	// Set the ownerRef for the Deployment
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	if err := ctrl.SetControllerReference(b.Request, role, b.Scheme); err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }

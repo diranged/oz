@@ -31,6 +31,12 @@ type ExecAccessTemplateSpec struct {
 	// TargetRef provides a pattern for referencing objects from another API in a generic way.
 	// +kubebuilder:validation:Required
 	TargetRef CrossVersionObjectReference `json:"targetRef"`
+
+	// AllowedGroups lists out the groups (in string name form) that will be allowed to Exec into
+	// the target pod.
+	//
+	// +kubebuilder:validation:Required
+	AllowedGroups []string `json:"allowedGroups"`
 }
 
 //+kubebuilder:object:root=true

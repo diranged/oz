@@ -17,6 +17,10 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -43,6 +47,12 @@ type ExecAccessRequestStatus struct {
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
+
+	// The name of the Role created for this temporary access request
+	RoleName string `json:"roleName,omitempty"`
+
+	// The name of th RoleBinding created for this temporary access request
+	RoleBindingName string `json:"roleBindingName,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -55,6 +65,12 @@ type ExecAccessRequest struct {
 
 	Spec   ExecAccessRequestSpec   `json:"spec,omitempty"`
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
+}
+
+func (r *ExecAccessRequest) GetUniqueId() string {
+	idString := fmt.Sprintf("%s-%s-%s", r.Name, r.Namespace, r.CreationTimestamp)
+	hash := md5.Sum([]byte(idString))
+	return hex.EncodeToString(hash[:])[0:10]
 }
 
 //+kubebuilder:object:root=true

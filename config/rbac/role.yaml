@@ -91,6 +91,7 @@ rules:
   verbs:
   - create
   - delete
+  - escalate
   - get
   - list
   - patch

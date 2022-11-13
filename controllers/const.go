@@ -11,6 +11,7 @@ const (
 	// Access Requests
 	ConditionTargetTemplateExists RequestConditionTypes = "TargetTemplateExists"
 	ConditionTargetPodExists      RequestConditionTypes = "TargetPodExists"
+	ConditionRoleCreated          RequestConditionTypes = "RoleCreated"
 
 	// Access Templates
 	ConditionTargetRefExists RequestConditionTypes = "TargetRefExists"

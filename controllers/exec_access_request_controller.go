@@ -26,6 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
@@ -44,7 +46,14 @@ type ExecAccessRequestReconciler struct {
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execacesstemplates,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
-//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
+
+// https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb
+//
+// We leverage the escalate verb here because we don't specifically want or need the Oz controller
+// pods to have Exec/Debug privileges on pods, but we want them to be able to grant those privileges
+// to users.
+//
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete;escalate
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -80,6 +89,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	builder := &builders.ExecAccessBuilder{
 		Client:   r.Client,
 		Ctx:      ctx,
+		Scheme:   r.Scheme,
 		Request:  request,
 		Template: tmpl,
 	}
@@ -94,6 +104,11 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
 	r.VerifyTargetPodExists(ctx, request, request.Status.PodName)
 
+	// RBAC: Make sure the Role exists
+	err = r.CreateOrUpdateRoleStatus(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -128,11 +143,55 @@ func (r *ExecAccessRequestReconciler) GetOrSetPodNameStatus(builder *builders.Ex
 		if podName != "" && podName != builder.Request.Status.PodName {
 			builder.Request.Status.PodName = podName
 			err = r.UpdateStatus(builder.Ctx, builder.Request)
-			logger.Info("New Pod Name", "PodName", builder.Request.Status.PodName)
+			logger.Info(fmt.Sprintf("Target Pod Name %s", builder.Request.Status.PodName))
 			return builder.Request.Status.PodName, err
 		}
 		return builder.Request.Status.PodName, nil
 	}
+}
+
+func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders.ExecAccessBuilder) error {
+	logger := r.GetLogger(builder.Ctx)
+
+	// Get a representation of the role that we want.
+	role, _ := builder.GenerateAccessRole()
+
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
+	op, err := controllerutil.CreateOrUpdate(context.TODO(), builder.Client, role, func() error {
+		return nil
+	})
+
+	// If there was an error, log it, and update the conditions appropriately
+	if err != nil {
+		logger.Error(err, fmt.Sprintf("Failure reconciling role %s", role.Name), "operation", op)
+		if err := r.UpdateCondition(
+			builder.Ctx, builder.Request,
+			ConditionRoleCreated,
+			metav1.ConditionFalse,
+			string(metav1.StatusFailure),
+			fmt.Sprintf("ERROR: %s", err)); err != nil {
+			return err
+		}
+	}
+
+	// Success, update the object condition
+	if err := r.UpdateCondition(
+		builder.Ctx, builder.Request,
+		ConditionRoleCreated,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		"Role successfully reconciled"); err != nil {
+		return err
+	}
+
+	// Update the request's RoleName field
+	builder.Request.Status.RoleName = role.Name
+	if err = r.UpdateStatus(builder.Ctx, builder.Request); err != nil {
+		return err
+	}
+
+	logger.Info(fmt.Sprintf("Role %s successfully reconciled", role.Name), "operation", op)
+	return nil
 }
 
 func (r *ExecAccessRequestReconciler) VerifyTargetPodExists(ctx context.Context, req *api.ExecAccessRequest, podName string) error {
