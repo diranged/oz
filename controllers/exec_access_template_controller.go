@@ -70,7 +70,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := builders.ExecAccessBuilder{
+	builder := &builders.ExecAccessBuilder{
 		Client:   r.Client,
 		Ctx:      ctx,
 		Scheme:   r.Scheme,
@@ -83,13 +83,46 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, err
 	}
 
+	// VERIFICATION: Make sure the DefaultDuration and MaxDuration settings are valid
+	err = r.VerifyMiscSettings(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// TODO:
 	// VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	return ctrl.Result{}, nil
 }
 
-func (r *ExecAccessTemplateReconciler) VerifyTargetRef(builder builders.ExecAccessBuilder) error {
+func (r *ExecAccessTemplateReconciler) VerifyMiscSettings(builder *builders.ExecAccessBuilder) error {
+	// Verify that MaxDuration is greater than DesiredDuration.
+	defaultDuration, err := builder.Template.GetDefaultDuration()
+	if err != nil {
+		return r.UpdateCondition(
+			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
+	}
+	maxDuration, err := builder.Template.GetMaxDuration()
+	if err != nil {
+		return r.UpdateCondition(
+			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.maxDuration: %s", err))
+	}
+	if defaultDuration > maxDuration {
+		return r.UpdateCondition(
+			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+			string(metav1.StatusReasonNotAcceptable),
+			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
+	} else {
+		return r.UpdateCondition(
+			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionTrue,
+			string(metav1.StatusSuccess),
+			"spec.defaultDuration and spec.maxDuration valid")
+	}
+}
+
+func (r *ExecAccessTemplateReconciler) VerifyTargetRef(builder *builders.ExecAccessBuilder) error {
 	targetRef := builder.Template.Spec.TargetRef
 	var err error
 	if targetRef.Kind == api.DeploymentController {

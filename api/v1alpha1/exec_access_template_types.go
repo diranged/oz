@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,6 +39,22 @@ type ExecAccessTemplateSpec struct {
 	//
 	// +kubebuilder:validation:Required
 	AllowedGroups []string `json:"allowedGroups"`
+
+	// DefaultDuration sets the default time that an `ExecAccessRequest` resource will live. Must
+	// be set below MaxDuration.
+	//
+	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+	//
+	// +kubebuilder:default:="1h"
+	DefaultDuration string `json:"defaultDuration"`
+
+	// MaxDuration sets the maximum duration that an `ExecAccessRequest` resource can request to
+	// stick around.
+	//
+	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+	//
+	// +kubebuilder:default:="24h"
+	MaxDuration string `json:"maxDuration"`
 }
 
 //+kubebuilder:object:root=true
@@ -58,6 +76,14 @@ type ExecAccessTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ExecAccessTemplate `json:"items"`
+}
+
+func (t *ExecAccessTemplate) GetDefaultDuration() (time.Duration, error) {
+	return time.ParseDuration(t.Spec.DefaultDuration)
+}
+
+func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
+	return time.ParseDuration(t.Spec.MaxDuration)
 }
 
 func init() {

@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -106,6 +107,12 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
 	r.VerifyTargetPodExists(ctx, request, request.Status.PodName)
 
+	// VERIFICATION: Verifies the requested duration
+	err = r.VerifyDuration(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// RBAC: Make sure the Role exists
 	err = r.CreateOrUpdateRoleStatus(builder)
 	if err != nil {
@@ -114,6 +121,12 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// RBAC: Make sure the RoleBinding exists
 	err = r.CreateOrUpdateRoleBindingStatus(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// FINAL: Handle whether or not the access is expired at this point! If so, delete it.
+	err = r.HandleAccessExpired(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -131,10 +144,117 @@ func (r *ExecAccessRequestReconciler) VerifyTargetTemplate(ctx context.Context, 
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	} else {
+		// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+		//
+		// Ensure that if the TargetTemplate is ever deleted, that all of the AccessRequests are
+		// also deleted, which will cascade down and delete any roles/bindings/etc.
+		if err := ctrl.SetControllerReference(tmpl, req, r.Scheme); err != nil {
+			return nil, err
+		}
+
 		return tmpl, r.UpdateCondition(
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
 			"Found Target Template")
 	}
+}
+
+func (r *ExecAccessRequestReconciler) VerifyDuration(builder *builders.ExecAccessBuilder) error {
+	var err error
+	logger := r.GetLogger(builder.Ctx)
+	logger.Info("Beginning access request duration verification")
+
+	// Step one - verify the inputs themselves. If the user supplied invalid inputs, or the template has any
+	// invalid inputs, we bail out and update the conditions as such. This is to prevent escalated privilegess
+	// from lasting indefinitely.
+	var requestedDuration time.Duration
+	if builder.Request.Spec.Duration != "" {
+		requestedDuration, err = builder.Request.GetDuration()
+		if err != nil {
+			r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
+				metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("spec.duration error: %s", err))
+			return err
+		}
+	}
+	templateDefaultDuration, err := builder.Template.GetDefaultDuration()
+	if err != nil {
+		r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
+			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err))
+		return err
+	}
+
+	templateMaxDuration, err := builder.Template.GetMaxDuration()
+	if err != nil {
+		r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
+			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.maxDuration error: %s", err))
+		return err
+	}
+
+	// Now determine which duration is the one we'll use
+	var accessDuration time.Duration
+	var reasonStr string
+
+	if requestedDuration == 0 {
+		// If no requested duration supplied, then default to the template's default duration
+		reasonStr = fmt.Sprintf("Access request duration defaulting to template duration time (%s)", templateDefaultDuration.String())
+		accessDuration = templateDefaultDuration
+	} else if requestedDuration <= templateMaxDuration {
+		// If the requested duration is too long, use the template max
+		reasonStr = fmt.Sprintf("Access requested custom duration (%s)", requestedDuration.String())
+		accessDuration = requestedDuration
+	} else {
+		// Finally, if it's valid, use the supplied duration
+		reasonStr = fmt.Sprintf("Access requested duration (%s) larger than template maximum duration (%s)", requestedDuration.String(), templateMaxDuration.String())
+		accessDuration = templateMaxDuration
+	}
+
+	// Log out the decision, and update the condition
+	logger.Info(reasonStr)
+
+	// TESTING: Trying to make sure the below updatecondition doesn't fail
+	r.Refetch(builder.Ctx, builder.Request)
+
+	err = r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
+		metav1.ConditionTrue, string(metav1.StatusSuccess), reasonStr)
+	if err != nil {
+		return err
+	}
+
+	// Determine how long the AccessRequest has been around, and compare that to the accessDuration.
+	now := time.Now()
+	creation := builder.Request.CreationTimestamp.Time
+	accessUptime := now.Sub(creation)
+
+	// If the accessUptime is greater than the accessDuration, kill it.
+	if accessUptime > accessDuration {
+		return r.UpdateCondition(builder.Ctx, builder.Request, ConditionAccessStillValid,
+			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
+	}
+
+	return r.UpdateCondition(builder.Ctx, builder.Request, ConditionAccessStillValid,
+		metav1.ConditionTrue, string(metav1.StatusReasonTimeout), "Access still valid")
+}
+
+func (r *ExecAccessRequestReconciler) HandleAccessExpired(builder *builders.ExecAccessBuilder) error {
+	logger := r.GetLogger(builder.Ctx)
+	logger.Info("Checking if access has expired or not...")
+	cond := meta.FindStatusCondition(builder.Request.Status.Conditions, string(ConditionAccessStillValid))
+	if cond == nil {
+		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid))
+		return nil
+	}
+
+	if cond.Status == metav1.ConditionFalse {
+		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", ConditionAccessStillValid, cond.Status))
+		return r.DeleteResource(builder)
+	}
+
+	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", ConditionAccessStillValid, cond.Status))
+
+	return nil
+}
+
+func (r *ExecAccessRequestReconciler) DeleteResource(builder *builders.ExecAccessBuilder) error {
+	return r.Delete(builder.Ctx, builder.Request)
 }
 
 func (r *ExecAccessRequestReconciler) GetOrSetPodNameStatus(builder *builders.ExecAccessBuilder) (string, error) {
@@ -168,16 +288,11 @@ func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders
 	role, _ := builder.GenerateAccessRole()
 	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
 
-	// TEMP
-	logger.Info(fmt.Sprintf("ROLE: %s", role.Rules[0].String()))
-
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
 	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRole, func() error {
-		//
-		emptyRole = role
-		//emptyRole.ObjectMeta = role.ObjectMeta
-		//emptyRole.Rules = role.Rules
-		//emptyRole.OwnerReferences = role.OwnerReferences
+		emptyRole.ObjectMeta = role.ObjectMeta
+		emptyRole.Rules = role.Rules
+		emptyRole.OwnerReferences = role.OwnerReferences
 		return nil
 	})
 
@@ -223,7 +338,10 @@ func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleBindingStatus(builder *b
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
 	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRb, func() error {
-		emptyRb = rb
+		emptyRb.ObjectMeta = rb.ObjectMeta
+		emptyRb.RoleRef = rb.RoleRef
+		emptyRb.Subjects = rb.Subjects
+		emptyRb.OwnerReferences = rb.OwnerReferences
 		return nil
 	})
 

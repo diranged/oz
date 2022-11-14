@@ -35,10 +35,18 @@ spec:
           spec:
             description: ExecAccessRequestSpec defines the desired state of ExecAccessRequest
             properties:
+              duration:
+                description: "Duration sets the length of time from the `spec.creationTimestamp`
+                  that this object will live. After the time has expired, the resouce
+                  will be automatically deleted on the next reconcilliation loop.
+                  \n If omitted, the spec.defautlDuration from the ExecAccessTemplate
+                  is used. \n Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\",
+                  \"s\", \"m\", \"h\"."
+                type: string
               targetPod:
-                description: "TargetPod is used to explicitly define the target pod
+                description: TargetPod is used to explicitly define the target pod
                   that the Exec privilges should be granted to. If not supplied, then
-                  a random pod is chosen. \n TODO: Implement this"
+                  a random pod is chosen.
                 type: string
               templateName:
                 description: Defines the name of the `ExecAcessTemplate` that should

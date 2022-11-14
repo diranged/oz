@@ -42,6 +42,18 @@ spec:
                 items:
                   type: string
                 type: array
+              defaultDuration:
+                default: 1h
+                description: "DefaultDuration sets the default time that an `ExecAccessRequest`
+                  resource will live. Must be set below MaxDuration. \n Valid time
+                  units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
+                type: string
+              maxDuration:
+                default: 24h
+                description: "MaxDuration sets the maximum duration that an `ExecAccessRequest`
+                  resource can request to stick around. \n Valid time units are \"ns\",
+                  \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
+                type: string
               targetRef:
                 description: TargetRef provides a pattern for referencing objects
                   from another API in a generic way.
@@ -67,6 +79,8 @@ spec:
                 type: object
             required:
             - allowedGroups
+            - defaultDuration
+            - maxDuration
             - targetRef
             type: object
           status:

@@ -20,6 +20,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -34,10 +35,15 @@ type ExecAccessRequestSpec struct {
 
 	// TargetPod is used to explicitly define the target pod that the Exec privilges should be
 	// granted to. If not supplied, then a random pod is chosen.
-	//
-	// TODO: Implement this
-	//
 	TargetPod string `json:"targetPod,omitempty"`
+
+	// Duration sets the length of time from the `spec.creationTimestamp` that this object will live. After the
+	// time has expired, the resouce will be automatically deleted on the next reconcilliation loop.
+	//
+	// If omitted, the spec.defautlDuration from the ExecAccessTemplate is used.
+	//
+	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+	Duration string `json:"duration,omitempty"`
 }
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest
@@ -71,6 +77,10 @@ func (r *ExecAccessRequest) GetUniqueId() string {
 	idString := fmt.Sprintf("%s-%s-%s", r.Name, r.Namespace, r.CreationTimestamp)
 	hash := md5.Sum([]byte(idString))
 	return hex.EncodeToString(hash[:])[0:10]
+}
+
+func (t *ExecAccessRequest) GetDuration() (time.Duration, error) {
+	return time.ParseDuration(t.Spec.Duration)
 }
 
 //+kubebuilder:object:root=true

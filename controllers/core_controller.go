@@ -25,13 +25,10 @@ type BaseReconciler struct {
 }
 
 func (b *BaseReconciler) Refetch(ctx context.Context, obj client.Object) error {
-	logger := b.GetLogger(ctx)
-	logger.Info("BEFORE", "obj", obj.GetGeneration())
 	err := b.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
 	}, obj)
-	logger.Info("AFTER", "obj", obj.GetGeneration())
 	return err
 }
 
@@ -45,7 +42,7 @@ func (b *BaseReconciler) UpdateStatus(ctx context.Context, obj client.Object) er
 	}
 
 	// Refetch the object
-	// b.Refetch(ctx, obj)
+	b.Refetch(ctx, obj)
 
 	return nil
 }

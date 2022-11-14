@@ -201,21 +201,19 @@ func (b *ExecAccessBuilder) GetTargetPodName() (string, error) {
 }
 
 func (b *ExecAccessBuilder) GenerateAccessRole() (*rbacv1.Role, error) {
-	role := &rbacv1.Role{
-		TypeMeta: metav1.TypeMeta{APIVersion: rbacv1.SchemeGroupVersion.String(), Kind: "Role"},
-	}
+	role := &rbacv1.Role{}
 
 	role.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
 	role.Namespace = b.Template.Namespace
 	role.Rules = []rbacv1.PolicyRule{
 		{
-			APIGroups:     []string{corev1.SchemeGroupVersion.Group},
+			APIGroups:     []string{corev1.GroupName},
 			Resources:     []string{"pods"},
 			ResourceNames: []string{b.Request.Status.PodName},
 			Verbs:         []string{"get", "list", "watch"},
 		},
 		{
-			APIGroups:     []string{corev1.SchemeGroupVersion.Group},
+			APIGroups:     []string{corev1.GroupName},
 			Resources:     []string{"pods/exec"},
 			ResourceNames: []string{b.Request.Status.PodName},
 			Verbs:         []string{"create", "update", "delete", "get", "list"},
@@ -237,7 +235,7 @@ func (b *ExecAccessBuilder) GenerateAccessRoleBinding() (*rbacv1.RoleBinding, er
 	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
 	rb.Namespace = b.Template.Namespace
 	rb.RoleRef = rbacv1.RoleRef{
-		APIGroup: rbacv1.SchemeGroupVersion.Group,
+		APIGroup: rbacv1.GroupName,
 		Kind:     "Role",
 		Name:     rb.Name,
 	}
