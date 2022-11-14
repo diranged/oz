@@ -109,8 +109,30 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet ## Build manager binary.
+build: generate fmt vet cli ## Build manager binary.
 	go build -o bin/manager main.go
+
+##@ Build CLI
+
+GOBUILD := time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
+        ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
+        -o "${OUT}" \
+        "${OPTIMIZATION_FLAGS[@]}" \
+        -pkgdir="${GOPKG}/${BUILD_GOOS}_${BUILD_GOARCH}" \
+        -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}" "${@}"
+
+.PHONY: cli
+cli: outputs/ozctl-osx outputs/ozctl-osx-arm64
+
+outputs/ozctl-osx: ozctl controllers api
+	GOOS=darwin GOARCH=amd64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
+
+outputs/ozctl-osx-arm64: ozctl controllers api
+	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
+
+.PHONY: clean
+clean:
+	rm -rf outputs/*
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.

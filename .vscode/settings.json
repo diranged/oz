@@ -1,3 +1,5 @@
 {
     "markdown.extension.preview.autoShowPreviewToSide": true,
+    // https://github.com/golang/vscode-go/wiki/features#inlay-hints
+    "editor.inlayHints.enabled": "on",
 }

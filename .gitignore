@@ -9,6 +9,9 @@ bin
 testbin/*
 Dockerfile.cross
 
+# Binary outputs
+outputs/*
+
 # Test binary, build with `go test -c`
 *.test
 

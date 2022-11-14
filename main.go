@@ -50,13 +50,18 @@ func init() {
 
 func main() {
 	var metricsAddr string
-	var enableLeaderElection bool
 	var probeAddr string
+	var enableLeaderElection bool
+	var requestReconciliationInterval int
+	// Boilerplate
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+
+	// Custom
+	flag.IntVar(&requestReconciliationInterval, "request-reconciliation-interval", 5, "Access Request reconciliation interval (in minutes)")
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/#custom-zap-logger
 	opts := zap.Options{
@@ -103,6 +108,7 @@ func main() {
 			Scheme:    mgr.GetScheme(),
 			ApiReader: mgr.GetAPIReader(),
 		},
+		ReconcililationInterval: requestReconciliationInterval,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")
 		os.Exit(1)

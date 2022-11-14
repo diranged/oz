@@ -36,10 +36,18 @@ import (
 	"github.com/diranged/oz/controllers/builders"
 )
 
+const (
+	DEFAULT_RECONCILIATION_INTERVAL int = 5
+)
+
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
 type ExecAccessRequestReconciler struct {
 	// Pass in the common functions from our BaseController
 	*BaseReconciler
+
+	// ReconciliationInterval is the time to wait inbetween re-reconciling ExecAccessRequests. This primarily matters
+	// for setting the maximum time after an AccessRequest has expired that it will be purged by the controller.
+	ReconcililationInterval int
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
@@ -73,10 +81,14 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 	logger := r.GetLogger(ctx)
 	logger.Info("Starting reconcile loop")
+	if r.ReconcililationInterval == 0 {
+		r.ReconcililationInterval = DEFAULT_RECONCILIATION_INTERVAL
+	}
 
-	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
-	// and delete them as well.
-	request, err := getExecAccessRequest(r.Client, ctx, req.Name, req.Namespace)
+	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
+	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
+	// worry about it.
+	request, err := getExecAccessRequest(r.ApiReader, ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
@@ -133,7 +145,8 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// Exit Reconciliation Loop
 	logger.Info("Ending reconcile loop")
-	return ctrl.Result{RequeueAfter: time.Duration(1 * time.Minute)}, nil
+
+	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
 }
 
 func (r *ExecAccessRequestReconciler) VerifyTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
@@ -230,8 +243,11 @@ func (r *ExecAccessRequestReconciler) VerifyDuration(builder *builders.ExecAcces
 			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
 	}
 
+	// Update the resource, and let the user know how much time is remaining
+	timeRemaining := accessDuration - accessUptime
 	return r.UpdateCondition(builder.Ctx, builder.Request, ConditionAccessStillValid,
-		metav1.ConditionTrue, string(metav1.StatusReasonTimeout), "Access still valid")
+		metav1.ConditionTrue, string(metav1.StatusReasonTimeout),
+		fmt.Sprintf("Access still valid (%s remaining)", timeRemaining.String()))
 }
 
 func (r *ExecAccessRequestReconciler) HandleAccessExpired(builder *builders.ExecAccessBuilder) error {
@@ -465,7 +481,7 @@ func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
 // returns back an error.
-func getExecAccessRequest(cl client.Client, ctx context.Context, name string, namespace string) (*api.ExecAccessRequest, error) {
+func getExecAccessRequest(cl client.Reader, ctx context.Context, name string, namespace string) (*api.ExecAccessRequest, error) {
 	tmpl := &api.ExecAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

@@ -9,7 +9,6 @@ import (
 	api "github.com/diranged/oz/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -133,7 +132,7 @@ func (t *ExecAccessBuilder) GetRandomPod() (*corev1.Pod, error) {
 	return pod, err
 }
 
-func (b *ExecAccessBuilder) GetSpecificPod() (*v1.Pod, error) {
+func (b *ExecAccessBuilder) GetSpecificPod() (*corev1.Pod, error) {
 	podName := b.Request.Spec.TargetPod
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
@@ -149,7 +148,7 @@ func (b *ExecAccessBuilder) GetSpecificPod() (*v1.Pod, error) {
 
 	// List all of the pods in the Deployment by searching for matching pods with the current Label
 	// Selector.
-	podList := &v1.PodList{}
+	podList := &corev1.PodList{}
 	opts := []client.ListOption{
 		client.InNamespace(b.Template.Namespace),
 		client.MatchingLabelsSelector{
@@ -240,6 +239,7 @@ func (b *ExecAccessBuilder) GenerateAccessRoleBinding() (*rbacv1.RoleBinding, er
 		Name:     rb.Name,
 	}
 	rb.Subjects = []rbacv1.Subject{}
+
 	for _, group := range b.Template.Spec.AllowedGroups {
 		rb.Subjects = append(rb.Subjects, rbacv1.Subject{
 			APIGroup: rbacv1.SchemeGroupVersion.Group,
