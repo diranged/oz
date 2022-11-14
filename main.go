@@ -89,8 +89,9 @@ func main() {
 
 	if err = (&controllers.ExecAccessTemplateReconciler{
 		BaseReconciler: &controllers.BaseReconciler{
-			Client: mgr.GetClient(),
-			Scheme: mgr.GetScheme(),
+			Client:    mgr.GetClient(),
+			Scheme:    mgr.GetScheme(),
+			ApiReader: mgr.GetAPIReader(),
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessTemplate")
@@ -98,8 +99,9 @@ func main() {
 	}
 	if err = (&controllers.ExecAccessRequestReconciler{
 		BaseReconciler: &controllers.BaseReconciler{
-			Client: mgr.GetClient(),
-			Scheme: mgr.GetScheme(),
+			Client:    mgr.GetClient(),
+			Scheme:    mgr.GetScheme(),
+			ApiReader: mgr.GetAPIReader(),
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")

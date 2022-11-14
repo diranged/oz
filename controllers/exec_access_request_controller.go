@@ -133,7 +133,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// Exit Reconciliation Loop
 	logger.Info("Ending reconcile loop")
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: time.Duration(1 * time.Minute)}, nil
 }
 
 func (r *ExecAccessRequestReconciler) VerifyTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
@@ -417,6 +417,10 @@ func (r *ExecAccessRequestReconciler) UpdateCondition(
 	reason string,
 	message string,
 ) error {
+	// Refetch the updated object state of the builder.Request resource we're working with first
+	r.Refetch(ctx, req)
+
+	// Now create the status condition
 	meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
 		Type:               string(conditionType),
 		Status:             conditionStatus,
@@ -425,9 +429,10 @@ func (r *ExecAccessRequestReconciler) UpdateCondition(
 		Reason:             reason,
 		Message:            message,
 	})
+
+	// Finally push it
 	err := r.UpdateStatus(ctx, req)
 	return err
-
 }
 
 // SetupWithManager sets up the controller with the Manager.

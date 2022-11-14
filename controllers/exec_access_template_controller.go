@@ -52,11 +52,7 @@ type ExecAccessTemplateReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
-	log.Info("Starting reconcile loop")
-
-	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	logger := r.GetLogger(ctx)
+	logger := log.FromContext(ctx)
 	logger.Info("Starting reconcile loop")
 
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.

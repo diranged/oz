@@ -5,3 +5,4 @@ metadata:
 spec:
   templateName: deployment-example
   targetPod: example-574bd66768-5nrlp
+  duration: 5m
