@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 	"github.com/diranged/oz/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -41,6 +42,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(api.AddToScheme(scheme))
+	utilruntime.Must(crdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -107,6 +109,13 @@ func main() {
 		ReconcililationInterval: requestReconciliationInterval,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")
+		os.Exit(1)
+	}
+	if err = (&controllers.AccessTemplateReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AccessTemplate")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

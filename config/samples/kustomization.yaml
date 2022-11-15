@@ -2,4 +2,5 @@
 resources:
 - templates_v1alpha1_execaccesstemplate.yaml
 - templates_v1alpha1_execaccessrequest.yaml
+- crds_v1alpha1_accesstemplate.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

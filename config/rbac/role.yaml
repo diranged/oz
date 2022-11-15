@@ -26,6 +26,32 @@ rules:
 - apiGroups:
   - crds.wizardofoz.co
   resources:
+  - accesstemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accesstemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accesstemplates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
   - execaccessrequests
   verbs:
   - create
