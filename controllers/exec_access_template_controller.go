@@ -22,9 +22,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
@@ -59,7 +57,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	//
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
-	tmpl, err := getExecAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
+	tmpl, err := api.GetExecAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
@@ -165,15 +163,4 @@ func (r *ExecAccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.ExecAccessTemplate{}).
 		Complete(r)
-}
-
-// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func getExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*api.ExecAccessTemplate, error) {
-	tmpl := &api.ExecAccessTemplate{}
-	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
-	if err != nil {
-		return nil, err
-	}
-	return tmpl, nil
 }

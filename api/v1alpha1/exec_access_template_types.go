@@ -17,9 +17,12 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type TemplateConditionTypes string
@@ -88,4 +91,12 @@ func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
 
 func init() {
 	SchemeBuilder.Register(&ExecAccessTemplate{}, &ExecAccessTemplateList{})
+}
+
+// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
+// returns back an error.
+func GetExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*ExecAccessTemplate, error) {
+	tmpl := &ExecAccessTemplate{}
+	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
+	return tmpl, err
 }

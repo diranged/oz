@@ -113,7 +113,6 @@ build: generate fmt vet cli ## Build manager binary.
 	go build -o bin/manager main.go
 
 ##@ Build CLI
-
 GOBUILD := time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
         -o "${OUT}" \
@@ -124,10 +123,12 @@ GOBUILD := time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
 .PHONY: cli
 cli: outputs/ozctl-osx outputs/ozctl-osx-arm64
 
-outputs/ozctl-osx: ozctl controllers api
+SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
+
+outputs/ozctl-osx: ozctl controllers api $(SOURCE)
 	GOOS=darwin GOARCH=amd64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
 
-outputs/ozctl-osx-arm64: ozctl controllers api
+outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
 	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
 
 .PHONY: clean

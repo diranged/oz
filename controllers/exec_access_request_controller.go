@@ -113,7 +113,22 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// will simply return that value.
 	_, err = r.GetOrSetPodNameStatus(builder)
 	if err != nil {
+		r.UpdateCondition(
+			builder.Ctx, builder.Request,
+			ConditionTargetPodSelected,
+			metav1.ConditionFalse,
+			string(metav1.StatusReasonNotFound),
+			fmt.Sprintf("ERROR: %s", err))
 		return ctrl.Result{}, err
+	}
+
+	if request.Status.PodName != "" {
+		r.UpdateCondition(
+			builder.Ctx, builder.Request,
+			ConditionTargetPodSelected,
+			metav1.ConditionTrue,
+			string(metav1.StatusSuccess),
+			fmt.Sprintf("Pod %s selected", request.Status.PodName))
 	}
 
 	// VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
@@ -152,7 +167,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *ExecAccessRequestReconciler) VerifyTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
 	logger := r.GetLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
-	if tmpl, err := getExecAccessTemplate(r.Client, ctx, req.Spec.TemplateName, req.Namespace); err != nil {
+	if tmpl, err := api.GetExecAccessTemplate(r.Client, ctx, req.Spec.TemplateName, req.Namespace); err != nil {
 		return nil, r.UpdateCondition(
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
