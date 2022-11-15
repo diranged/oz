@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/diranged/oz/interfaces"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,26 +14,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// This interface wraps the standard client.Object resource (metav1.Object + runtime.Object) with a requirement for
-// a `GetConditions()` function that returns back the nested Status.Conditions list. This is used by
-// BaseReconciler.UpdateCondition()
-type clientObjectWithConditions interface {
-	metav1.Object
-	runtime.Object
-
-	// Returns a pointer to a list of conditions. The pointer is important so that the returned value can be
-	// updated and then the resource can be saved with the updated conditions.
-	GetConditions() *[]metav1.Condition
-}
-
-type OzReconciler interface {
-	GetLogger(ctx context.Context) logr.Logger
-	Refetch(ctx context.Context, obj client.Object) *client.Object
-}
-
-type BaseReconciler struct {
-	OzReconciler
-
+// OzReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some helper
+// functions for refetching objects directly from the API, pushing status updates, etc.
+type OzReconciler struct {
 	// Extend the standard client.Client interface, which is a requirement for the base reconciliation code
 	client.Client
 	Scheme *runtime.Scheme
@@ -48,12 +32,23 @@ type BaseReconciler struct {
 	// Storage of our logger object - so we don't have to keep getting it from the context. Set by the
 	// GetLogger() method.
 	logger logr.Logger
+
+	// ReconciliationInterval is the time to wait inbetween re-reconciling ExecAccessRequests. This primarily matters
+	// for setting the maximum time after an AccessRequest has expired that it will be purged by the controller.
+	ReconcililationInterval int
+}
+
+// Set's the default reconciliation interval property - used typically at the end of the reconciliation loop.
+func (b *OzReconciler) SetReconciliationInterval() {
+	if b.ReconcililationInterval == 0 {
+		b.ReconcililationInterval = DEFAULT_RECONCILIATION_INTERVAL
+	}
 }
 
 // Refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
 // supplied object reference. This is critical to avoid "the object has been modified; please apply
 // your changes to the latest version and try again" errors when updating object status fields.
-func (b *BaseReconciler) Refetch(ctx context.Context, obj client.Object) error {
+func (b *OzReconciler) Refetch(ctx context.Context, obj client.Object) error {
 	err := b.ApiReader.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
@@ -61,7 +56,7 @@ func (b *BaseReconciler) Refetch(ctx context.Context, obj client.Object) error {
 	return err
 }
 
-func (b *BaseReconciler) UpdateStatus(ctx context.Context, obj client.Object) error {
+func (b *OzReconciler) UpdateStatus(ctx context.Context, obj client.Object) error {
 	logger := b.GetLogger(ctx)
 
 	// Update the status, handle failure.
@@ -82,10 +77,10 @@ func (b *BaseReconciler) UpdateStatus(ctx context.Context, obj client.Object) er
 // When an UpdateCondition() call is made, we retrieve the current list of conditions first from the request object.
 // From there, we insert in a new Condition into the resource.
 // Finally we call the UpdateStatus() function to push the update to Kubernetes.
-func (r *BaseReconciler) UpdateCondition(
+func (r *OzReconciler) UpdateCondition(
 	ctx context.Context,
-	res clientObjectWithConditions,
-	conditionType BaseResourceConditionTypes,
+	res interfaces.OzResource,
+	conditionType OzResourceConditionTypes,
 	conditionStatus metav1.ConditionStatus,
 	reason string,
 	message string,
@@ -109,7 +104,7 @@ func (r *BaseReconciler) UpdateCondition(
 	return r.UpdateStatus(ctx, res)
 }
 
-func (b *BaseReconciler) GetLogger(ctx context.Context) logr.Logger {
+func (b *OzReconciler) GetLogger(ctx context.Context) logr.Logger {
 	if (b.logger == logr.Logger{}) {
 		// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 		b.logger = log.FromContext(ctx)

@@ -17,12 +17,15 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ExecAccessRequestSpec defines the desired state of ExecAccessRequest
@@ -88,6 +91,14 @@ func (r *ExecAccessRequest) GetUniqueId() string {
 
 func (t *ExecAccessRequest) GetDuration() (time.Duration, error) {
 	return time.ParseDuration(t.Spec.Duration)
+}
+
+// GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
+// returns back an error.
+func GetExecAccessRequest(cl client.Reader, ctx context.Context, name string, namespace string) (*ExecAccessRequest, error) {
+	tmpl := &ExecAccessRequest{}
+	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
+	return tmpl, err
 }
 
 //+kubebuilder:object:root=true

@@ -32,7 +32,7 @@ import (
 
 // AccessTemplateReconciler reconciles a AccessTemplate object
 type AccessTemplateReconciler struct {
-	*BaseReconciler
+	*OzReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates,verbs=get;list;watch;create;update;patch;delete
@@ -59,7 +59,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
 	logger.Info("Verifying AccessTemplate exists")
-	tmpl, err := api.GetAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
+	resource, err := api.GetAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
@@ -70,7 +70,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		Client:   r.Client,
 		Ctx:      ctx,
 		Scheme:   r.Scheme,
-		Template: tmpl,
+		Template: resource,
 	}
 
 	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
@@ -86,22 +86,17 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // VerifyTargetRef ensures that the Spec.targetRef points to a valid and understood controller that we
 // can build our templates off of.
 func (r *AccessTemplateReconciler) VerifyTargetRef(builder *builders.AccessBuilder) error {
-	targetRef := builder.Template.Spec.TargetRef
+	var err error
 
 	logger := log.FromContext(builder.Ctx)
 	logger.Info("Beginning TargetRef Verification")
 
-	var err error
-	switch kind := targetRef.Kind; kind {
-	case api.DeploymentController:
-		_, err = builder.GetDeployment()
-	case api.DaemonSetController:
-		_, err = builder.GetDaemonSet()
-	case api.StatefulSetController:
-		_, err = builder.GetStatefulSet()
-	default:
-		return fmt.Errorf("unsupported Spec.targetRef.Kind: %s", kind)
+	targetRef, err := builder.GetTargetResource()
+	if err != nil {
+		return err
 	}
+
+	logger.Info("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind)
 
 	if err != nil {
 		return r.UpdateCondition(

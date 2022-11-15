@@ -5,20 +5,24 @@ const (
 	fieldSelectorStatusPhase  string = "status.phase"
 )
 
-type BaseResourceConditionTypes string
+const (
+	DEFAULT_RECONCILIATION_INTERVAL int = 5
+)
+
+type OzResourceConditionTypes string
 
 const (
 	// Both
-	ConditionDurationsValid BaseResourceConditionTypes = "AccessDurationsValid"
+	ConditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
 
 	// Access Requests
-	ConditionTargetTemplateExists BaseResourceConditionTypes = "TargetTemplateExists"
-	ConditionTargetPodExists      BaseResourceConditionTypes = "TargetPodExists"
-	ConditionTargetPodSelected    BaseResourceConditionTypes = "TargetPodSelected"
-	ConditionRoleCreated          BaseResourceConditionTypes = "RoleCreated"
-	ConditionRoleBindingCreated   BaseResourceConditionTypes = "RoleBindingCreated"
-	ConditionAccessStillValid     BaseResourceConditionTypes = "AccessStillValid"
+	ConditionTargetTemplateExists OzResourceConditionTypes = "TargetTemplateExists"
+	ConditionTargetPodExists      OzResourceConditionTypes = "TargetPodExists"
+	ConditionTargetPodSelected    OzResourceConditionTypes = "TargetPodSelected"
+	ConditionRoleCreated          OzResourceConditionTypes = "RoleCreated"
+	ConditionRoleBindingCreated   OzResourceConditionTypes = "RoleBindingCreated"
+	ConditionAccessStillValid     OzResourceConditionTypes = "AccessStillValid"
 
 	// Access Templates
-	ConditionTargetRefExists BaseResourceConditionTypes = "TargetRefExists"
+	ConditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
 )

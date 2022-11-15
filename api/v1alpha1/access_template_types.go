@@ -103,8 +103,14 @@ type AccessTemplate struct {
 	Status AccessTemplateStatus `json:"status,omitempty"`
 }
 
+// Conform to the controllers.OzResource interface.
 func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
+}
+
+// Conform to the controllers.OzTemplateResource interface.
+func (t *AccessTemplate) GetTemplateTarget() *CrossVersionObjectReference {
+	return &t.Spec.TargetRef
 }
 
 //+kubebuilder:object:root=true

@@ -59,8 +59,9 @@ spec:
                   from another API in a generic way.
                 properties:
                   apiVersion:
-                    description: Defines the "APIVersion" of the resource being referred
-                      to. Eg, "apps/v1".
+                    description: "Defines the \"ApiVersion\" of the resource being
+                      referred to. Eg, \"apps/v1\". \n TODO: Figure out how to regex
+                      validate that it has a \"/\" in it"
                     type: string
                   kind:
                     description: Defines the "Kind" of resource being referred to.
@@ -70,7 +71,7 @@ spec:
                     - StatefulSet
                     type: string
                   name:
-                    description: Defines the "metadata.name" of the target resource.
+                    description: Defines the "metadata.Name" of the target resource.
                     type: string
                 required:
                 - apiVersion

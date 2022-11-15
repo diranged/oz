@@ -72,11 +72,31 @@ type ExecAccessTemplate struct {
 	Status BaseTemplateStatus     `json:"status,omitempty"`
 }
 
-// Returns back a pointer to the list of conditions in the BaseTemplateStatus object.
-//
-// Conforms to the controllers.ResourceWithConditions interface.
+// Conform to the controllers.OzResource interface.
 func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
+}
+
+// Conform to the controllers.OzTemplateResource interface.
+func (t *ExecAccessTemplate) GetTemplateTarget() *CrossVersionObjectReference {
+	return &t.Spec.TargetRef
+}
+
+// TODO: Decide if this is good
+func (t *ExecAccessTemplate) GetDefaultDuration() (time.Duration, error) {
+	return time.ParseDuration(t.Spec.DefaultDuration)
+}
+
+func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
+	return time.ParseDuration(t.Spec.MaxDuration)
+}
+
+// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
+// returns back an error.
+func GetExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*ExecAccessTemplate, error) {
+	tmpl := &ExecAccessTemplate{}
+	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
+	return tmpl, err
 }
 
 //+kubebuilder:object:root=true
@@ -88,22 +108,6 @@ type ExecAccessTemplateList struct {
 	Items           []ExecAccessTemplate `json:"items"`
 }
 
-func (t *ExecAccessTemplate) GetDefaultDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.DefaultDuration)
-}
-
-func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.MaxDuration)
-}
-
 func init() {
 	SchemeBuilder.Register(&ExecAccessTemplate{}, &ExecAccessTemplateList{})
-}
-
-// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func GetExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*ExecAccessTemplate, error) {
-	tmpl := &ExecAccessTemplate{}
-	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
-	return tmpl, err
 }
