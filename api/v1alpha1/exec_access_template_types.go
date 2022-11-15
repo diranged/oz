@@ -72,6 +72,13 @@ type ExecAccessTemplate struct {
 	Status BaseTemplateStatus     `json:"status,omitempty"`
 }
 
+// Returns back a pointer to the list of conditions in the BaseTemplateStatus object.
+//
+// Conforms to the controllers.ResourceWithConditions interface.
+func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
 //+kubebuilder:object:root=true
 
 // ExecAccessTemplateList contains a list of ExecAccessTemplate

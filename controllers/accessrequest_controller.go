@@ -27,26 +27,26 @@ import (
 	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 )
 
-// AccessTemplateReconciler reconciles a AccessTemplate object
-type AccessTemplateReconciler struct {
+// AccessRequestReconciler reconciles a AccessRequest object
+type AccessRequestReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the AccessTemplate object against the actual cluster state, and then
+// the AccessRequest object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here
@@ -55,8 +55,8 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *AccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *AccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&crdsv1alpha1.AccessTemplate{}).
+		For(&crdsv1alpha1.AccessRequest{}).
 		Complete(r)
 }

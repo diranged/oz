@@ -112,10 +112,20 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.AccessTemplateReconciler{
+		BaseReconciler: &controllers.BaseReconciler{
+			Client:    mgr.GetClient(),
+			Scheme:    mgr.GetScheme(),
+			ApiReader: mgr.GetAPIReader(),
+		},
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AccessTemplate")
+		os.Exit(1)
+	}
+	if err = (&controllers.AccessRequestReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AccessTemplate")
+		setupLog.Error(err, "unable to create controller", "controller", "AccessRequest")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

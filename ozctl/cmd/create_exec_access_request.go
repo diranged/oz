@@ -33,7 +33,7 @@ var (
 )
 
 var (
-	successConditions []controllers.RequestConditionTypes = []controllers.RequestConditionTypes{
+	successConditions []controllers.BaseResourceConditionTypes = []controllers.BaseResourceConditionTypes{
 		controllers.ConditionAccessStillValid,
 		controllers.ConditionTargetPodExists,
 		controllers.ConditionRoleCreated,
@@ -126,7 +126,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 
 		// Turn the list of required condition statuses into a map that we can iterate on, and mutate as
 		// the status conditions are checked off..
-		statusConditionMap := map[controllers.RequestConditionTypes]string{}
+		statusConditionMap := map[controllers.BaseResourceConditionTypes]string{}
 		for _, condType := range successConditions {
 			statusConditionMap[condType] = string(metav1.ConditionUnknown)
 		}

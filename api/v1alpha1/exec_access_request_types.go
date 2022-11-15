@@ -73,6 +73,13 @@ type ExecAccessRequest struct {
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
 }
 
+// Returns back a pointer to the list of conditions in the ExecAccessRequestStatus object.
+//
+// Conforms to the controllers.ResourceWithConditions interface.
+func (t *ExecAccessRequest) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
 func (r *ExecAccessRequest) GetUniqueId() string {
 	idString := fmt.Sprintf("%s-%s-%s", r.Name, r.Namespace, r.CreationTimestamp)
 	hash := md5.Sum([]byte(idString))

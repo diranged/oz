@@ -109,6 +109,19 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		Template: tmpl,
 	}
 
+	// FINAL: Handle whether or not the access is expired at this point! If so, delete it.
+	if expired, err := r.IsAccessExpired(builder); err != nil {
+		return ctrl.Result{}, err
+	} else if expired {
+		return ctrl.Result{}, nil
+	}
+
+	// VERIFICATION: Verifies the requested duration
+	err = r.VerifyDuration(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
 	// will simply return that value.
 	_, err = r.GetOrSetPodNameStatus(builder)
@@ -134,12 +147,6 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
 	r.VerifyTargetPodExists(ctx, request, request.Status.PodName)
 
-	// VERIFICATION: Verifies the requested duration
-	err = r.VerifyDuration(builder)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	// RBAC: Make sure the Role exists
 	err = r.CreateOrUpdateRoleStatus(builder)
 	if err != nil {
@@ -148,12 +155,6 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// RBAC: Make sure the RoleBinding exists
 	err = r.CreateOrUpdateRoleBindingStatus(builder)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	// FINAL: Handle whether or not the access is expired at this point! If so, delete it.
-	err = r.HandleAccessExpired(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -265,23 +266,23 @@ func (r *ExecAccessRequestReconciler) VerifyDuration(builder *builders.ExecAcces
 		fmt.Sprintf("Access still valid (%s remaining)", timeRemaining.String()))
 }
 
-func (r *ExecAccessRequestReconciler) HandleAccessExpired(builder *builders.ExecAccessBuilder) error {
+func (r *ExecAccessRequestReconciler) IsAccessExpired(builder *builders.ExecAccessBuilder) (bool, error) {
 	logger := r.GetLogger(builder.Ctx)
 	logger.Info("Checking if access has expired or not...")
 	cond := meta.FindStatusCondition(builder.Request.Status.Conditions, string(ConditionAccessStillValid))
 	if cond == nil {
 		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid))
-		return nil
+		return false, nil
 	}
 
 	if cond.Status == metav1.ConditionFalse {
 		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", ConditionAccessStillValid, cond.Status))
-		return r.DeleteResource(builder)
+		return true, r.DeleteResource(builder)
 	}
 
 	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", ConditionAccessStillValid, cond.Status))
 
-	return nil
+	return false, nil
 }
 
 func (r *ExecAccessRequestReconciler) DeleteResource(builder *builders.ExecAccessBuilder) error {
@@ -443,7 +444,7 @@ func (r *ExecAccessRequestReconciler) VerifyTargetPodExists(ctx context.Context,
 func (r *ExecAccessRequestReconciler) UpdateCondition(
 	ctx context.Context,
 	req *api.ExecAccessRequest,
-	conditionType RequestConditionTypes,
+	conditionType BaseResourceConditionTypes,
 	conditionStatus metav1.ConditionStatus,
 	reason string,
 	message string,

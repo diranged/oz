@@ -78,7 +78,7 @@ type AccessTemplateSpec struct {
 
 // AccessRequestStatus defines the observed state of AccessRequest
 type AccessTemplateStatus struct {
-	// Current status of the Access Request
+	// Current status of the Access Template
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 
 	// The Target Pod Name where access has been granted
@@ -101,6 +101,10 @@ type AccessTemplate struct {
 
 	Spec   AccessTemplateSpec   `json:"spec,omitempty"`
 	Status AccessTemplateStatus `json:"status,omitempty"`
+}
+
+func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
 }
 
 //+kubebuilder:object:root=true

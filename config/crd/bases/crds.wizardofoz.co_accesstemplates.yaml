@@ -18,7 +18,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: AccessTemplate is the Schema for the execaccesstemplates API
+        description: AccessTemplate is the Schema for the accesstemplates API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -144,12 +144,10 @@ spec:
             - targetRef
             type: object
           status:
-            description: BaseTemplateStatus is the core set of status fields that
-              we expect to be in each and every one of our template (AccessTemplate,
-              ExecAccessTemplate, etc) resources.
+            description: AccessRequestStatus defines the observed state of AccessRequest
             properties:
               conditions:
-                description: Conditions represent the latest state of the resource
+                description: Current status of the Access Template
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
@@ -217,6 +215,17 @@ spec:
                   - type
                   type: object
                 type: array
+              podName:
+                description: The Target Pod Name where access has been granted
+                type: string
+              roleBindingName:
+                description: The name of th RoleBinding created for this temporary
+                  access request
+                type: string
+              roleName:
+                description: The name of the Role created for this temporary access
+                  request
+                type: string
             type: object
         type: object
     served: true

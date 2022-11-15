@@ -5,20 +5,20 @@ const (
 	fieldSelectorStatusPhase  string = "status.phase"
 )
 
-type RequestConditionTypes string
+type BaseResourceConditionTypes string
 
 const (
 	// Both
-	ConditionDurationsValid RequestConditionTypes = "AccessDurationsValid"
+	ConditionDurationsValid BaseResourceConditionTypes = "AccessDurationsValid"
 
 	// Access Requests
-	ConditionTargetTemplateExists RequestConditionTypes = "TargetTemplateExists"
-	ConditionTargetPodExists      RequestConditionTypes = "TargetPodExists"
-	ConditionTargetPodSelected    RequestConditionTypes = "TargetPodSelected"
-	ConditionRoleCreated          RequestConditionTypes = "RoleCreated"
-	ConditionRoleBindingCreated   RequestConditionTypes = "RoleBindingCreated"
-	ConditionAccessStillValid     RequestConditionTypes = "AccessStillValid"
+	ConditionTargetTemplateExists BaseResourceConditionTypes = "TargetTemplateExists"
+	ConditionTargetPodExists      BaseResourceConditionTypes = "TargetPodExists"
+	ConditionTargetPodSelected    BaseResourceConditionTypes = "TargetPodSelected"
+	ConditionRoleCreated          BaseResourceConditionTypes = "RoleCreated"
+	ConditionRoleBindingCreated   BaseResourceConditionTypes = "RoleBindingCreated"
+	ConditionAccessStillValid     BaseResourceConditionTypes = "AccessStillValid"
 
 	// Access Templates
-	ConditionTargetRefExists RequestConditionTypes = "TargetRefExists"
+	ConditionTargetRefExists BaseResourceConditionTypes = "TargetRefExists"
 )
