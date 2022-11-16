@@ -8,7 +8,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Important: Run "make" to regenerate code after modifying this file
+// CrossVersionObjectReference provides us a generic way to define a reference to an APIGroup, Kind
+// and Name of a particular resource. Primarily used for the AccessTemplate and ExecAccessTemplate,
+// but generic enough to be used in other resources down the road.
 type CrossVersionObjectReference struct {
 	// Defines the "ApiVersion" of the resource being referred to. Eg, "apps/v1".
 	//
@@ -27,22 +29,28 @@ type CrossVersionObjectReference struct {
 	Name string `json:"name"`
 }
 
+// GetGroup returns the APIGroup name only (eg "apps")
 func (r *CrossVersionObjectReference) GetGroup() string {
 	return strings.Split(r.ApiVersion, "/")[0]
 }
 
+// GetVersion returns the API "Version" only (eg "v1")
 func (r *CrossVersionObjectReference) GetVersion() string {
 	return strings.Split(r.ApiVersion, "/")[1]
 }
 
+// GetKind returns the resource Kind (eg "Deployment")
 func (r *CrossVersionObjectReference) GetKind() string {
 	return string(r.Kind)
 }
 
+// GetName returns the Name of the resource (eg "MyDeploymentThing")
 func (r *CrossVersionObjectReference) GetName() string {
 	return r.Name
 }
 
+// GetGroupVersionKind returns a populated schema object thta can be used by the unstructured
+// Kubernetes API client to get the final target object from the API.
 func (r *CrossVersionObjectReference) GetGroupVersionKind() schema.GroupVersionKind {
 	return schema.GroupVersionKind{
 		Group:   r.GetGroup(),
@@ -51,6 +59,12 @@ func (r *CrossVersionObjectReference) GetGroupVersionKind() schema.GroupVersionK
 	}
 }
 
+// GetObject returns a generic unstrucutred resource that points to the desired API object. Because
+// this is unstructured (for now), you can really only use this to get metadata back from the API
+// about the resource.
+//
+// TODO: Figure out if we can cast this into a desired object type in some way that would provide us
+// access to the Spec.
 func (r *CrossVersionObjectReference) GetObject() client.Object {
 	groupVersionKind := r.GetGroupVersionKind()
 	obj := &unstructured.Unstructured{}
