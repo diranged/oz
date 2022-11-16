@@ -20,6 +20,8 @@ import (
 	"flag"
 	"os"
 
+	uzap "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -27,9 +29,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 	"github.com/diranged/oz/controllers"
+	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -41,9 +43,12 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(api.AddToScheme(scheme))
 	utilruntime.Must(crdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+}
+
+func CustomLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString("[" + level.CapitalString() + "]")
 }
 
 func main() {
@@ -61,14 +66,25 @@ func main() {
 	// Custom
 	flag.IntVar(&requestReconciliationInterval, "request-reconciliation-interval", 5, "Access Request reconciliation interval (in minutes)")
 
+	// Reconfigure the default logger. Get rid of the JSON log and switch to a LogFmt logger
+	configLog := uzap.NewProductionEncoderConfig()
+
+	// Drop the timestamp field - the operator can use `--timestamps` in kubectl to get the timestamp of when the logs
+	// were created, we don't need to log them out.
+	configLog.TimeKey = zapcore.OmitKey
+
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/#custom-zap-logger
+	logfmtEncoder := zaplogfmt.NewEncoder(configLog)
 	opts := zap.Options{
 		Development: true,
+		Encoder:     logfmtEncoder,
 	}
+
+	// Finish the logger setup - mostly boilerplate below
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
-
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	rootLogger := zap.New(zap.UseFlagOptions(&opts))
+	ctrl.SetLogger(rootLogger)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,

@@ -25,7 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/api/v1alpha1"
-	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 	"github.com/diranged/oz/controllers/builders"
 )
 
@@ -103,6 +102,6 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // SetupWithManager sets up the controller with the Manager.
 func (r *AccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&crdsv1alpha1.AccessTemplate{}).
+		For(&api.AccessTemplate{}).
 		Complete(r)
 }

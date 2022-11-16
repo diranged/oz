@@ -1,0 +1,35 @@
+name: End to End (E2E) Tests
+on: [push]
+jobs:
+  test-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        kindVersion:
+          - v1.25.3
+          - v1.24.7
+          - v1.23.13
+          - v1.22.13
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.3.0
+        with:
+          node_image: kindest/node:${{ matrix.kindVersion }}
+
+      - name: Run E2E Tests
+        run: make test-e2e

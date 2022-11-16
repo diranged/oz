@@ -86,7 +86,7 @@ func (r *OzReconciler) UpdateCondition(
 	message string,
 ) error {
 	logger := r.GetLogger(ctx)
-	logger.Info(fmt.Sprintf("Updating condition \"%s\"", conditionType))
+	logger.V(1).Info(fmt.Sprintf("Updating condition \"%s\" to \"%s\"", conditionType, conditionStatus))
 
 	meta.SetStatusCondition(res.GetConditions(), metav1.Condition{
 		Type:               string(conditionType),
@@ -103,7 +103,7 @@ func (r *OzReconciler) UpdateCondition(
 
 func (r *OzReconciler) SetReadyStatus(ctx context.Context, res interfaces.OzResource) error {
 	logger := r.GetLogger(ctx)
-	logger.Info("Checking final condition state")
+	logger.V(1).Info("Checking final condition state")
 
 	// Default to everything being ready. We'll iterate though all conditions and then flip this to false if any
 	// of those conditions are not true.

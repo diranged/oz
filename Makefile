@@ -52,6 +52,10 @@ IMG ?= $(IMAGE_TAG_BASE):$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.25.0
 
+KIND_CLUSTER_NAME ?= default
+export KIND_CLUSTER_NAME
+
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -104,22 +108,22 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -v $(shell go list ./... | grep -v 'e2e') -coverprofile cover.out -covermode=atomic -race
+
+.PHONY: cover
+cover:
+	go tool cover -func cover.out
+
+.PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
+test-e2e:
+		go test ./test/e2e/ -v -ginkgo.v
 
 ##@ Build
 
 .PHONY: build
 build: generate fmt vet cli ## Build manager binary.
 	go build -o bin/manager main.go
-
 ##@ Build CLI
-GOBUILD := time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
-        ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
-        -o "${OUT}" \
-        "${OPTIMIZATION_FLAGS[@]}" \
-        -pkgdir="${GOPKG}/${BUILD_GOOS}_${BUILD_GOARCH}" \
-        -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}" "${@}"
-
 .PHONY: cli
 cli: outputs/ozctl-osx outputs/ozctl-osx-arm64
 
@@ -148,7 +152,7 @@ docker-build: test ## Build docker image with the manager.
 
 .PHONY: docker-load
 docker-load: docker-build
-	kind load docker-image ${IMG} -n $${KIND_CLUSTER_NAME:-kind}
+	kind load docker-image ${IMG} -n $(KIND_CLUSTER_NAME)
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
