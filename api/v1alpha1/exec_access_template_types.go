@@ -60,6 +60,20 @@ type ExecAccessTemplateSpec struct {
 	MaxDuration string `json:"maxDuration"`
 }
 
+// ExecAccessTemplateStatus is the core set of status fields that we expect to be in each and every one of
+// our template (AccessTemplate, ExecAccessTemplate, etc) resources.
+type ExecAccessTemplateStatus struct {
+	// Available refers to whether or not the ExecAccessTemplate resource has been validated and is
+	// available for use.
+	// Available bool `json:"available,omitempty"`
+
+	// Conditions represent the latest state of the resource
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+
+	// Simple boolean to let us know if the resource is ready for use or not
+	Ready bool `json:"ready,omitempty"`
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
@@ -68,8 +82,8 @@ type ExecAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ExecAccessTemplateSpec `json:"spec,omitempty"`
-	Status BaseTemplateStatus     `json:"status,omitempty"`
+	Spec   ExecAccessTemplateSpec   `json:"spec,omitempty"`
+	Status ExecAccessTemplateStatus `json:"status,omitempty"`
 }
 
 // Conform to the controllers.OzResource interface.
@@ -77,8 +91,18 @@ func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
+// Conform to the interfaces.OzResource interface
+func (t *ExecAccessTemplate) IsReady() bool {
+	return t.Status.Ready
+}
+
+// Conform to the interfaces.OzResource interface
+func (t *ExecAccessTemplate) SetReady(ready bool) {
+	t.Status.Ready = ready
+}
+
 // Conform to the controllers.OzTemplateResource interface.
-func (t *ExecAccessTemplate) GetTemplateTarget() *CrossVersionObjectReference {
+func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 

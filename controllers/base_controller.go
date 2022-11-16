@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/diranged/oz/interfaces"
 	"github.com/go-logr/logr"
@@ -49,11 +50,10 @@ func (b *OzReconciler) SetReconciliationInterval() {
 // supplied object reference. This is critical to avoid "the object has been modified; please apply
 // your changes to the latest version and try again" errors when updating object status fields.
 func (b *OzReconciler) Refetch(ctx context.Context, obj client.Object) error {
-	err := b.ApiReader.Get(ctx, types.NamespacedName{
+	return b.ApiReader.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
 	}, obj)
-	return err
 }
 
 func (b *OzReconciler) UpdateStatus(ctx context.Context, obj client.Object) error {
@@ -86,10 +86,8 @@ func (r *OzReconciler) UpdateCondition(
 	message string,
 ) error {
 	logger := r.GetLogger(ctx)
-	logger.Info(fmt.Sprintf("Updating %s/%s condition \"%s\"",
-		res.GetObjectKind().GroupVersionKind().Kind, res.GetName(), conditionType))
+	logger.Info(fmt.Sprintf("Updating condition \"%s\"", conditionType))
 
-	//logger.Info("Original conditions", "conditions", conditions)
 	meta.SetStatusCondition(res.GetConditions(), metav1.Condition{
 		Type:               string(conditionType),
 		Status:             conditionStatus,
@@ -98,9 +96,32 @@ func (r *OzReconciler) UpdateCondition(
 		Reason:             reason,
 		Message:            message,
 	})
-	//logger.Info("after conditions", "conditions", res.GetConditions())
 
 	// Save the object into Kubernetes, and return any error that might have happened.
+	return r.UpdateStatus(ctx, res)
+}
+
+func (r *OzReconciler) SetReadyStatus(ctx context.Context, res interfaces.OzResource) error {
+	logger := r.GetLogger(ctx)
+	logger.Info("Checking final condition state")
+
+	// Default to everything being ready. We'll iterate though all conditions and then flip this to false if any
+	// of those conditions are not true.
+	ready := true
+
+	// Get the pointer to the conditions list
+	conditions := res.GetConditions()
+
+	// Iterate. If any are not true, then we flip the ready flag to false.
+	for _, cond := range *conditions {
+		if cond.Status != metav1.ConditionTrue {
+			ready = false
+		}
+	}
+
+	// Save the flag, and update the object. Return the result of the object update (if its an error).
+	logger.Info(fmt.Sprintf("Setting ready state to %s", strconv.FormatBool(ready)))
+	res.SetReady(ready)
 	return r.UpdateStatus(ctx, res)
 }
 

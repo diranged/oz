@@ -35,7 +35,7 @@ import (
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
 type ExecAccessRequestReconciler struct {
 	// Pass in the common functions from our BaseController
-	*OzReconciler
+	*OzRequestReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
@@ -64,10 +64,7 @@ type ExecAccessRequestReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
-
-	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	logger := r.GetLogger(ctx)
+	logger := log.FromContext(ctx)
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
@@ -76,6 +73,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
+	logger.Info("Verifying ExecAccessRequest exists")
 	resource, err := api.GetExecAccessRequest(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req.Name))
@@ -99,39 +97,37 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	_ = &builders.AccessBuilder{
-		Client:   r.Client,
-		Ctx:      ctx,
-		Scheme:   r.Scheme,
+	builder := &builders.ExecAccessBuilder{
+		BaseBuilder: &builders.BaseBuilder{
+			Client:   r.Client,
+			Ctx:      ctx,
+			Scheme:   r.Scheme,
+			Request:  resource,
+			Template: tmpl,
+		},
 		Request:  resource,
 		Template: tmpl,
 	}
 
-	// // FINAL: Handle whether or not the access is expired at this point! If so, delete it.
-	// if expired, err := r.IsAccessExpired(builder); err != nil {
-	// 	return ctrl.Result{}, err
-	// } else if expired {
-	// 	return ctrl.Result{}, nil
-	// }
+	// VERIFICATION: Verifies the requested duration
+	err = r.VerifyDuration(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
-	// // VERIFICATION: Verifies the requested duration
-	// err = r.VerifyDuration(builder)
-	// if err != nil {
-	// 	return ctrl.Result{}, err
-	// }
+	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
+	if expired, err := r.IsAccessExpired(builder); err != nil {
+		return ctrl.Result{}, err
+	} else if expired {
+		return ctrl.Result{}, nil
+	}
 
-	// // Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
-	// // will simply return that value.
-	// _, err = r.GetOrSetPodNameStatus(builder)
-	// if err != nil {
-	// 	r.UpdateCondition(
-	// 		builder.Ctx, builder.Request,
-	// 		ConditionTargetPodSelected,
-	// 		metav1.ConditionFalse,
-	// 		string(metav1.StatusReasonNotFound),
-	// 		fmt.Sprintf("ERROR: %s", err))
-	// 	return ctrl.Result{}, err
-	// }
+	// Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
+	// will simply return that value.
+	_, err = r.GetPodName(builder)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	// if request.Status.PodName != "" {
 	// 	r.UpdateCondition(
@@ -160,16 +156,23 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// // Exit Reconciliation Loop
 	// logger.Info("Ending reconcile loop")
 
+	// FINAL: Set Status.Ready state
+	err = r.SetReadyStatus(ctx, resource)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Finally, requeue to re-reconcile again in the future
 	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
 }
 
-// GetTargetTemplate is used to both verify that the desired Spec.TemplateName field actually exists in the cluster,
+// getTargetTemplate is used to both verify that the desired Spec.TemplateName field actually exists in the cluster,
 // and to return that populated object back to the reconciler loop. The ConditionTargetTemplateExists condition is
 // updated with the status.
 //
 // Returns:
 //   - Pointer to the api.ExecAccessTemplate (or nil)
-//   - An "error" only if the condition could not be succesfully updated.
+//   - An "error" only if the UpdateCondition function fails
 func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
 	logger := r.GetLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
@@ -187,131 +190,6 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req
 	}
 }
 
-// func (r *ExecAccessRequestReconciler) VerifyDuration(builder *builders.AccessBuilder) error {
-// 	var err error
-// 	logger := r.GetLogger(builder.Ctx)
-// 	logger.Info("Beginning access request duration verification")
-//
-// 	// Step one - verify the inputs themselves. If the user supplied invalid inputs, or the template has any
-// 	// invalid inputs, we bail out and update the conditions as such. This is to prevent escalated privilegess
-// 	// from lasting indefinitely.
-// 	var requestedDuration time.Duration
-// 	if builder.Request.Spec.Duration != "" {
-// 		requestedDuration, err = builder.Request.GetDuration()
-// 		if err != nil {
-// 			r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
-// 				metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("spec.duration error: %s", err))
-// 			return err
-// 		}
-// 	}
-// 	templateDefaultDuration, err := builder.Template.GetDefaultDuration()
-// 	if err != nil {
-// 		r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
-// 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err))
-// 		return err
-// 	}
-//
-// 	templateMaxDuration, err := builder.Template.GetMaxDuration()
-// 	if err != nil {
-// 		r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
-// 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.maxDuration error: %s", err))
-// 		return err
-// 	}
-//
-// 	// Now determine which duration is the one we'll use
-// 	var accessDuration time.Duration
-// 	var reasonStr string
-//
-// 	if requestedDuration == 0 {
-// 		// If no requested duration supplied, then default to the template's default duration
-// 		reasonStr = fmt.Sprintf("Access request duration defaulting to template duration time (%s)", templateDefaultDuration.String())
-// 		accessDuration = templateDefaultDuration
-// 	} else if requestedDuration <= templateMaxDuration {
-// 		// If the requested duration is too long, use the template max
-// 		reasonStr = fmt.Sprintf("Access requested custom duration (%s)", requestedDuration.String())
-// 		accessDuration = requestedDuration
-// 	} else {
-// 		// Finally, if it's valid, use the supplied duration
-// 		reasonStr = fmt.Sprintf("Access requested duration (%s) larger than template maximum duration (%s)", requestedDuration.String(), templateMaxDuration.String())
-// 		accessDuration = templateMaxDuration
-// 	}
-//
-// 	// Log out the decision, and update the condition
-// 	logger.Info(reasonStr)
-//
-// 	// TESTING: Trying to make sure the below updatecondition doesn't fail
-// 	r.Refetch(builder.Ctx, builder.Request)
-//
-// 	err = r.UpdateCondition(builder.Ctx, builder.Request, ConditionDurationsValid,
-// 		metav1.ConditionTrue, string(metav1.StatusSuccess), reasonStr)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	// Determine how long the AccessRequest has been around, and compare that to the accessDuration.
-// 	now := time.Now()
-// 	creation := builder.Request.CreationTimestamp.Time
-// 	accessUptime := now.Sub(creation)
-//
-// 	// If the accessUptime is greater than the accessDuration, kill it.
-// 	if accessUptime > accessDuration {
-// 		return r.UpdateCondition(builder.Ctx, builder.Request, ConditionAccessStillValid,
-// 			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
-// 	}
-//
-// 	// Update the resource, and let the user know how much time is remaining
-// 	timeRemaining := accessDuration - accessUptime
-// 	return r.UpdateCondition(builder.Ctx, builder.Request, ConditionAccessStillValid,
-// 		metav1.ConditionTrue, string(metav1.StatusReasonTimeout),
-// 		fmt.Sprintf("Access still valid (%s remaining)", timeRemaining.String()))
-// }
-//
-// func (r *ExecAccessRequestReconciler) IsAccessExpired(builder *builders.AccessBuilder) (bool, error) {
-// 	logger := r.GetLogger(builder.Ctx)
-// 	logger.Info("Checking if access has expired or not...")
-// 	cond := meta.FindStatusCondition(builder.Request.Status.Conditions, string(ConditionAccessStillValid))
-// 	if cond == nil {
-// 		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid))
-// 		return false, nil
-// 	}
-//
-// 	if cond.Status == metav1.ConditionFalse {
-// 		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", ConditionAccessStillValid, cond.Status))
-// 		return true, r.DeleteResource(builder)
-// 	}
-//
-// 	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", ConditionAccessStillValid, cond.Status))
-//
-// 	return false, nil
-// }
-//
-// func (r *ExecAccessRequestReconciler) DeleteResource(builder *builders.AccessBuilder) error {
-// 	return r.Delete(builder.Ctx, builder.Request)
-// }
-//
-// func (r *ExecAccessRequestReconciler) GetOrSetPodNameStatus(builder *builders.AccessBuilder) (string, error) {
-// 	logger := r.GetLogger(builder.Ctx)
-//
-// 	// If this resource already has a status.podName field set, then we respect that no matter what.
-// 	// We never mutate the pod that this access request was originally created for. Otherwise, pick
-// 	// a Pod and populate that status field.
-// 	if builder.Request.Status.PodName != "" {
-// 		logger.Info(fmt.Sprintf("Pod already assigned - %s", builder.Request.Status.PodName))
-// 		return builder.Request.Status.PodName, nil
-// 	}
-//
-// 	if podName, err := builder.GetTargetPodName(); err != nil {
-// 		return "", err
-// 	} else {
-// 		if podName != "" && podName != builder.Request.Status.PodName {
-// 			builder.Request.Status.PodName = podName
-// 			err = r.UpdateStatus(builder.Ctx, builder.Request)
-// 			logger.Info(fmt.Sprintf("Target Pod Name %s", builder.Request.Status.PodName))
-// 			return builder.Request.Status.PodName, err
-// 		}
-// 		return builder.Request.Status.PodName, nil
-// 	}
-// }
 //
 // func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders.AccessBuilder) error {
 // 	logger := r.GetLogger(builder.Ctx)
@@ -439,32 +317,6 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req
 // 		string(metav1.StatusSuccess),
 // 		fmt.Sprintf("Found Pod (UID: %s)", pod.UID),
 // 	)
-// }
-//
-// func (r *ExecAccessRequestReconciler) UpdateCondition(
-// 	ctx context.Context,
-// 	req *api.ExecAccessRequest,
-// 	conditionType OzResourceConditionTypes,
-// 	conditionStatus metav1.ConditionStatus,
-// 	reason string,
-// 	message string,
-// ) error {
-// 	// Refetch the updated object state of the builder.Request resource we're working with first
-// 	r.Refetch(ctx, req)
-//
-// 	// Now create the status condition
-// 	meta.SetStatusCondition(&req.Status.Conditions, metav1.Condition{
-// 		Type:               string(conditionType),
-// 		Status:             conditionStatus,
-// 		ObservedGeneration: req.GetGeneration(),
-// 		LastTransitionTime: metav1.Time{},
-// 		Reason:             reason,
-// 		Message:            message,
-// 	})
-//
-// 	// Finally push it
-// 	err := r.UpdateStatus(ctx, req)
-// 	return err
 // }
 
 // SetupWithManager sets up the controller with the Manager.

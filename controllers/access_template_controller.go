@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -32,7 +31,7 @@ import (
 
 // AccessTemplateReconciler reconciles a AccessTemplate object
 type AccessTemplateReconciler struct {
-	*OzReconciler
+	*OzTemplateReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates,verbs=get;list;watch;create;update;patch;delete
@@ -54,6 +53,9 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	logger := log.FromContext(ctx)
 	logger.Info("Starting reconcile loop")
 
+	// SETUP
+	r.SetReconciliationInterval()
+
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
@@ -61,16 +63,18 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	logger.Info("Verifying AccessTemplate exists")
 	resource, err := api.GetAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
 	if err != nil {
-		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
+		logger.Info(fmt.Sprintf("Failed to find AccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
 	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.AccessBuilder{
-		Client:   r.Client,
-		Ctx:      ctx,
-		Scheme:   r.Scheme,
-		Template: resource,
+		BaseBuilder: &builders.BaseBuilder{
+			Client:   r.Client,
+			Ctx:      ctx,
+			Scheme:   r.Scheme,
+			Template: resource,
+		},
 	}
 
 	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
@@ -79,34 +83,21 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile every minute
-	return ctrl.Result{RequeueAfter: time.Duration(1 * time.Minute)}, nil
-}
-
-// VerifyTargetRef ensures that the Spec.targetRef points to a valid and understood controller that we
-// can build our templates off of.
-func (r *AccessTemplateReconciler) VerifyTargetRef(builder *builders.AccessBuilder) error {
-	var err error
-
-	logger := log.FromContext(builder.Ctx)
-	logger.Info("Beginning TargetRef Verification")
-
-	targetRef, err := builder.GetTargetResource()
+	// VERIFICATION: Make sure the DefaultDuration and MaxDuration settings are valid
+	err = r.VerifyMiscSettings(builder)
 	if err != nil {
-		return err
+		return ctrl.Result{}, err
 	}
 
-	logger.Info("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind)
+	// // TODO:
+	// // VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
+	// FINAL: Set Status.Ready state
+	err = r.SetReadyStatus(ctx, resource)
 	if err != nil {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
+		return ctrl.Result{}, err
 	}
-
-	return r.UpdateCondition(
-		builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionTrue,
-		string(metav1.StatusSuccess), "Success")
+	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

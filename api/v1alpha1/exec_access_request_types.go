@@ -62,6 +62,9 @@ type ExecAccessRequestStatus struct {
 
 	// The name of th RoleBinding created for this temporary access request
 	RoleBindingName string `json:"roleBindingName,omitempty"`
+
+	// Simple boolean to let us know if the resource is ready for use or not
+	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -76,21 +79,56 @@ type ExecAccessRequest struct {
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
 }
 
+// Conform to the interfaces.OzRequestResource interface
+func (t *ExecAccessRequest) GetDuration() (time.Duration, error) {
+	if t.Spec.Duration != "" {
+		return time.ParseDuration(t.Spec.Duration)
+	}
+	return time.Duration(0), nil
+}
+
+// Conform to the interfaces.OzRequestResource interface
+func (t *ExecAccessRequest) GetUptime() time.Duration {
+	now := time.Now()
+	creation := t.CreationTimestamp.Time
+	return now.Sub(creation)
+}
+
+// Conform to the interfaces.OzRequestResource interface
+func (t *ExecAccessRequest) SetPodName(name string) error {
+	if t.Status.PodName != "" {
+		return fmt.Errorf("Status.PodName arlready set: %s", t.Status.PodName)
+	}
+	t.Status.PodName = name
+	return nil
+}
+
+func (t *ExecAccessRequest) GetPodName() string {
+	return t.Status.PodName
+}
+
 // Returns back a pointer to the list of conditions in the ExecAccessRequestStatus object.
 //
-// Conforms to the controllers.ResourceWithConditions interface.
+// Conform to the interfaces.OzResource interface
 func (t *ExecAccessRequest) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
+// Conform to the interfaces.OzResource interface
+func (t *ExecAccessRequest) IsReady() bool {
+	return t.Status.Ready
+}
+
+// Conform to the interfaces.OzResource interface
+func (t *ExecAccessRequest) SetReady(ready bool) {
+	t.Status.Ready = ready
+}
+
+// TODO: Move?
 func (r *ExecAccessRequest) GetUniqueId() string {
 	idString := fmt.Sprintf("%s-%s-%s", r.Name, r.Namespace, r.CreationTimestamp)
 	hash := md5.Sum([]byte(idString))
 	return hex.EncodeToString(hash[:])[0:10]
-}
-
-func (t *ExecAccessRequest) GetDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.Duration)
 }
 
 // GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or

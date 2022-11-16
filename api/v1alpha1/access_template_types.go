@@ -89,6 +89,9 @@ type AccessTemplateStatus struct {
 
 	// The name of th RoleBinding created for this temporary access request
 	RoleBindingName string `json:"roleBindingName,omitempty"`
+
+	// Simple boolean to let us know if the resource is ready for use or not
+	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -103,13 +106,23 @@ type AccessTemplate struct {
 	Status AccessTemplateStatus `json:"status,omitempty"`
 }
 
-// Conform to the controllers.OzResource interface.
+// Conform to the interfaces.OzResource interface.
 func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
+// Conform to the interfaces.OzResource interface
+func (t *AccessTemplate) IsReady() bool {
+	return t.Status.Ready
+}
+
+// Conform to the interfaces.OzResource interface
+func (t *AccessTemplate) SetReady(ready bool) {
+	t.Status.Ready = ready
+}
+
 // Conform to the controllers.OzTemplateResource interface.
-func (t *AccessTemplate) GetTemplateTarget() *CrossVersionObjectReference {
+func (t *AccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 

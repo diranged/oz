@@ -35,10 +35,20 @@ spec:
           spec:
             description: AccessRequestSpec defines the desired state of AccessRequest
             properties:
-              foo:
-                description: Foo is an example field of AccessRequest. Edit accessrequest_types.go
-                  to remove/update
+              duration:
+                description: "Duration sets the length of time from the `spec.creationTimestamp`
+                  that this object will live. After the time has expired, the resouce
+                  will be automatically deleted on the next reconcilliation loop.
+                  \n If omitted, the spec.defautlDuration from the ExecAccessTemplate
+                  is used. \n Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\",
+                  \"s\", \"m\", \"h\"."
                 type: string
+              templateName:
+                description: Defines the name of the `ExecAcessTemplate` that should
+                  be used to grant access to the target resource.
+                type: string
+            required:
+            - templateName
             type: object
           status:
             description: AccessRequestStatus defines the observed state of AccessRequest
@@ -112,6 +122,13 @@ spec:
                   - type
                   type: object
                 type: array
+              podName:
+                description: The Target Pod Name where access has been granted
+                type: string
+              ready:
+                description: Simple boolean to let us know if the resource is ready
+                  for use or not
+                type: boolean
             type: object
         type: object
     served: true

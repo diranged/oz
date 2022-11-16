@@ -85,8 +85,8 @@ spec:
             - targetRef
             type: object
           status:
-            description: BaseTemplateStatus is the core set of status fields that
-              we expect to be in each and every one of our template (AccessTemplate,
+            description: ExecAccessTemplateStatus is the core set of status fields
+              that we expect to be in each and every one of our template (AccessTemplate,
               ExecAccessTemplate, etc) resources.
             properties:
               conditions:
@@ -158,6 +158,10 @@ spec:
                   - type
                   type: object
                 type: array
+              ready:
+                description: Simple boolean to let us know if the resource is ready
+                  for use or not
+                type: boolean
             type: object
         type: object
     served: true

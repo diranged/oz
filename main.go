@@ -91,41 +91,56 @@ func main() {
 	}
 
 	if err = (&controllers.ExecAccessTemplateReconciler{
-		OzReconciler: &controllers.OzReconciler{
-			Client:                  mgr.GetClient(),
-			Scheme:                  mgr.GetScheme(),
-			ApiReader:               mgr.GetAPIReader(),
-			ReconcililationInterval: requestReconciliationInterval,
+		OzTemplateReconciler: &controllers.OzTemplateReconciler{
+			OzReconciler: &controllers.OzReconciler{
+				Client:                  mgr.GetClient(),
+				Scheme:                  mgr.GetScheme(),
+				ApiReader:               mgr.GetAPIReader(),
+				ReconcililationInterval: requestReconciliationInterval,
+			},
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessTemplate")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.ExecAccessRequestReconciler{
-		OzReconciler: &controllers.OzReconciler{
-			Client:                  mgr.GetClient(),
-			Scheme:                  mgr.GetScheme(),
-			ApiReader:               mgr.GetAPIReader(),
-			ReconcililationInterval: requestReconciliationInterval,
+		OzRequestReconciler: &controllers.OzRequestReconciler{
+			OzReconciler: &controllers.OzReconciler{
+				Client:                  mgr.GetClient(),
+				Scheme:                  mgr.GetScheme(),
+				ApiReader:               mgr.GetAPIReader(),
+				ReconcililationInterval: requestReconciliationInterval,
+			},
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.AccessTemplateReconciler{
-		OzReconciler: &controllers.OzReconciler{
-			Client:                  mgr.GetClient(),
-			Scheme:                  mgr.GetScheme(),
-			ApiReader:               mgr.GetAPIReader(),
-			ReconcililationInterval: requestReconciliationInterval,
+		OzTemplateReconciler: &controllers.OzTemplateReconciler{
+			OzReconciler: &controllers.OzReconciler{
+				Client:                  mgr.GetClient(),
+				Scheme:                  mgr.GetScheme(),
+				ApiReader:               mgr.GetAPIReader(),
+				ReconcililationInterval: requestReconciliationInterval,
+			},
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AccessTemplate")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.AccessRequestReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		OzRequestReconciler: &controllers.OzRequestReconciler{
+			OzReconciler: &controllers.OzReconciler{
+				Client:                  mgr.GetClient(),
+				Scheme:                  mgr.GetScheme(),
+				ApiReader:               mgr.GetAPIReader(),
+				ReconcililationInterval: requestReconciliationInterval,
+			},
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AccessRequest")
 		os.Exit(1)

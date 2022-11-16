@@ -130,6 +130,10 @@ spec:
               podName:
                 description: The Target Pod Name where access has been granted
                 type: string
+              ready:
+                description: Simple boolean to let us know if the resource is ready
+                  for use or not
+                type: boolean
               roleBindingName:
                 description: The name of th RoleBinding created for this temporary
                   access request

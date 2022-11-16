@@ -8,9 +8,7 @@ import (
 	"time"
 
 	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -30,15 +28,6 @@ var (
 
 	// Time to wait for ExecAccessRequest to be approved and ready for use.
 	waitTime string = "10s"
-)
-
-var (
-	successConditions []controllers.OzResourceConditionTypes = []controllers.OzResourceConditionTypes{
-		controllers.ConditionAccessStillValid,
-		controllers.ConditionTargetPodExists,
-		controllers.ConditionRoleCreated,
-		controllers.ConditionRoleBindingCreated,
-	}
 )
 
 // createAccessRequestCmd represents the create command
@@ -119,77 +108,43 @@ var createExecAccessRequestCmd = &cobra.Command{
 		}
 		cmd.Printf("%s created!\n", req.Name)
 
+		// Wait until we are either fully succesful, or we've hit our timeout.
+		//
+		// Newline intentionally missing.
+		cmd.Print("Waiting for ExecAccessRequest to be ready.")
+
 		// Create a timeout context... we'll use this to bail out of our loop after waitTime has been hit.
 		waitDuration, _ := time.ParseDuration(waitTime)
 		waitCtx, cancel := context.WithTimeout(context.Background(), waitDuration)
 		defer cancel()
-
-		// Turn the list of required condition statuses into a map that we can iterate on, and mutate as
-		// the status conditions are checked off..
-		statusConditionMap := map[controllers.OzResourceConditionTypes]string{}
-		for _, condType := range successConditions {
-			statusConditionMap[condType] = string(metav1.ConditionUnknown)
-		}
-
-		// Wait until we are either fully succesful, or we've hit our timeout
-		cmd.Println("Waiting for ExecAccessRequest conditions to be met")
 		for {
 			// At the beginning of each loop, update the client object from the API. If we see an
 			// error, log it .. but just continue and try again.
-			err := KubeClient.Get(cmd.Context(), types.NamespacedName{
+			if err := KubeClient.Get(cmd.Context(), types.NamespacedName{
 				Name:      req.GetName(),
 				Namespace: req.GetNamespace(),
-			}, req)
-			if err != nil {
-				cmd.Printf("Error updating request status: %s\n", err)
+			}, req); err != nil {
+				cmd.Println("\nError updating request status: %s\n", err)
 				continue
 			}
 
-			// Get the conditions we care about
-			for condType, lastStatus := range statusConditionMap {
-				// If we've already found it is successful, skip this check.
-				if lastStatus == string(metav1.ConditionTrue) {
-					continue
-				}
-
-				if meta.IsStatusConditionPresentAndEqual(req.Status.Conditions, string(condType), metav1.ConditionTrue) {
-					// good, record it.
-					statusConditionMap[condType] = string(metav1.ConditionTrue)
-					continue
-				} else {
-					cmd.Printf("Waiting on condition %s to be %s\n", condType, metav1.ConditionTrue)
-				}
-			}
-
-			//
-			allTrue := true
-			for _, lastStatus := range statusConditionMap {
-				if lastStatus != string(metav1.ConditionTrue) {
-					allTrue = false
-				}
-			}
-
-			if allTrue {
-				cmd.Printf("Success! Conditions passed checks.")
+			// Check the status
+			if req.IsReady() {
+				cmd.Println("\nSuccess, your access request is ready!")
 				break
 			}
 
 			if waitCtx.Err() != nil {
-				fmt.Println("Error - timed out waiting for ExecAccessRequest to be ready")
-				for _, condType := range successConditions {
-					if cond := meta.FindStatusCondition(req.Status.Conditions, string(condType)); cond == nil {
-						cmd.Printf("Mising condition status entirely: %s\n", condType)
-					} else {
-						cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
-					}
+				fmt.Println("\nError - timed out waiting for ExecAccessRequest to be ready")
+				for _, cond := range *req.GetConditions() {
+					cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
 				}
 				os.Exit(1)
 			}
 
 			// See if we've run out of time or not. If we have, bail out.
-			cmd.Println("Waiting...")
+			cmd.Print(".")
 			time.Sleep(time.Duration(1 * time.Second))
-
 		}
 
 	},
