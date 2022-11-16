@@ -61,7 +61,7 @@ func (b *OzReconciler) UpdateStatus(ctx context.Context, obj client.Object) erro
 
 	// Update the status, handle failure.
 	if err := b.Status().Update(ctx, obj); err != nil {
-		logger.Error(err, fmt.Sprintf("Failed to update %s status", obj.GetObjectKind().GroupVersionKind().Kind))
+		logger.Error(err, "Failed to update status")
 		return err
 	}
 

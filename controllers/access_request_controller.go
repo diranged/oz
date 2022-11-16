@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -76,6 +77,8 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// also deleted, which will cascade down and delete any roles/bindings/etc.
 	//
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	//
+	// TODO: BUGFIX< THIS IS NOT PUSHING THE UPDATE TO K8S
 	if err := ctrl.SetControllerReference(tmpl, resource, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -83,11 +86,12 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.AccessBuilder{
 		BaseBuilder: &builders.BaseBuilder{
-			Client:   r.Client,
-			Ctx:      ctx,
-			Scheme:   r.Scheme,
-			Request:  resource,
-			Template: tmpl,
+			Client:    r.Client,
+			Ctx:       ctx,
+			Scheme:    r.Scheme,
+			ApiReader: r.ApiReader,
+			Request:   resource,
+			Template:  tmpl,
 		},
 	}
 
@@ -104,11 +108,11 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, nil
 	}
 
-	// Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
-	// will simply return that value.
-	_, err = r.GetPodName(builder)
+	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
+	// set up a 30 second delay before the next reconciliation attempt.
+	_, err = r.VerifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Duration(30 * time.Second)}, err
 	}
 
 	// FINAL: Set Status.Ready state
@@ -117,7 +121,11 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, nil
+	// Exit Reconciliation Loop
+	logger.Info("Ending reconcile loop")
+
+	// Finally, requeue to re-reconcile again in the future
+	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
 }
 
 // getTargetTemplate is used to both verify that the desired Spec.TemplateName field actually exists in the cluster,

@@ -121,61 +121,31 @@ func (r *OzRequestReconciler) IsAccessExpired(builder builders.Builder) (bool, e
 	return false, nil
 }
 
-// GetPodName returns back the name of a the pod that this Request will grant access to. If no
-// existing Podname exists on the RequestAccess resource, then the GeneratePodname() function is
-// called. The GeneratePodname() function needs to be implemented uniquely in each Builder interface.
-//
-// Returns:
-//
-//	podname: A string reference to the individual Pod name
-//	error: Any error either getting the podName or updating the condition of the access request.
-func (r *OzRequestReconciler) GetPodName(builder builders.Builder) (string, error) {
-	ctx := builder.GetCtx()
-	request := builder.GetRequest()
-	var podName string
-	var err error
-
+func (r *OzRequestReconciler) VerifyAccessResources(builder builders.Builder) (accessString string, err error) {
 	logger := log.FromContext(builder.GetCtx())
+	logger.Info("Verifying that access resources are built")
 
-	// If this resource already has a status.podName field set, then we respect that no matter what.
-	// We never mutate the pod that this access request was originally created for. Otherwise, pick
-	// a Pod and populate that status field.
-	if builder.GetRequest().GetPodName() != "" {
-		logger.Info(fmt.Sprintf("Pod already assigned - %s", builder.GetRequest().GetPodName()))
-		return builder.GetRequest().GetPodName(), nil
-	}
-
-	// If the GeneratePodName() function fails for any reason, we bail out AND wipe out the condition
-	// in case it had previously been set.
-	if podName, err = builder.GeneratePodName(); err != nil {
+	statusString, accessString, err := builder.GenerateAccessResources()
+	if err != nil {
 		r.UpdateCondition(
-			ctx, request,
-			ConditionTargetPodSelected,
+			builder.GetCtx(), builder.GetRequest(),
+			ConditionAccessResourcesCreated,
 			metav1.ConditionFalse,
 			string(metav1.StatusFailure),
 			fmt.Sprintf("ERROR: %s", err))
-		return "", err
+		return accessString, err
 	}
 
-	// Set the podName (note, just in the local object). If this fails (for example, its already set
-	// on the object), then we also bail out.
-	if err := request.SetPodName(podName); err != nil {
-		return "", err
-	}
-
-	// Finally, update the condition with the podname - this has the side effect of pushing the
-	// value of Status.PodName into Kubernetes.
 	if err := r.UpdateCondition(
-		ctx, request,
-		ConditionTargetPodSelected,
+		builder.GetCtx(), builder.GetRequest(),
+		ConditionAccessResourcesCreated,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
-		fmt.Sprintf("Pod %s selected", request.GetPodName())); err != nil {
-		return "", err
+		statusString); err != nil {
+		return accessString, err
 	}
 
-	logger.Info(fmt.Sprintf("Target Pod Name %s", builder.GetRequest().GetPodName()))
-	return builder.GetRequest().GetPodName(), nil
+	return accessString, nil
 }
 
 // DeleteResource just deletes the resource immediately

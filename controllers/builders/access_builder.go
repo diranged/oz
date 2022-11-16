@@ -2,11 +2,14 @@ package builders
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/diranged/oz/interfaces"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type Builder interface {
@@ -18,7 +21,10 @@ type Builder interface {
 	GetTemplate() interfaces.OzTemplateResource
 
 	// Returns back the PodName that the user is being granted direct access to.
-	GeneratePodName() (string, error)
+	GeneratePodName() (podName string, err error)
+
+	// Generates all of the resources required to fulfill the access request.
+	GenerateAccessResources() (statusString string, accessString string, err error)
 }
 
 type BaseBuilder struct {
@@ -28,7 +34,20 @@ type BaseBuilder struct {
 	Ctx    context.Context
 	Scheme *runtime.Scheme
 
-	Request  interfaces.OzRequestResource
+	// ApiReader should be generated with mgr.GetAPIReader() to create a non-cached client object. This is used
+	// for certain Get() calls where we need to ensure we are getting the latest version from the API, and not a cached
+	// object.
+	//
+	// See https://github.com/kubernetes-sigs/controller-runtime/issues/585#issuecomment-528102351
+	//
+	ApiReader client.Reader
+
+	// Generic struct that satisfies the OzRequestResource interface. This is used for the common
+	// functions inside the BaseBuilder struct.
+	Request interfaces.OzRequestResource
+
+	// Generic struct that satisfies the OzTemplateREsource interface. This is used for the common
+	// functions inside the BaseBuilder struct.
 	Template interfaces.OzTemplateResource
 }
 
@@ -60,6 +79,24 @@ func (t *BaseBuilder) GetTargetRefResource() (client.Object, error) {
 		Namespace: t.Template.GetNamespace(),
 	}, obj)
 	return obj, err
+}
+
+func (t *BaseBuilder) VerifyPodExists(name string, namespace string) error {
+	logger := log.FromContext(t.Ctx)
+	logger.Info(fmt.Sprintf("Verifying that Pod %s still exists...", name))
+
+	// Search for the Pod
+	pod := &corev1.Pod{}
+	err := t.Client.Get(t.Ctx, types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}, pod)
+
+	// On any failure, update the pod status with the failure...
+	if err != nil {
+		return fmt.Errorf("pod %s (ns: %s) is not found: %s", name, namespace, err)
+	}
+	return nil
 }
 
 type AccessBuilder struct {

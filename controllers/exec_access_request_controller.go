@@ -92,6 +92,8 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// also deleted, which will cascade down and delete any roles/bindings/etc.
 	//
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	//
+	// TODO: BUGFIX< THIS IS NOT PUSHING THE UPDATE TO K8S
 	if err := ctrl.SetControllerReference(tmpl, resource, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -99,11 +101,14 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.ExecAccessBuilder{
 		BaseBuilder: &builders.BaseBuilder{
-			Client:   r.Client,
-			Ctx:      ctx,
-			Scheme:   r.Scheme,
-			Request:  resource,
-			Template: tmpl,
+			// Boilerplate
+			Client: r.Client,
+			Ctx:    ctx,
+			Scheme: r.Scheme,
+			// Ours
+			ApiReader: r.ApiReader,
+			Request:   resource,
+			Template:  tmpl,
 		},
 		Request:  resource,
 		Template: tmpl,
@@ -122,45 +127,21 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
-	// Get or Set the Target Pod Name for the access request. If the Status.TargetPod field is already set, this
-	// will simply return that value.
-	_, err = r.GetPodName(builder)
+	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
+	// set up a 30 second delay before the next reconciliation attempt.
+	_, err = r.VerifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Duration(30 * time.Second)}, err
 	}
-
-	// if request.Status.PodName != "" {
-	// 	r.UpdateCondition(
-	// 		builder.Ctx, builder.Request,
-	// 		ConditionTargetPodSelected,
-	// 		metav1.ConditionTrue,
-	// 		string(metav1.StatusSuccess),
-	// 		fmt.Sprintf("Pod %s selected", request.Status.PodName))
-	// }
-
-	// // VERIFICATION: Make sure the Target Pod still exists - that it hasn't gone away at some point.
-	// r.VerifyTargetPodExists(ctx, request, request.Status.PodName)
-
-	// // RBAC: Make sure the Role exists
-	// err = r.CreateOrUpdateRoleStatus(builder)
-	// if err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // RBAC: Make sure the RoleBinding exists
-	// err = r.CreateOrUpdateRoleBindingStatus(builder)
-	// if err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // Exit Reconciliation Loop
-	// logger.Info("Ending reconcile loop")
 
 	// FINAL: Set Status.Ready state
 	err = r.SetReadyStatus(ctx, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
+	// Exit Reconciliation Loop
+	logger.Info("Ending reconcile loop")
 
 	// Finally, requeue to re-reconcile again in the future
 	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
@@ -189,135 +170,6 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req
 			"Found Target Template")
 	}
 }
-
-//
-// func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleStatus(builder *builders.AccessBuilder) error {
-// 	logger := r.GetLogger(builder.Ctx)
-//
-// 	// Get a representation of the role that we want.
-// 	role, _ := builder.GenerateAccessRole()
-// 	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
-//
-// 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-// 	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRole, func() error {
-// 		emptyRole.ObjectMeta = role.ObjectMeta
-// 		emptyRole.Rules = role.Rules
-// 		emptyRole.OwnerReferences = role.OwnerReferences
-// 		return nil
-// 	})
-//
-// 	// If there was an error, log it, and update the conditions appropriately
-// 	if err != nil {
-// 		logger.Error(err, fmt.Sprintf("Failure reconciling role %s", role.Name), "operation", op)
-// 		if err := r.UpdateCondition(
-// 			builder.Ctx, builder.Request,
-// 			ConditionRoleCreated,
-// 			metav1.ConditionFalse,
-// 			string(metav1.StatusFailure),
-// 			fmt.Sprintf("ERROR: %s", err)); err != nil {
-// 			return err
-// 		}
-// 	}
-//
-// 	// Success, update the object condition
-// 	if err := r.UpdateCondition(
-// 		builder.Ctx, builder.Request,
-// 		ConditionRoleCreated,
-// 		metav1.ConditionTrue,
-// 		string(metav1.StatusSuccess),
-// 		"Role successfully reconciled"); err != nil {
-// 		return err
-// 	}
-//
-// 	// Update the request's RoleName field
-// 	builder.Request.Status.RoleName = role.Name
-// 	if err = r.UpdateStatus(builder.Ctx, builder.Request); err != nil {
-// 		return err
-// 	}
-//
-// 	logger.Info(fmt.Sprintf("Role %s successfully reconciled", role.Name), "operation", op)
-// 	return nil
-// }
-//
-// func (r *ExecAccessRequestReconciler) CreateOrUpdateRoleBindingStatus(builder *builders.AccessBuilder) error {
-// 	logger := r.GetLogger(builder.Ctx)
-//
-// 	// Get a representation of the role that we want.
-// 	rb, _ := builder.GenerateAccessRoleBinding()
-// 	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
-//
-// 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-// 	op, err := controllerutil.CreateOrUpdate(builder.Ctx, builder.Client, emptyRb, func() error {
-// 		emptyRb.ObjectMeta = rb.ObjectMeta
-// 		emptyRb.RoleRef = rb.RoleRef
-// 		emptyRb.Subjects = rb.Subjects
-// 		emptyRb.OwnerReferences = rb.OwnerReferences
-// 		return nil
-// 	})
-//
-// 	// If there was an error, log it, and update the conditions appropriately
-// 	if err != nil {
-// 		logger.Error(err, fmt.Sprintf("Failure reconciling rolebinding %s", rb.Name), "operation", op)
-// 		if err := r.UpdateCondition(
-// 			builder.Ctx, builder.Request,
-// 			ConditionRoleBindingCreated,
-// 			metav1.ConditionFalse,
-// 			string(metav1.StatusFailure),
-// 			fmt.Sprintf("ERROR: %s", err)); err != nil {
-// 			return err
-// 		}
-// 	}
-//
-// 	// Success, update the object condition
-// 	if err := r.UpdateCondition(
-// 		builder.Ctx, builder.Request,
-// 		ConditionRoleBindingCreated,
-// 		metav1.ConditionTrue,
-// 		string(metav1.StatusSuccess),
-// 		"RoleBinding successfully reconciled"); err != nil {
-// 		return err
-// 	}
-//
-// 	// Update the request's RoleName field
-// 	builder.Request.Status.RoleBindingName = rb.Name
-// 	if err = r.UpdateStatus(builder.Ctx, builder.Request); err != nil {
-// 		return err
-// 	}
-//
-// 	logger.Info(fmt.Sprintf("RoleBinding %s successfully reconciled", rb.Name), "operation", op)
-// 	return nil
-// }
-//
-// func (r *ExecAccessRequestReconciler) VerifyTargetPodExists(ctx context.Context, req *api.ExecAccessRequest, podName string) error {
-// 	logger := r.GetLogger(ctx)
-// 	logger.Info(fmt.Sprintf("Verifying that Pod %s still exists...", podName))
-//
-// 	// Search for the Pod
-// 	pod := &v1.Pod{}
-// 	err := r.Get(ctx, types.NamespacedName{
-// 		Name:      podName,
-// 		Namespace: req.GetNamespace(),
-// 	}, pod)
-//
-// 	// On any failure, update the pod status with the failure...
-// 	if err != nil {
-// 		logger.Info(fmt.Sprintf("Pod %s is missing. Updating status.", podName))
-// 		return r.UpdateCondition(
-// 			ctx, req,
-// 			ConditionTargetPodExists,
-// 			metav1.ConditionUnknown,
-// 			string(metav1.StatusReasonNotFound),
-// 			fmt.Sprintf("ERROR: %s", err),
-// 		)
-// 	}
-// 	return r.UpdateCondition(
-// 		ctx, req,
-// 		ConditionTargetPodExists,
-// 		metav1.ConditionTrue,
-// 		string(metav1.StatusSuccess),
-// 		fmt.Sprintf("Found Pod (UID: %s)", pod.UID),
-// 	)
-// }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {

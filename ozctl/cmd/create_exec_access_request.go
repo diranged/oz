@@ -124,7 +124,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 				Name:      req.GetName(),
 				Namespace: req.GetNamespace(),
 			}, req); err != nil {
-				cmd.Println("\nError updating request status: %s\n", err)
+				cmd.Printf("\nError updating request status: %s\n", err)
 				continue
 			}
 
