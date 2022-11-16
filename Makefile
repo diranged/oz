@@ -110,30 +110,11 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -v $(shell go list ./... | grep -v 'e2e') -coverprofile cover.out -covermode=atomic -race
 
-.PHONY: cover
-cover:
-	go tool cover -func cover.out
-
-.PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
-test-e2e:
-		go test ./test/e2e/ -v -ginkgo.v
-
 ##@ Build
 
 .PHONY: build
 build: generate fmt vet cli ## Build manager binary.
 	go build -o bin/manager main.go
-##@ Build CLI
-.PHONY: cli
-cli: outputs/ozctl-osx outputs/ozctl-osx-arm64
-
-SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
-
-outputs/ozctl-osx: ozctl controllers api $(SOURCE)
-	GOOS=darwin GOARCH=amd64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
-
-outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
-	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
 
 .PHONY: clean
 clean:
@@ -148,15 +129,11 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
-
-.PHONY: docker-load
-docker-load: docker-build
-	kind load docker-image ${IMG} -n $(KIND_CLUSTER_NAME)
+	docker build -t $(IMG) .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker push $(IMG)
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -286,3 +263,6 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+# oz.git customizations
+include Custom.mk

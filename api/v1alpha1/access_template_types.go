@@ -70,13 +70,13 @@ type AccessTemplateSpec struct {
 	MaxStorage resource.Quantity `json:"maxStorage,omitempty"`
 
 	// Upper bound of the CPU that an AccessRequest can make against this tmemplate for the primary container.
-	MaxCpu resource.Quantity `json:"maxCpu,omitempty"`
+	MaxCPU resource.Quantity `json:"maxCpu,omitempty"`
 
 	// Upper bound of the memory that an AccessRequest can make against this template for the primary container.
 	MaxMemory resource.Quantity `json:"maxMemory,omitempty"`
 }
 
-// AccessRequestStatus defines the observed state of AccessRequest
+// AccessTemplateStatus defines the observed state of AccessRequest
 type AccessTemplateStatus struct {
 	// Current status of the Access Template
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
@@ -106,22 +106,22 @@ type AccessTemplate struct {
 	Status AccessTemplateStatus `json:"status,omitempty"`
 }
 
-// Conform to the interfaces.OzResource interface.
+// GetConditions conforms to the interfaces.OzResource interface.
 func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
-// Conform to the interfaces.OzResource interface
+// IsReady conforms to the interfaces.OzResource interface
 func (t *AccessTemplate) IsReady() bool {
 	return t.Status.Ready
 }
 
-// Conform to the interfaces.OzResource interface
+// SetReady conforms to the interfaces.OzResource interface
 func (t *AccessTemplate) SetReady(ready bool) {
 	t.Status.Ready = ready
 }
 
-// Conform to the controllers.OzTemplateResource interface.
+// GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *AccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
@@ -135,10 +135,12 @@ type AccessTemplateList struct {
 	Items           []AccessTemplate `json:"items"`
 }
 
+// GetDefaultDuration conforms to the controllers.OzTemplateResource interface.
 func (t *AccessTemplate) GetDefaultDuration() (time.Duration, error) {
 	return time.ParseDuration(t.Spec.DefaultDuration)
 }
 
+// GetMaxDuration conforms to the controllers.OzTemplateREsource interface.
 func (t *AccessTemplate) GetMaxDuration() (time.Duration, error) {
 	return time.ParseDuration(t.Spec.MaxDuration)
 }
@@ -147,9 +149,9 @@ func init() {
 	SchemeBuilder.Register(&AccessTemplate{}, &AccessTemplateList{})
 }
 
-// GetResource returns back an AccessTemplate resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func GetAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*AccessTemplate, error) {
+// GetAccessTemplate returns back an AccessTemplate resource matching the request supplied to the
+// reconciler loop, or returns back an error.
+func GetAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*AccessTemplate, error) {
 	tmpl := &AccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

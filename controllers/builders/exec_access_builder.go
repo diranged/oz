@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -90,7 +89,7 @@ func (b *ExecAccessBuilder) generatePodName() (podName string, err error) {
 
 	// If the user supplied their own Pod, then get that Pod back to make sure it exists. Otherwise,
 	// randomly select a pod.
-	pod := &corev1.Pod{}
+	var pod *corev1.Pod
 	if b.Request.Spec.TargetPod == "" {
 		pod, err = b.getRandomPod()
 		if err != nil {
@@ -301,7 +300,7 @@ func (b *ExecAccessBuilder) getSpecificPod() (*corev1.Pod, error) {
 func (b *ExecAccessBuilder) applyAccessRole(podName string) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{}
 
-	role.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
+	role.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetShortUID())
 	role.Namespace = b.Template.Namespace
 	role.Rules = []rbacv1.PolicyRule{
 		{
@@ -330,7 +329,7 @@ func (b *ExecAccessBuilder) applyAccessRole(podName string) (*rbacv1.Role, error
 	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-	if _, err := controllerutil.CreateOrUpdate(b.Ctx, b.Client, emptyRole, func() error {
+	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRole, func() error {
 		emptyRole.ObjectMeta = role.ObjectMeta
 		emptyRole.Rules = role.Rules
 		emptyRole.OwnerReferences = role.OwnerReferences
@@ -345,7 +344,7 @@ func (b *ExecAccessBuilder) applyAccessRole(podName string) (*rbacv1.Role, error
 func (b *ExecAccessBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 
-	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetUniqueId())
+	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetShortUID())
 	rb.Namespace = b.Template.Namespace
 	rb.RoleRef = rbacv1.RoleRef{
 		APIGroup: rbacv1.GroupName,
@@ -374,7 +373,7 @@ func (b *ExecAccessBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error
 	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-	if _, err := controllerutil.CreateOrUpdate(b.Ctx, b.Client, emptyRb, func() error {
+	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRb, func() error {
 		emptyRb.ObjectMeta = rb.ObjectMeta
 		emptyRb.RoleRef = rb.RoleRef
 		emptyRb.Subjects = rb.Subjects

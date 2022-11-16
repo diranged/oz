@@ -12,12 +12,12 @@ import (
 // and Name of a particular resource. Primarily used for the AccessTemplate and ExecAccessTemplate,
 // but generic enough to be used in other resources down the road.
 type CrossVersionObjectReference struct {
-	// Defines the "ApiVersion" of the resource being referred to. Eg, "apps/v1".
+	// Defines the "APIVersion" of the resource being referred to. Eg, "apps/v1".
 	//
 	// TODO: Figure out how to regex validate that it has a "/" in it
 	//
 	// +kubebuilder:validation:Required
-	ApiVersion string `json:"apiVersion"`
+	APIVersion string `json:"apiVersion"`
 
 	// Defines the "Kind" of resource being referred to.
 	// +kubebuilder:validation:Required
@@ -31,12 +31,12 @@ type CrossVersionObjectReference struct {
 
 // GetGroup returns the APIGroup name only (eg "apps")
 func (r *CrossVersionObjectReference) GetGroup() string {
-	return strings.Split(r.ApiVersion, "/")[0]
+	return strings.Split(r.APIVersion, "/")[0]
 }
 
 // GetVersion returns the API "Version" only (eg "v1")
 func (r *CrossVersionObjectReference) GetVersion() string {
-	return strings.Split(r.ApiVersion, "/")[1]
+	return strings.Split(r.APIVersion, "/")[1]
 }
 
 // GetKind returns the resource Kind (eg "Deployment")

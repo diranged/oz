@@ -18,8 +18,6 @@ package v1alpha1
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -79,61 +77,66 @@ type ExecAccessRequest struct {
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
 }
 
-// Conform to the interfaces.OzRequestResource interface
-func (t *ExecAccessRequest) GetDuration() (time.Duration, error) {
-	if t.Spec.Duration != "" {
-		return time.ParseDuration(t.Spec.Duration)
+// GetDuration conforms to the interfaces.OzRequestResource interface
+func (r *ExecAccessRequest) GetDuration() (time.Duration, error) {
+	if r.Spec.Duration != "" {
+		return time.ParseDuration(r.Spec.Duration)
 	}
 	return time.Duration(0), nil
 }
 
-// Conform to the interfaces.OzRequestResource interface
-func (t *ExecAccessRequest) GetUptime() time.Duration {
+// GetUptime conforms to the interfaces.OzRequestResource interface
+func (r *ExecAccessRequest) GetUptime() time.Duration {
 	now := time.Now()
-	creation := t.CreationTimestamp.Time
+	creation := r.CreationTimestamp.Time
 	return now.Sub(creation)
 }
 
-// Conform to the interfaces.OzRequestResource interface
-func (t *ExecAccessRequest) SetPodName(name string) error {
-	if t.Status.PodName != "" {
-		return fmt.Errorf("Status.PodName arlready set: %s", t.Status.PodName)
+// SetPodName conforms to the interfaces.OzRequestResource interface
+func (r *ExecAccessRequest) SetPodName(name string) error {
+	if r.Status.PodName != "" {
+		return fmt.Errorf("Status.PodName arlready set: %s", r.Status.PodName)
 	}
-	t.Status.PodName = name
+	r.Status.PodName = name
 	return nil
 }
 
-func (t *ExecAccessRequest) GetPodName() string {
-	return t.Status.PodName
+// GetPodName conforms to the interfaces.OzRequestResource interface
+func (r *ExecAccessRequest) GetPodName() string {
+	return r.Status.PodName
 }
 
-// Returns back a pointer to the list of conditions in the ExecAccessRequestStatus object.
+// GetConditions returns a pointer to the list of conditions in the ExecAccessRequestStatus object.
 //
 // Conform to the interfaces.OzResource interface
-func (t *ExecAccessRequest) GetConditions() *[]metav1.Condition {
-	return &t.Status.Conditions
+func (r *ExecAccessRequest) GetConditions() *[]metav1.Condition {
+	return &r.Status.Conditions
 }
 
-// Conform to the interfaces.OzResource interface
-func (t *ExecAccessRequest) IsReady() bool {
-	return t.Status.Ready
+// IsReady conforms to the interfaces.OzResource interface
+func (r *ExecAccessRequest) IsReady() bool {
+	return r.Status.Ready
 }
 
-// Conform to the interfaces.OzResource interface
-func (t *ExecAccessRequest) SetReady(ready bool) {
-	t.Status.Ready = ready
+// SetReady conforms to the interfaces.OzResource interface
+func (r *ExecAccessRequest) SetReady(ready bool) {
+	r.Status.Ready = ready
 }
 
-// TODO: Move?
-func (r *ExecAccessRequest) GetUniqueId() string {
-	idString := fmt.Sprintf("%s-%s-%s", r.Name, r.Namespace, r.CreationTimestamp)
-	hash := md5.Sum([]byte(idString))
-	return hex.EncodeToString(hash[:])[0:10]
+// GetShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
+// the AccessRequest internally. This is used by the Builders to create unique names for the
+// resources they manage (Roles, RoleBindings, etc).
+//
+// Returns:
+//
+//	shortUID: A 10-digit long shortened UID
+func (r *ExecAccessRequest) GetShortUID() string {
+	return string(r.GetUID())[0:10]
 }
 
-// GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func GetExecAccessRequest(cl client.Reader, ctx context.Context, name string, namespace string) (*ExecAccessRequest, error) {
+// GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
+// the reconciler loop, or returns back an error.
+func GetExecAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*ExecAccessRequest, error) {
 	tmpl := &ExecAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

@@ -60,7 +60,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
 	logger.Info("Verifying AccessTemplate exists")
-	resource, err := api.GetAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
+	resource, err := api.GetAccessTemplate(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find AccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil

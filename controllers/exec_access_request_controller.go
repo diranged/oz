@@ -74,7 +74,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
 	logger.Info("Verifying ExecAccessRequest exists")
-	resource, err := api.GetExecAccessRequest(r.Client, ctx, req.Name, req.Namespace)
+	resource, err := api.GetExecAccessRequest(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil

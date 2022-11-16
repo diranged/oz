@@ -70,7 +70,7 @@ type AccessRequest struct {
 	Status AccessRequestStatus `json:"status,omitempty"`
 }
 
-// Conform to the interfaces.OzRequestResource interface
+// GetDuration conform to the interfaces.OzRequestResource interface
 func (t *AccessRequest) GetDuration() (time.Duration, error) {
 	if t.Spec.Duration != "" {
 		return time.ParseDuration(t.Spec.Duration)
@@ -78,31 +78,32 @@ func (t *AccessRequest) GetDuration() (time.Duration, error) {
 	return time.Duration(0), nil
 }
 
-// Conform to the interfaces.OzRequestResource interface
+// GetUptime conform to the interfaces.OzRequestResource interface
 func (t *AccessRequest) GetUptime() time.Duration {
 	now := time.Now()
 	creation := t.CreationTimestamp.Time
 	return now.Sub(creation)
 }
 
-// Returns back a pointer to the list of conditions in the ExecAccessRequestStatus object.
+// GetConditions returns back a pointer to the list of conditions in the ExecAccessRequestStatus
+// object.
 //
 // Conform to the interfaces.OzResource interface
 func (t *AccessRequest) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
-// Conform to the interfaces.OzResource interface
+// IsReady conforms to the interfaces.OzResource interface
 func (t *AccessRequest) IsReady() bool {
 	return t.Status.Ready
 }
 
-// Conform to the interfaces.OzResource interface
+// SetReady conforms to the interfaces.OzResource interface
 func (t *AccessRequest) SetReady(ready bool) {
 	t.Status.Ready = ready
 }
 
-// Conform to the interfaces.OzRequestResource interface
+// SetPodName conforms to the interfaces.OzRequestResource interface
 func (t *AccessRequest) SetPodName(name string) error {
 	if t.Status.PodName != "" {
 		return fmt.Errorf("Status.PodName arlready set: %s", t.Status.PodName)
@@ -111,13 +112,14 @@ func (t *AccessRequest) SetPodName(name string) error {
 	return nil
 }
 
+// GetPodName returns the PodName that has been assigned to the Status field within this AccessRequest.
 func (t *AccessRequest) GetPodName() string {
 	return t.Status.PodName
 }
 
-// GetResource returns back an ExecAccessRequest resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func GetAccessRequest(cl client.Reader, ctx context.Context, name string, namespace string) (*AccessRequest, error) {
+// GetAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
+// reconciler loop, or returns back an error.
+func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*AccessRequest, error) {
 	tmpl := &AccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

@@ -197,7 +197,7 @@ func (in *AccessTemplateSpec) DeepCopyInto(out *AccessTemplateSpec) {
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
 	out.MaxStorage = in.MaxStorage.DeepCopy()
-	out.MaxCpu = in.MaxCpu.DeepCopy()
+	out.MaxCPU = in.MaxCPU.DeepCopy()
 	out.MaxMemory = in.MaxMemory.DeepCopy()
 }
 

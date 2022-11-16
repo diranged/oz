@@ -59,7 +59,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
 	logger.Info("Verifying AccessRequest exists")
-	resource, err := api.GetAccessRequest(r.Client, ctx, req.Name, req.Namespace)
+	resource, err := api.GetAccessRequest(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil
@@ -139,7 +139,7 @@ func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *ap
 	logger := r.GetLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
 
-	if tmpl, err := api.GetAccessTemplate(r.Client, ctx, req.Spec.TemplateName, req.Namespace); err != nil {
+	if tmpl, err := api.GetAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
 		return nil, r.UpdateCondition(
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,

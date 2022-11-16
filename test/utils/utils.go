@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	//nolint:golint,revive
+	//lint:ignore ST1001 We want the simplicity in the unit test
 	. "github.com/onsi/ginkgo/v2"
 )
 

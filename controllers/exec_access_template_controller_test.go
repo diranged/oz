@@ -11,12 +11,12 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -90,7 +90,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 								"testLabel": "testValue",
 							},
 						},
-						Spec: v1.PodSpec{
+						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
 								{
 									Name:  "test",
@@ -122,7 +122,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					},
 					Spec: api.ExecAccessTemplateSpec{
 						TargetRef: api.CrossVersionObjectReference{
-							ApiVersion: "apps/v1",
+							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       deployment.Name,
 						},
@@ -201,7 +201,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 						// INVALID: This target does not exist
 						TargetRef: api.CrossVersionObjectReference{
-							ApiVersion: "apps/v1",
+							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       "invalid-name",
 						},
