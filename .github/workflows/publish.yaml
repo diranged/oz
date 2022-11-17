@@ -6,6 +6,9 @@ on:
       push:
         type: boolean
         default: false
+      release:
+        type: boolean
+        default: false
 
 env:
   PUSH: ${{ inputs.push }}
@@ -23,6 +26,9 @@ jobs:
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
+
+      - name: Build Binaries
+        run: make build cli
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
@@ -79,3 +85,13 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Upload binaries to release
+        if: ${{ inputs.release }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: outputs/ozctl-*
+          asset_name: mything
+          tag: ${{ github.ref }}
+          overwrite: true

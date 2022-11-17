@@ -2,11 +2,12 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   publish:
     uses: ./.github/workflows/publish.yaml
     with:
       push: true
+      release: true
