@@ -12,6 +12,9 @@ Dockerfile.cross
 # Binary outputs
 outputs/*
 
+# docker-buildx
+.buildx_cache
+
 # Test binary, build with `go test -c`
 *.test
 
