@@ -91,7 +91,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file_glob: outputs/ozctl-*
-          asset_name: mything
+          file_glob: true
+          file: outputs/ozctl-*
           tag: ${{ github.ref }}
           overwrite: true
