@@ -19,7 +19,7 @@ jobs:
           do_not_skip: '["workflow_dispatch", "schedule", "push"]'
           concurrent_skipping: false
 
-  test:
+  build:
     needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/build.yaml
@@ -38,3 +38,10 @@ jobs:
     needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/test-e2e.yaml
+
+  publish-dry:
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+    uses: ./.github/workflows/publish.yaml
+    with:
+      dry: true

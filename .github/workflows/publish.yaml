@@ -1,0 +1,37 @@
+name: Reusable Workflow
+
+on:
+  workflow_call: {}
+
+env:
+  DRY: ${{ inputs.dry }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: 'v0.4.2'
+          install: true
+
+      - name: Build Docker Image (Cross-Platform)
+        run: make docker-buildx
+
+      - name: Push Docker Image
+        if: env.DRY == 'false'
+        run: make docker-push
