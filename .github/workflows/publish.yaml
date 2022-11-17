@@ -9,6 +9,8 @@ on:
 
 env:
   DRY: ${{ inputs.dry }}
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -27,18 +29,30 @@ jobs:
         with:
           platforms: all
 
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4.1.1
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
         with:
           version: 'v0.4.2'
           install: true
 
-      - name: Build and Push Image
-        if: env.DRY == 'false'
-        env:
-          BUILD_ARGS: '--push'
-        run: make docker-buildx
-
-      - name: Build Image (DRY)
-        if: env.DRY == 'true'
-        run: make docker-buildx
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          tags: ${{ steps.meta.output.tgas }}
+          labels: ${{ steps.meta.output.labels }}
+          cache-from: type=registry,ref=${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
+          cache-to: type=inline
