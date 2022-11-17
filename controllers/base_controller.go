@@ -24,13 +24,13 @@ type OzReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
-	// ApiReader should be generated with mgr.GetAPIReader() to create a non-cached client object. This is used
+	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object. This is used
 	// for certain Get() calls where we need to ensure we are getting the latest version from the API, and not a cached
 	// object.
 	//
 	// See https://github.com/kubernetes-sigs/controller-runtime/issues/585#issuecomment-528102351
 	//
-	ApiReader client.Reader
+	APIReader client.Reader
 
 	// Storage of our logger object - so we don't have to keep getting it from the context. Set by the
 	// GetLogger() method.
@@ -41,45 +41,52 @@ type OzReconciler struct {
 	ReconcililationInterval int
 }
 
-// Set's the default reconciliation interval property - used typically at the end of the reconciliation loop.
-func (b *OzReconciler) SetReconciliationInterval() {
-	if b.ReconcililationInterval == 0 {
-		b.ReconcililationInterval = DEFAULT_RECONCILIATION_INTERVAL
+// setReconciliationInterval sets the OzReconciler.ReconciliationInterval value to the
+// DEFAULT_RECONCILIATION_INTERVAL if it was not pre-populated.
+func (r *OzReconciler) setReconciliationInterval() {
+	if r.ReconcililationInterval == 0 {
+		r.ReconcililationInterval = DefaultReconciliationInterval
 	}
 }
 
-// Refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
+// refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
 // supplied object reference. This is critical to avoid "the object has been modified; please apply
 // your changes to the latest version and try again" errors when updating object status fields.
-func (b *OzReconciler) Refetch(ctx context.Context, obj client.Object) error {
-	return b.ApiReader.Get(ctx, types.NamespacedName{
+func (r *OzReconciler) refetch(ctx context.Context, obj client.Object) error {
+	return r.APIReader.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
 	}, obj)
 }
 
-func (b *OzReconciler) UpdateStatus(ctx context.Context, obj client.Object) error {
-	logger := b.GetLogger(ctx)
+// UpdateStatus pushes the client.Object.Status field into Kubernetes if it has been updated, and
+// then takes care of calling Refetch() to re-populate the object pointer with the updated object
+// revision from Kubernetes.
+//
+// This wrapper makes it much easier to update the Status field of an object iteratively throughout
+// a reconciliation loop.
+func (r *OzReconciler) updateStatus(ctx context.Context, obj client.Object) error {
+	logger := r.getLogger(ctx)
 
 	// Update the status, handle failure.
-	if err := b.Status().Update(ctx, obj); err != nil {
+	if err := r.Status().Update(ctx, obj); err != nil {
 		logger.Error(err, "Failed to update status")
 		return err
 	}
 
 	// Refetch the object when we're done to make sure we are working with the latest version
-	b.Refetch(ctx, obj)
+	r.refetch(ctx, obj)
 
 	return nil
 }
 
-// UpdateCondition provides a simple way to update the .Status.Conditions field of a given resource. The resource
+// updateCondition provides a simple way to update the .Status.Conditions field of a given resource. The resource
 // must match the ResourceWithConditions interface - which exposes the GetConditions() method.
 //
-// When an UpdateCondition() call is made, we retrieve the current list of conditions first from the request object.
+// When an updateCondition() call is made, we retrieve the current list of conditions first from the request object.
 // From there, we insert in a new Condition into the resource.
 // Finally we call the UpdateStatus() function to push the update to Kubernetes.
-func (r *OzReconciler) UpdateCondition(
+func (r *OzReconciler) updateCondition(
 	ctx context.Context,
 	res interfaces.OzResource,
 	conditionType OzResourceConditionTypes,
@@ -87,7 +94,7 @@ func (r *OzReconciler) UpdateCondition(
 	reason string,
 	message string,
 ) error {
-	logger := r.GetLogger(ctx)
+	logger := r.getLogger(ctx)
 	logger.V(1).Info(fmt.Sprintf("Updating condition \"%s\" to \"%s\"", conditionType, conditionStatus))
 
 	meta.SetStatusCondition(res.GetConditions(), metav1.Condition{
@@ -100,11 +107,17 @@ func (r *OzReconciler) UpdateCondition(
 	})
 
 	// Save the object into Kubernetes, and return any error that might have happened.
-	return r.UpdateStatus(ctx, res)
+	return r.updateStatus(ctx, res)
 }
 
-func (r *OzReconciler) SetReadyStatus(ctx context.Context, res interfaces.OzResource) error {
-	logger := r.GetLogger(ctx)
+// SetReadyStatus flips the Status.Ready field to true or false. This is used at the end of a reconciliation loop
+// when all of the conditions of the resource are known to have been populated. If all Conditions are in the
+// ConditionSuccess status, then Status.Ready is set to true. Otherwise, it is set to False.
+//
+// Status.Ready is used by the 'ozctl' commandline tool to inform users when their access request
+// has been approved and configured.
+func (r *OzReconciler) setReadyStatus(ctx context.Context, res interfaces.OzResource) error {
+	logger := r.getLogger(ctx)
 	logger.V(1).Info("Checking final condition state")
 
 	// Default to everything being ready. We'll iterate though all conditions and then flip this to false if any
@@ -124,13 +137,13 @@ func (r *OzReconciler) SetReadyStatus(ctx context.Context, res interfaces.OzReso
 	// Save the flag, and update the object. Return the result of the object update (if its an error).
 	logger.Info(fmt.Sprintf("Setting ready state to %s", strconv.FormatBool(ready)))
 	res.SetReady(ready)
-	return r.UpdateStatus(ctx, res)
+	return r.updateStatus(ctx, res)
 }
 
-func (b *OzReconciler) GetLogger(ctx context.Context) logr.Logger {
-	if (b.logger == logr.Logger{}) {
+func (r *OzReconciler) getLogger(ctx context.Context) logr.Logger {
+	if (r.logger == logr.Logger{}) {
 		// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-		b.logger = log.FromContext(ctx)
+		r.logger = log.FromContext(ctx)
 	}
-	return b.logger
+	return r.logger
 }

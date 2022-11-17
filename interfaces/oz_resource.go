@@ -1,3 +1,5 @@
+// Package interfaces provides a common set of interfaces that define different resource types
+// within the overall Oz controller.
 package interfaces
 
 import (
@@ -19,21 +21,25 @@ type hasStatusWithConditions interface {
 	GetConditions() *[]metav1.Condition
 }
 
-// This interface wraps the standard client.Object resource (metav1.Object + runtime.Object) with a requirement for
-// a `GetConditions()` function that returns back the nested Status.Conditions list. This is used by
-// BaseReconciler.UpdateCondition()
+// The OzResource interface wraps a standard client.Object resource (metav1.Object + runtime.Object)
+// with a few additional requirements for common methods that we use throughout our reconciliation process.
 type OzResource interface {
+	// Common client.Object stuff
 	metav1.Object
 	runtime.Object
 
+	// Requires that object exposes a GetConditions() method for returning the Status.Conditions data.
 	hasStatusWithConditions
+
+	// Requires that the object exposes a SetReady() and IsReady() method for handling Status.Ready
+	// field.
 	isReadyAble
 }
 
-// This interface represents common "AccessTemplate" resources for the Oz operator. These templates
-// provide different types of access into resources (eg, "Exec" vs "Debug" vs "launch me a dedicated pod"),
-// but all provide a common set of functions allowing our OzTemplateReconciler to be used as a common starting
-// point for the corresponding reconciliation classes.
+// OzTemplateResource represents a common "AccessTemplate" resource for the Oz operator. These
+// templates provide different types of access into resources (eg, "Exec" vs "Debug" vs "launch me a
+// dedicated pod"). A set of common methods are required though that are used by the
+// OzTemplateReconciler.
 type OzTemplateResource interface {
 	OzResource
 
@@ -47,6 +53,8 @@ type OzTemplateResource interface {
 	GetMaxDuration() (time.Duration, error)
 }
 
+// OzRequestResource represents a common "AccesRequest" resource for the Oz operator. These requests
+// have a common set of required methods that are used by the OzRequestReconciler.
 type OzRequestResource interface {
 	OzResource
 

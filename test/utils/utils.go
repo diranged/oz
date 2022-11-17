@@ -1,3 +1,4 @@
+// Package utils provides a few common utilities used during our end to end tests
 package utils
 
 import (
@@ -6,8 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	//nolint:golint,revive
-	//lint:ignore ST1001 We want the simplicity in the unit test
+	//revive:disable:dot-imports
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -44,7 +44,7 @@ func GetProjectDir() (string, error) {
 	return wd, nil
 }
 
-// LoadImageToKindCluster loads a local docker image to the kind cluster
+// LoadImageToKindClusterWithName loads a local docker image to the kind cluster
 func LoadImageToKindClusterWithName(name string) error {
 	cluster := "kind"
 	if v, ok := os.LookupEnv("KIND_CLUSTER"); ok {

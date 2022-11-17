@@ -25,12 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type TemplateConditionTypes string
-
-const (
-	ConditionTargetRefVerified TemplateConditionTypes = "TargetReferenceVerified"
-)
-
 // ExecAccessTemplateSpec defines the desired state of ExecAccessTemplate
 type ExecAccessTemplateSpec struct {
 	// TargetRef provides a pattern for referencing objects from another API in a generic way.
@@ -86,38 +80,48 @@ type ExecAccessTemplate struct {
 	Status ExecAccessTemplateStatus `json:"status,omitempty"`
 }
 
-// Conform to the controllers.OzResource interface.
+// GetConditions conforms to the controllers.OzResource interface.
 func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
 	return &t.Status.Conditions
 }
 
-// Conform to the interfaces.OzResource interface
+// IsReady conforms to the interfaces.OzResource interface
 func (t *ExecAccessTemplate) IsReady() bool {
 	return t.Status.Ready
 }
 
-// Conform to the interfaces.OzResource interface
+// SetReady conforms to the interfaces.OzResource interface
 func (t *ExecAccessTemplate) SetReady(ready bool) {
 	t.Status.Ready = ready
 }
 
-// Conform to the controllers.OzTemplateResource interface.
+// GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 
-// TODO: Decide if this is good
+// GetDefaultDuration parses the Spec.defaultDuration field into a time.Duration struct.
+//
+// Returns:
+//
+//	time.Duration: Populated struct (or nil, if error)
+//	error: If any error occurs in the parsing, the error is returned
 func (t *ExecAccessTemplate) GetDefaultDuration() (time.Duration, error) {
 	return time.ParseDuration(t.Spec.DefaultDuration)
 }
 
+// GetMaxDuration parses the Spec.maxDuration field into a time.Duration struct.
+//
+// Returns:
+//
+//	time.Duration: Populated struct (or nil, if error)
+//	error: If any error occurs in the parsing, the error is returned
 func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
 	return time.ParseDuration(t.Spec.MaxDuration)
 }
 
-// GetResource returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or
-// returns back an error.
-func GetExecAccessTemplate(cl client.Client, ctx context.Context, name string, namespace string) (*ExecAccessTemplate, error) {
+// GetExecAccessTemplate returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or returns back an error.
+func GetExecAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*ExecAccessTemplate, error) {
 	tmpl := &ExecAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

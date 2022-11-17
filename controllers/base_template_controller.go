@@ -28,14 +28,14 @@ func (r *OzTemplateReconciler) VerifyTargetRef(builder *builders.AccessBuilder) 
 
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionFalse,
+		return r.updateCondition(
+			builder.Ctx, builder.Template, conditionTargetRefExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
-	return r.UpdateCondition(
-		builder.Ctx, builder.Template, ConditionTargetRefExists, metav1.ConditionTrue,
+	return r.updateCondition(
+		builder.Ctx, builder.Template, conditionTargetRefExists, metav1.ConditionTrue,
 		string(metav1.StatusSuccess), "Success")
 }
 
@@ -48,25 +48,24 @@ func (r *OzTemplateReconciler) VerifyMiscSettings(builder *builders.AccessBuilde
 	// Verify that MaxDuration is greater than DesiredDuration.
 	defaultDuration, err := builder.Template.GetDefaultDuration()
 	if err != nil {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+		return r.updateCondition(
+			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
 	}
 	maxDuration, err := builder.Template.GetMaxDuration()
 	if err != nil {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+		return r.updateCondition(
+			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.maxDuration: %s", err))
 	}
 	if defaultDuration > maxDuration {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionFalse,
+		return r.updateCondition(
+			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable),
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
-	} else {
-		return r.UpdateCondition(
-			builder.Ctx, builder.Template, ConditionDurationsValid, metav1.ConditionTrue,
-			string(metav1.StatusSuccess),
-			"spec.defaultDuration and spec.maxDuration valid")
 	}
+	return r.updateCondition(
+		builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		"spec.defaultDuration and spec.maxDuration valid")
 }

@@ -53,14 +53,14 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.SetReconciliationInterval()
+	r.setReconciliationInterval()
 
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
 	logger.Info("Verifying ExecAccessTemplate exists")
-	resource, err := api.GetExecAccessTemplate(r.Client, ctx, req.Name, req.Namespace)
+	resource, err := api.GetExecAccessTemplate(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
@@ -92,7 +92,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	// FINAL: Set Status.Ready state
-	err = r.SetReadyStatus(ctx, resource)
+	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

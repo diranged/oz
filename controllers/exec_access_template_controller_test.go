@@ -151,7 +151,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					OzReconciler: &OzReconciler{
 						Client:    k8sClient,
 						Scheme:    k8sClient.Scheme(),
-						ApiReader: k8sClient,
+						APIReader: k8sClient,
 					},
 				},
 			}
@@ -231,7 +231,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					OzReconciler: &OzReconciler{
 						Client:    k8sClient,
 						Scheme:    k8sClient.Scheme(),
-						ApiReader: k8sClient,
+						APIReader: k8sClient,
 					},
 				},
 			}
@@ -251,14 +251,13 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					Namespace: TestName,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(ConditionTargetRefExists), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(conditionTargetRefExists), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					return nil
-				} else {
-					// Else, return a failure. We'll loop over this a few times before giving up.
-					return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
 				}
+				// Return a failure. We'll loop over this a few times before giving up.
+				return fmt.Errorf("Expected %s to be %s", conditionTargetRefExists, metav1.ConditionFalse)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 			By("Verify that the TargetDuration condition is False")
@@ -269,15 +268,14 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					Namespace: TestName,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(ConditionDurationsValid), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(conditionDurationsValid), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					logger.V(1).Info("shit")
 					return nil
-				} else {
-					// Else, return a failure. We'll loop over this a few times before giving up.
-					return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
 				}
+				// Return a failure. We'll loop over this a few times before giving up.
+				return fmt.Errorf("Expected %s to be %s", conditionTargetRefExists, metav1.ConditionFalse)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 		})

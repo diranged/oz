@@ -1,22 +1,25 @@
 package builders
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 
 	api "github.com/diranged/oz/api/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+// ExecAccessBuilder implements the required resources for the api.ExecAccessTemplate CRD.
+//
+// An "ExecAccessRequest" is used to generate access that has been defined through an "ExecAccessTemplate".
+//
+// An "ExecAccessTemplate" allows a group to "kubectl exec" into an already running Pod in a
+// specific Controller (DaemonSet, Deployment, StatefulSet). This privileged access is generally
+// only used when it is critical to troubleshoot a live Pod that is serving a particular workload.
 type ExecAccessBuilder struct {
 	*BaseBuilder
 
@@ -122,104 +125,16 @@ func (b *ExecAccessBuilder) generatePodName() (podName string, err error) {
 	return pod.Name, nil
 }
 
-// Returns back a Deployment given the supplied generic client.Object resource
-//
-// Returns:
-//
-//	appsv1.Deployment: A populated deployment object
-//	error: Any error that may have occurred
-func (t *ExecAccessBuilder) getDeployment(obj client.Object) (*appsv1.Deployment, error) {
-	found := &appsv1.Deployment{}
-	err := t.Client.Get(t.Ctx, types.NamespacedName{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-	}, found)
-	return found, err
-}
-
-// Returns back a DaemonSet given the supplied generic client.Object resource
-//
-// Returns:
-//
-//	appsv1.DaemonSet: A populated deployment object
-//	error: Any error that may have occurred
-func (t *ExecAccessBuilder) getDaemonSet(obj client.Object) (*appsv1.DaemonSet, error) {
-	found := &appsv1.DaemonSet{}
-	err := t.Client.Get(t.Ctx, types.NamespacedName{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-	}, found)
-	return found, err
-}
-
-// Returns back a StatefulSet given the supplied generic client.Object resource
-//
-// Returns:
-//
-//	appsv1.StatefulSet: A populated deployment object
-//	error: Any error that may have occurred
-func (t *ExecAccessBuilder) getStatefulSet(obj client.Object) (*appsv1.StatefulSet, error) {
-	found := &appsv1.StatefulSet{}
-	err := t.Client.Get(t.Ctx, types.NamespacedName{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-	}, found)
-	return found, err
-}
-
-//
-// https://medium.com/coding-kubernetes/using-k8s-label-selectors-in-go-the-right-way-733cde7e8630
-
-func (t *ExecAccessBuilder) getTargetPodSelectorLabels() (labels.Selector, error) {
+func (b *ExecAccessBuilder) getRandomPod() (*corev1.Pod, error) {
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	logger := log.FromContext(t.Ctx)
-
-	targetController, err := t.GetTargetRefResource()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Figure out a more generic way to do this that doesn't involve a bunch of checks like this
-	switch kind := targetController.GetObjectKind().GroupVersionKind().Kind; kind {
-	case "Deployment":
-		controller, err := t.getDeployment(targetController)
-		if err != nil {
-			logger.Error(err, "Failed to find target Deployment")
-			return nil, err
-		}
-		return metav1.LabelSelectorAsSelector(controller.Spec.Selector)
-
-	case "DaemonSet":
-		controller, err := t.getDaemonSet(targetController)
-		if err != nil {
-			logger.Error(err, "Failed to find target DaemonSet")
-			return nil, err
-		}
-		return metav1.LabelSelectorAsSelector(controller.Spec.Selector)
-
-	case "StatefulSet":
-		controller, err := t.getStatefulSet(targetController)
-		if err != nil {
-			logger.Error(err, "Failed to find target StatefulSet")
-			return nil, err
-		}
-		return metav1.LabelSelectorAsSelector(controller.Spec.Selector)
-
-	default:
-		return nil, errors.New("invalid input")
-	}
-}
-
-func (t *ExecAccessBuilder) getRandomPod() (*corev1.Pod, error) {
-	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-	logger := log.FromContext(t.Ctx)
+	logger := log.FromContext(b.Ctx)
 	logger.Info("Finding Pods...")
 
 	// Will populate this further down
 	pod := &corev1.Pod{}
 
 	// https://medium.com/coding-kubernetes/using-k8s-label-selectors-in-go-the-right-way-733cde7e8630
-	selector, err := t.getTargetPodSelectorLabels()
+	selector, err := b.getTargetPodSelectorLabels()
 	if err != nil {
 		logger.Error(err, "Failed to find label selector, cannot automatically discover pods")
 		return nil, err
@@ -229,14 +144,14 @@ func (t *ExecAccessBuilder) getRandomPod() (*corev1.Pod, error) {
 	// Selector.
 	podList := &corev1.PodList{}
 	opts := []client.ListOption{
-		client.InNamespace(t.Template.Namespace),
+		client.InNamespace(b.Template.Namespace),
 		client.MatchingLabelsSelector{
 			Selector: selector,
 		},
 		// TODO: Figure this out...
 		client.MatchingFields{"status.phase": "Running"},
 	}
-	if err := t.Client.List(t.Ctx, podList, opts...); err != nil {
+	if err := b.Client.List(b.Ctx, podList, opts...); err != nil {
 		logger.Error(err, "Failed to retrieve Pod list")
 		return nil, err
 	}
@@ -282,7 +197,7 @@ func (b *ExecAccessBuilder) getSpecificPod() (*corev1.Pod, error) {
 		//client.MatchingFields{"status.phase": "Running"},
 	}
 	//if err := b.Client.List(b.Ctx, podList, opts...); err != nil {
-	if err := b.ApiReader.List(b.Ctx, podList, opts...); err != nil {
+	if err := b.APIReader.List(b.Ctx, podList, opts...); err != nil {
 		logger.Error(err, "Failed to retrieve Pod list")
 		return nil, err
 	}

@@ -53,7 +53,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.SetReconciliationInterval()
+	r.setReconciliationInterval()
 
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
@@ -92,7 +92,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// // VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	// FINAL: Set Status.Ready state
-	err = r.SetReadyStatus(ctx, resource)
+	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

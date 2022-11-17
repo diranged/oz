@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package main is operator-sdk boilerplate
 package main
 
 import (
@@ -45,10 +46,6 @@ func init() {
 
 	utilruntime.Must(crdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
-}
-
-func CustomLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString("[" + level.CapitalString() + "]")
 }
 
 func main() {
@@ -111,7 +108,7 @@ func main() {
 			OzReconciler: &controllers.OzReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
-				ApiReader:               mgr.GetAPIReader(),
+				APIReader:               mgr.GetAPIReader(),
 				ReconcililationInterval: requestReconciliationInterval,
 			},
 		},
@@ -125,7 +122,7 @@ func main() {
 			OzReconciler: &controllers.OzReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
-				ApiReader:               mgr.GetAPIReader(),
+				APIReader:               mgr.GetAPIReader(),
 				ReconcililationInterval: requestReconciliationInterval,
 			},
 		},
@@ -139,7 +136,7 @@ func main() {
 			OzReconciler: &controllers.OzReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
-				ApiReader:               mgr.GetAPIReader(),
+				APIReader:               mgr.GetAPIReader(),
 				ReconcililationInterval: requestReconciliationInterval,
 			},
 		},
@@ -153,7 +150,7 @@ func main() {
 			OzReconciler: &controllers.OzReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
-				ApiReader:               mgr.GetAPIReader(),
+				APIReader:               mgr.GetAPIReader(),
 				ReconcililationInterval: requestReconciliationInterval,
 			},
 		},

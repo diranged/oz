@@ -21,13 +21,13 @@ var (
 	targetPod string
 
 	// Holder for the value of the --duration flag
-	duration string = "1h"
+	duration = "1h"
 
 	// The prefix used in the Metadata.Name field for the ExecAccessRequest object.
-	requestNamePrefix string = "unknown"
+	requestNamePrefix = "unknown"
 
 	// Time to wait for ExecAccessRequest to be approved and ready for use.
-	waitTime string = "10s"
+	waitTime = "10s"
 )
 
 // createAccessRequestCmd represents the create command
@@ -81,7 +81,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 
 		// Verify the template exists
 		cmd.Printf("Verifying Template %s exists... ", template)
-		_, err := api.GetExecAccessTemplate(KubeClient, cmd.Context(), template, KubeNamespace)
+		_, err := api.GetExecAccessTemplate(cmd.Context(), KubeClient, template, KubeNamespace)
 		if err != nil {
 			fmt.Printf("Error - Invalid --template name flag passed in:\n  %s\n", err)
 			os.Exit(1)

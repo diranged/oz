@@ -68,7 +68,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.SetReconciliationInterval()
+	r.setReconciliationInterval()
 
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
@@ -106,7 +106,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			Ctx:    ctx,
 			Scheme: r.Scheme,
 			// Ours
-			ApiReader: r.ApiReader,
+			APIReader: r.APIReader,
 			Request:   resource,
 			Template:  tmpl,
 		},
@@ -115,13 +115,13 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// VERIFICATION: Verifies the requested duration
-	err = r.VerifyDuration(builder)
+	err = r.verifyDuration(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
-	if expired, err := r.IsAccessExpired(builder); err != nil {
+	if expired, err := r.isAccessExpired(builder); err != nil {
 		return ctrl.Result{}, err
 	} else if expired {
 		return ctrl.Result{}, nil
@@ -129,13 +129,13 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
 	// set up a 30 second delay before the next reconciliation attempt.
-	_, err = r.VerifyAccessResources(builder)
+	_, err = r.verifyAccessResources(builder)
 	if err != nil {
 		return ctrl.Result{RequeueAfter: time.Duration(30 * time.Second)}, err
 	}
 
 	// FINAL: Set Status.Ready state
-	err = r.SetReadyStatus(ctx, resource)
+	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -155,20 +155,22 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
 func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
-	logger := r.GetLogger(ctx)
+	logger := r.getLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
 
-	if tmpl, err := api.GetExecAccessTemplate(r.Client, ctx, req.Spec.TemplateName, req.Namespace); err != nil {
+	var tmpl *api.ExecAccessTemplate
+	var err error
+
+	if tmpl, err = api.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
-		return nil, r.UpdateCondition(
-			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
+		return nil, r.updateCondition(
+			ctx, req, conditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 
-	} else {
-		return tmpl, r.UpdateCondition(
-			ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
-			"Found Target Template")
 	}
+	return tmpl, r.updateCondition(
+		ctx, req, conditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
+		"Found Target Template")
 }
 
 // SetupWithManager sets up the controller with the Manager.

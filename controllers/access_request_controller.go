@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package controllers contains all of the operator runtime reconciliation logic.
 package controllers
 
 import (
@@ -53,7 +54,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.SetReconciliationInterval()
+	r.setReconciliationInterval()
 
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
@@ -89,20 +90,20 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Client:    r.Client,
 			Ctx:       ctx,
 			Scheme:    r.Scheme,
-			ApiReader: r.ApiReader,
+			APIReader: r.APIReader,
 			Request:   resource,
 			Template:  tmpl,
 		},
 	}
 
 	// VERIFICATION: Verifies the requested duration
-	err = r.VerifyDuration(builder)
+	err = r.verifyDuration(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
-	if expired, err := r.IsAccessExpired(builder); err != nil {
+	if expired, err := r.isAccessExpired(builder); err != nil {
 		return ctrl.Result{}, err
 	} else if expired {
 		return ctrl.Result{}, nil
@@ -110,13 +111,13 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
 	// set up a 30 second delay before the next reconciliation attempt.
-	_, err = r.VerifyAccessResources(builder)
+	_, err = r.verifyAccessResources(builder)
 	if err != nil {
 		return ctrl.Result{RequeueAfter: time.Duration(30 * time.Second)}, err
 	}
 
 	// FINAL: Set Status.Ready state
-	err = r.SetReadyStatus(ctx, resource)
+	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -136,20 +137,21 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
 func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.AccessRequest) (*api.AccessTemplate, error) {
-	logger := r.GetLogger(ctx)
+	logger := r.getLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
 
-	if tmpl, err := api.GetAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
+	var tmpl *api.AccessTemplate
+	var err error
+	if tmpl, err = api.GetAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
-		return nil, r.UpdateCondition(
-			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
+		return nil, r.updateCondition(
+			ctx, req, conditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 
-	} else {
-		return tmpl, r.UpdateCondition(
-			ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
-			"Found Target Template")
 	}
+	return tmpl, r.updateCondition(
+		ctx, req, conditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
+		"Found Target Template")
 }
 
 // SetupWithManager sets up the controller with the Manager.

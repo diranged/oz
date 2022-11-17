@@ -1,3 +1,4 @@
+// Package cmd provides all of the individual command line flags that can be passed into the 'ozctl' tool.
 package cmd
 
 import (
@@ -19,10 +20,10 @@ var (
 
 	// Shortcut to the supplied "--namespace" flag value (if supplied), or the default value from
 	// the .kubeconfig. Finally defaults to "default" if nothing else is supplied.
-	KubeNamespace string = "default"
+	KubeNamespace = "default"
 
 	//
-	Username string = os.Getenv("USER")
+	Username = os.Getenv("USER")
 )
 
 // rootCmd represents the base command when called without any subcommands

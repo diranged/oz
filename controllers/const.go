@@ -6,25 +6,30 @@ const (
 )
 
 const (
-	DEFAULT_RECONCILIATION_INTERVAL int = 5
+	// DefaultReconciliationInterval defines the number of minutes inbetween regular scheduled
+	// checks of the target resources that our controllers are managing.
+	DefaultReconciliationInterval int = 5
 )
 
+// OzResourceConditionTypes defines a set of known Status.Condition[].ConditionType fields that are
+// used throughout the AccessRequest and AccessTemplate reconcilers.
 type OzResourceConditionTypes string
 
 const (
-	// Both
-	ConditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
+	// conditionDurationsValid is used by both AccessTemplate and AccessRequest resources. It
+	// indicates whether or not the various duration fields are valid.
+	conditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
 
 	// Access Requests
-	ConditionTargetTemplateExists   OzResourceConditionTypes = "TargetTemplateExists"
-	ConditionRoleCreated            OzResourceConditionTypes = "RoleCreated"
-	ConditionRoleBindingCreated     OzResourceConditionTypes = "RoleBindingCreated"
-	ConditionAccessStillValid       OzResourceConditionTypes = "AccessStillValid"
-	ConditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
+	conditionTargetTemplateExists   OzResourceConditionTypes = "TargetTemplateExists"
+	conditionRoleCreated            OzResourceConditionTypes = "RoleCreated"
+	conditionRoleBindingCreated     OzResourceConditionTypes = "RoleBindingCreated"
+	conditionAccessStillValid       OzResourceConditionTypes = "AccessStillValid"
+	conditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
 
 	// TODO: maybe get ridof?
-	ConditionTargetPodSelected OzResourceConditionTypes = "TargetPodSelected"
+	conditionTargetPodSelected OzResourceConditionTypes = "TargetPodSelected"
 
 	// Access Templates
-	ConditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
+	conditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
 )

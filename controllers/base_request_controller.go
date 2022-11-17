@@ -16,7 +16,7 @@ type OzRequestReconciler struct {
 	*OzReconciler
 }
 
-// VerifyDuration checks a few components of whether or not the AccessRequest is still valid:
+// verifyDuration checks a few components of whether or not the AccessRequest is still valid:
 //
 //   - Was the (optional) supplied "spec.duration" valid?
 //   - Is the target tempate "spec.defaultDuration"  valid?
@@ -27,9 +27,9 @@ type OzRequestReconciler struct {
 //   - Is the access request duration less than its current age?
 //     yes? approve
 //     no? mark the resource for deletion
-func (r *OzRequestReconciler) VerifyDuration(builder builders.Builder) error {
+func (r *OzRequestReconciler) verifyDuration(builder builders.Builder) error {
 	var err error
-	logger := r.GetLogger(builder.GetCtx())
+	logger := r.getLogger(builder.GetCtx())
 
 	logger.Info("Beginning access request duration verification")
 
@@ -38,20 +38,20 @@ func (r *OzRequestReconciler) VerifyDuration(builder builders.Builder) error {
 	// from lasting indefinitely.
 	var requestedDuration time.Duration
 	if requestedDuration, err = builder.GetRequest().GetDuration(); err != nil {
-		r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("spec.duration error: %s", err))
 		return err
 	}
 	templateDefaultDuration, err := builder.GetTemplate().GetDefaultDuration()
 	if err != nil {
-		r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err))
 		return err
 	}
 
 	templateMaxDuration, err := builder.GetTemplate().GetMaxDuration()
 	if err != nil {
-		r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.maxDuration error: %s", err))
 		return err
 	}
@@ -77,7 +77,7 @@ func (r *OzRequestReconciler) VerifyDuration(builder builders.Builder) error {
 	// Log out the decision, and update the condition
 	logger.Info(reasonStr)
 
-	err = r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
+	err = r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 		metav1.ConditionTrue, string(metav1.StatusSuccess), reasonStr)
 	if err != nil {
 		return err
@@ -85,17 +85,17 @@ func (r *OzRequestReconciler) VerifyDuration(builder builders.Builder) error {
 
 	// If the accessUptime is greater than the accessDuration, kill it.
 	if builder.GetRequest().GetUptime() > accessDuration {
-		return r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
+		return r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionAccessStillValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
 	}
 
 	// Update the resource, and let the user know how much time is remaining
-	return r.UpdateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
+	return r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionAccessStillValid,
 		metav1.ConditionTrue, string(metav1.StatusReasonTimeout),
 		"Access still valid")
 }
 
-// IsAccessExpired checks the AccessRequest status for the ConditionAccessStillValid condition. If it is no longer
+// isAccessExpired checks the AccessRequest status for the ConditionAccessStillValid condition. If it is no longer
 // a valid request, then the resource is immediately deleted.
 //
 // Returns:
@@ -103,42 +103,45 @@ func (r *OzRequestReconciler) VerifyDuration(builder builders.Builder) error {
 //	true: if the resource is expired, AND has now been deleted
 //	false: if the resource is still valid
 //	error: any error during the checks
-func (r *OzRequestReconciler) IsAccessExpired(builder builders.Builder) (bool, error) {
-	logger := r.GetLogger(builder.GetCtx())
+func (r *OzRequestReconciler) isAccessExpired(builder builders.Builder) (bool, error) {
+	logger := r.getLogger(builder.GetCtx())
 	logger.Info("Checking if access has expired or not...")
-	cond := meta.FindStatusCondition(*builder.GetRequest().GetConditions(), string(ConditionAccessStillValid))
+	cond := meta.FindStatusCondition(*builder.GetRequest().GetConditions(), string(conditionAccessStillValid))
 	if cond == nil {
-		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid))
+		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", conditionAccessStillValid))
 		return false, nil
 	}
 
 	if cond.Status == metav1.ConditionFalse {
-		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", ConditionAccessStillValid, cond.Status))
+		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", conditionAccessStillValid, cond.Status))
 		return true, r.DeleteResource(builder)
 	}
 
-	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", ConditionAccessStillValid, cond.Status))
+	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", conditionAccessStillValid, cond.Status))
 	return false, nil
 }
 
-func (r *OzRequestReconciler) VerifyAccessResources(builder builders.Builder) (accessString string, err error) {
+// verifyAccessResources calls out to the Builder interface's GenerateAccessResources() method to build out
+// all of the resources that are required for thie particular access request. The Status.Conditions field is
+// then updated with the ConditionAccessResourcesCreated condition appropriately.
+func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (accessString string, err error) {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are built")
 
 	statusString, accessString, err := builder.GenerateAccessResources()
 	if err != nil {
-		r.UpdateCondition(
+		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
-			ConditionAccessResourcesCreated,
+			conditionAccessResourcesCreated,
 			metav1.ConditionFalse,
 			string(metav1.StatusFailure),
 			fmt.Sprintf("ERROR: %s", err))
 		return accessString, err
 	}
 
-	if err := r.UpdateCondition(
+	if err := r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
-		ConditionAccessResourcesCreated,
+		conditionAccessResourcesCreated,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		statusString); err != nil {

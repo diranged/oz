@@ -51,7 +51,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			reconciler := &OzReconciler{
 				Client:    k8sClient,
 				Scheme:    k8sClient.Scheme(),
-				ApiReader: k8sClient,
+				APIReader: k8sClient,
 			}
 
 			By("Creating a ConfigMap to reference for tests")
@@ -74,7 +74,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			Expect(origResourceVer).To(Not(Equal(newResourceVer)))
 
 			// Now, refetch th data
-			reconciler.Refetch(ctx, cm)
+			reconciler.refetch(ctx, cm)
 
 			// Verify that the new object has the new resource version
 			Expect(newResourceVer).To(Equal(cm.ResourceVersion))
@@ -96,7 +96,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			reconciler := &OzReconciler{
 				Client:    k8sClient,
 				Scheme:    k8sClient.Scheme(),
-				ApiReader: k8sClient,
+				APIReader: k8sClient,
 			}
 
 			By("Creating an AccessRequest resource to update")
@@ -108,7 +108,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 
 			By("Set the Status.PodName to something")
 			originalReq.Status.PodName = "bogus"
-			err = reconciler.UpdateStatus(ctx, originalReq)
+			err = reconciler.updateStatus(ctx, originalReq)
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Get a new reference to the AccessRequest, verify the PodName status")
@@ -136,7 +136,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			reconciler := &OzReconciler{
 				Client:    client.NewNamespacedClient(k8sClient, "bogus"),
 				Scheme:    k8sClient.Scheme(),
-				ApiReader: client.NewNamespacedClient(k8sClient, "bogus"),
+				APIReader: client.NewNamespacedClient(k8sClient, "bogus"),
 			}
 
 			By("Creating an AccessRequest resource to update")
@@ -144,7 +144,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Now try to update the request with a narrowly scoped namespaced client")
-			err = reconciler.UpdateStatus(ctx, request)
+			err = reconciler.updateStatus(ctx, request)
 			Expect(err).To(HaveOccurred())
 		})
 	})

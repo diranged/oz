@@ -13,8 +13,8 @@ cover:
 	go tool cover -func cover.out
 
 .PHONY: lint
-lint:
-	$(REVIVE) -set_exit_status -formatter stylish ./...
+lint: revive
+	$(REVIVE) -config revive.toml -formatter stylish ./...
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e:

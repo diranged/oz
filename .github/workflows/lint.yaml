@@ -9,10 +9,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Run Revive Action by pulling pre-built image
+        uses: docker://morphy/revive-action:v2
         with:
-          go-version: 1.19
-
-      - name: golint
-        run: make lint
+          path: './...'
+          config: revive.toml
