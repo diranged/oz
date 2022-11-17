@@ -12,6 +12,7 @@ runs:
 
     - name: Find the Go Cache
       id: go
+      shell: bash
       run: |
         echo "build-cache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
         echo "mod-cache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT

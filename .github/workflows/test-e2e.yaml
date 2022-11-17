@@ -36,6 +36,8 @@ jobs:
 
       - name: kubectl version
         run: kubectl version
+      - name: kubectl help
+        run: kubectl rollout restart --help
 
       - name: Run E2E Tests
         run: make test-e2e
