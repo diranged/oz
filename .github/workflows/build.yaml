@@ -4,13 +4,15 @@ on:
   workflow_call: {}
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
-      - name: Setup Go
+      - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.19
@@ -34,8 +36,8 @@ jobs:
           path: ${{ steps.go.outputs.mod-cache }}
           key: ${{ runner.os }}-mod-${{ github.sha }}-${{ hashFiles('**/go.sum') }}
 
-      - name: Run Revive Action by pulling pre-built image
-        uses: docker://morphy/revive-action:v2
-        with:
-          path: './...'
-          config: revive.toml
+      - name: Build Binaries
+        run: make build cli
+
+      - name: Build Docker Image
+        run: make docker-build
