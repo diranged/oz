@@ -1,7 +1,11 @@
 name: Reusable Workflow
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      dry:
+        required: true
+        type: string
 
 env:
   DRY: ${{ inputs.dry }}

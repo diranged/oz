@@ -22,22 +22,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: ./.github/actions/setup-go
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.4.0
         with:
           node_image: kindest/node:${{ matrix.kindVersion }}
-
-      - name: kubectl version
-        run: kubectl version
-      - name: kubectl help
-        run: kubectl rollout restart --help
+          kubectl_version: v1.25.4
 
       - name: Run E2E Tests
         run: make test-e2e
