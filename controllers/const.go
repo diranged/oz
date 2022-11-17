@@ -9,6 +9,10 @@ const (
 	// DefaultReconciliationInterval defines the number of minutes inbetween regular scheduled
 	// checks of the target resources that our controllers are managing.
 	DefaultReconciliationInterval int = 5
+
+	// ErrorReconciliationInterval defines how long (in seconds) in between a failed reconciliation
+	// loop before the next one should kick off.
+	ErrorReconciliationInterval int = 30
 )
 
 // OzResourceConditionTypes defines a set of known Status.Condition[].ConditionType fields that are

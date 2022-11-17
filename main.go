@@ -36,6 +36,13 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+const (
+	defaultReconciliationInterval = 5
+	metricsPort                   = 9443
+	controllerKey                 = "controller"
+	unableToCreateMsg             = "unable to create controller"
+)
+
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -61,7 +68,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 
 	// Custom
-	flag.IntVar(&requestReconciliationInterval, "request-reconciliation-interval", 5, "Access Request reconciliation interval (in minutes)")
+	flag.IntVar(&requestReconciliationInterval, "request-reconciliation-interval", defaultReconciliationInterval, "Access Request reconciliation interval (in minutes)")
 
 	// Reconfigure the default logger. Get rid of the JSON log and switch to a LogFmt logger
 	configLog := uzap.NewProductionEncoderConfig()
@@ -86,7 +93,7 @@ func main() {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Port:                   metricsPort,
 		HealthProbeBindAddress: probeAddr,
 
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
@@ -99,7 +106,7 @@ func main() {
 		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		setupLog.Error(err, unableToCreateMsg)
 		os.Exit(1)
 	}
 
@@ -113,7 +120,7 @@ func main() {
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessTemplate")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessTemplate")
 		os.Exit(1)
 	}
 
@@ -127,7 +134,7 @@ func main() {
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ExecAccessRequest")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessRequest")
 		os.Exit(1)
 	}
 
@@ -141,7 +148,7 @@ func main() {
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AccessTemplate")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessTemplate")
 		os.Exit(1)
 	}
 
@@ -155,7 +162,7 @@ func main() {
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AccessRequest")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

@@ -131,7 +131,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// set up a 30 second delay before the next reconciliation attempt.
 	_, err = r.verifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: time.Duration(30 * time.Second)}, err
+		return ctrl.Result{RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second)}, err
 	}
 
 	// FINAL: Set Status.Ready state
