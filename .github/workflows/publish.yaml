@@ -3,12 +3,12 @@ name: Reusable Workflow
 on:
   workflow_call:
     inputs:
-      dry:
-        required: true
-        type: string
+      push:
+        type: boolean
+        default: false
 
 env:
-  DRY: ${{ inputs.dry }}
+  PUSH: ${{ inputs.push }}
   IMAGE_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -50,7 +50,6 @@ jobs:
         with:
           images: |
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
-            ghcr.io/${{ github.actor }}/${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{version}}
@@ -66,9 +65,10 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           context: .
+          push: ${{ inputs.push }}
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.output.tgas }}
-          labels: ${{ steps.meta.output.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 

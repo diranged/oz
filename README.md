@@ -1,5 +1,7 @@
 # oz
-// TODO(user): Add simple overview of use/purpose
+
+_The Wizard of Oz_: The "Great and Powerfull Oz", or also known as the "man
+behind the curtain."
 
 ## Description
 // TODO(user): An in-depth paragraph about your project and overview of use

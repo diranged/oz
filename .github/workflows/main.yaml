@@ -1,0 +1,14 @@
+name: Main Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+    uses: ./.github/workflows/publish.yaml
+    with:
+      push: true

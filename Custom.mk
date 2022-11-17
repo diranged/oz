@@ -1,5 +1,4 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
-PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 
 ## Tool Binaries
 REVIVE_VER ?= v1.2.4
@@ -8,19 +7,6 @@ REVIVE     ?= $(LOCALBIN)/revive
 .PHONY: docker-load
 docker-load:
 	kind load docker-image $(IMG) -n $(KIND_CLUSTER_NAME)
-
-# override the makefile docker-buildx which is broken, and use a simpler one anyways
-.PHONY: docker-buildx
-docker-buildx: test ## Build and push docker image for the manager for cross-platform support
-	- docker buildx create --name project-v3-builder
-	docker buildx use project-v3-builder
-	- DOCKER_BUILDKIT=1 docker buildx build \
-		$(BUILD_ARGS) \
-		--cache-from type=local,src=.buildx_cache \
-		--cache-to type=local,dest=.buildx_cache \
-		--platform=$(PLATFORMS) \
-		--tag ${IMG} .
-	- docker buildx rm project-v3-builder
 
 .PHONY: cover
 cover:
