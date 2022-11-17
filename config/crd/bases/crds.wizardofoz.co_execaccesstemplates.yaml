@@ -59,7 +59,7 @@ spec:
                   from another API in a generic way.
                 properties:
                   apiVersion:
-                    description: "Defines the \"ApiVersion\" of the resource being
+                    description: "Defines the \"APIVersion\" of the resource being
                       referred to. Eg, \"apps/v1\". \n TODO: Figure out how to regex
                       validate that it has a \"/\" in it"
                     type: string
