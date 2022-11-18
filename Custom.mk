@@ -42,14 +42,6 @@ outputs/ozctl-osx: ozctl controllers api $(SOURCE)
 outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
 	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
 
-## https://github.com/arttor/helmify#integrate-to-your-operator-sdkkubebuilder-project
-$(HELMIFY): $(LOCALBIN) Custom.mk
-	GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@$(HELMIFY_VER)
-
-helm: manifests kustomize $(HELMIFY)
-	$(KUSTOMIZE) build config/default | $(HELMIFY) \
-		-crd-dir \
-		charts/oz
 
 $(HELM_DOCS): $(LOCALBIN) Custom.mk
 	GO111MODULE=on GOBIN=$(LOCALBIN) go install github.com/norwoodj/helm-docs/cmd/helm-docs@$(HELM_DOCS_VER)
@@ -58,3 +50,16 @@ $(HELM_DOCS): $(LOCALBIN) Custom.mk
 helm-docs: $(HELM_DOCS)
 	$(HELM_DOCS)
 	git diff --exit-code
+
+## https://github.com/arttor/helmify#integrate-to-your-operator-sdkkubebuilder-project
+$(HELMIFY): $(LOCALBIN) Custom.mk
+	GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@$(HELMIFY_VER)
+
+# This target is used rarely - only when we need to update the helm chart with
+# new RBAC permissions or CRDs. When you run this, it wipes out tons of our
+# customizations (values.yaml, etc) ... so only commit the file changes that
+# are required.
+helmgen: manifests kustomize $(HELMIFY)
+	$(KUSTOMIZE) build config/default | $(HELMIFY) \
+		-crd-dir \
+		charts/oz

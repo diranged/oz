@@ -30,8 +30,8 @@ Kubernetes: `>=1.22.0-0`
 | controllerManager.kubeRbacProxy.resources.limits.memory | string | `"128Mi"` |  |
 | controllerManager.kubeRbacProxy.resources.requests.cpu | string | `"5m"` |  |
 | controllerManager.kubeRbacProxy.resources.requests.memory | string | `"64Mi"` |  |
-| controllerManager.manager.image.repository | string | `"wizardofoz.co/oz"` |  |
-| controllerManager.manager.image.tag | string | `"0.0.1"` |  |
+| controllerManager.manager.image.repository | string | `"ghcr.io/diranged/oz"` |  |
+| controllerManager.manager.image.tag | string | `"latest"` |  |
 | controllerManager.manager.resources.limits.cpu | string | `"500m"` |  |
 | controllerManager.manager.resources.limits.memory | string | `"128Mi"` |  |
 | controllerManager.manager.resources.requests.cpu | string | `"10m"` |  |
