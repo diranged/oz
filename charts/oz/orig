@@ -1,0 +1,490 @@
+---
+# Source: oz/templates/deployment.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-oz-controller-manager
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: oz/templates/manager-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-oz-manager-role
+  labels:
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accessrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accessrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accessrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accesstemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accesstemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accesstemplates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccessrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccessrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccessrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccesstemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccesstemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccesstemplates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execacesstemplates
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - bind
+  - create
+  - delete
+  - escalate
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+# Source: oz/templates/metrics-reader-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-oz-metrics-reader
+  labels:
+    app.kubernetes.io/component: kube-rbac-proxy
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+# Source: oz/templates/proxy-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-oz-proxy-role
+  labels:
+    app.kubernetes.io/component: kube-rbac-proxy
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+# Source: oz/templates/manager-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-oz-manager-rolebinding
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'release-name-oz-manager-role'
+subjects:
+- kind: ServiceAccount
+  name: 'release-name-oz-controller-manager'
+  namespace: 'oz-system'
+---
+# Source: oz/templates/proxy-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-oz-proxy-rolebinding
+  labels:
+    app.kubernetes.io/component: kube-rbac-proxy
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: 'release-name-oz-proxy-role'
+subjects:
+- kind: ServiceAccount
+  name: 'release-name-oz-controller-manager'
+  namespace: 'oz-system'
+---
+# Source: oz/templates/leader-election-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-name-oz-leader-election-role
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    app.kubernets.io/managed-by: kustomize
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+# Source: oz/templates/leader-election-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-oz-leader-election-rolebinding
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: 'release-name-oz-leader-election-role'
+subjects:
+- kind: ServiceAccount
+  name: 'release-name-oz-controller-manager'
+  namespace: 'oz-system'
+---
+# Source: oz/templates/metrics-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-oz-controller-manager-metrics-service
+  labels:
+    app.kubernetes.io/component: kube-rbac-proxy
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    control-plane: controller-manager
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  selector:
+    control-plane: controller-manager
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+---
+# Source: oz/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-oz-controller-manager
+  labels:
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    control-plane: controller-manager
+    helm.sh/chart: oz-0.0.0
+    app.kubernetes.io/name: oz
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.0.0-rc1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      app.kubernetes.io/name: oz
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+        app.kubernetes.io/name: oz
+        app.kubernetes.io/instance: release-name
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+                - ppc64le
+                - s390x
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+      containers:
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=0
+        env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: cluster.local
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 5m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      - args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        command:
+        - /manager
+        env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: cluster.local
+        image: ghcr.io/diranged/oz:0.0.0-rc1
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: release-name-oz-controller-manager
+      terminationGracePeriodSeconds: 10
