@@ -9,3 +9,6 @@ on:
 jobs:
   helm-docs:
     uses: ./.github/workflows/helm-docs.yaml
+
+  helm-test:
+    uses: ./.github/workflows/helm-test.yaml
