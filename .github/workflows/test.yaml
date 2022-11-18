@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  workflow_call: {}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Fetch History
+        run: git fetch --prune --unshallow
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+
+      - name: Run Tests
+        env:
+          KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT: true
+        run: make test
+
+      - name: Report coverage
+        run: make cover

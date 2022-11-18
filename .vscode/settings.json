@@ -1,3 +1,8 @@
 {
     "markdown.extension.preview.autoShowPreviewToSide": true,
+    // https://github.com/golang/vscode-go/wiki/features#inlay-hints
+    "editor.inlayHints.enabled": "on",
+    "go.lintOnSave": "workspace",
+    "go.lintTool": "revive",
+    "go.lintFlags": ["-config","./revive.toml"]
 }

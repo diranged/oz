@@ -1,4 +1,4 @@
-domain: wizardoz.io
+domain: wizardofoz.co
 layout:
 - go.kubebuilder.io/v4-alpha
 plugins:
@@ -11,9 +11,36 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: wizardoz.io
-  group: templates
+  domain: wizardofoz.co
+  group: crds
   kind: ExecAccessTemplate
+  path: github.com/diranged/oz/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: wizardofoz.co
+  group: crds
+  kind: ExecAccessRequest
+  path: github.com/diranged/oz/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: wizardofoz.co
+  group: crds
+  kind: AccessTemplate
+  path: github.com/diranged/oz/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: wizardofoz.co
+  group: crds
+  kind: AccessRequest
   path: github.com/diranged/oz/api/v1alpha1
   version: v1alpha1
 version: "3"

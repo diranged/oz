@@ -1,0 +1,12 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: AccessRequest
+metadata:
+  labels:
+    app.kubernetes.io/name: accessrequest
+    app.kubernetes.io/instance: accessrequest-sample
+    app.kubernetes.io/part-of: oz
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: oz
+  name: accessrequest-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,31 @@
+# permissions for end users to edit execaccessrequests.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: execaccessrequest-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    app.kubernetes.io/managed-by: kustomize
+  name: execaccessrequest-editor-role
+rules:
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccessrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - execaccessrequests/status
+  verbs:
+  - get

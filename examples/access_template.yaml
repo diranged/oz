@@ -1,0 +1,27 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: AccessTemplate
+metadata:
+  name: deployment-example
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example
+
+  # todo: figure out why these are required
+  maxDuration: 2h
+  defaultDuration: 1h
+
+  # A list of Kubernetes Groups that are allowed to request access through this template.
+  allowedGroups:
+    - admins
+    - devs
+
+  resources:
+    requests:
+      memory: 42Mi
+      cpu: 100m
+
+  maxMemory: 1Gi
+  maxCpu: 1
+  maxStorage: 1Gi

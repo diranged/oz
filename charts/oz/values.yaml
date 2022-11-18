@@ -1,0 +1,47 @@
+controllerManager:
+  # -- (`int`) Number of Oz Controllers to run. If more than one is used,
+  # leader-election is used to ensure only one controller is operating at a
+  # time.
+  replicas: 1
+
+  manager:
+    image:
+      # -- (`string`) Docker Image repository and name to use for the controller.
+      repository: ghcr.io/diranged/oz
+
+      # -- (`string`) If set, overrides the .Chart.AppVersion field to set the
+      # target image version for the Oz controller.
+      tag:
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+  kubeRbacProxy:
+    image:
+      repository: gcr.io/kubebuilder/kube-rbac-proxy
+      tag: v0.13.0
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 5m
+        memory: 64Mi
+
+# Configuration for the oz-controller-manager-metrics-service, used for
+# collecting metrics from the controller.
+metricsService:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: https
+
+# -- (`string`) Configures the KUBERNETES_CLUSTER_DOMAIN environment variable.
+kubernetesClusterDomain: cluster.local

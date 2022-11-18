@@ -1,0 +1,27 @@
+# permissions for end users to view accessrequests.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: accessrequest-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: oz
+    app.kubernetes.io/part-of: oz
+    app.kubernetes.io/managed-by: kustomize
+  name: accessrequest-viewer-role
+rules:
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accessrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - accessrequests/status
+  verbs:
+  - get

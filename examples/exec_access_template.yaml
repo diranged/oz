@@ -1,0 +1,14 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: ExecAccessTemplate
+metadata:
+  name: deployment-example
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example
+
+  # A list of Kubernetes Groups that are allowed to request access through this template.
+  allowedGroups:
+    - admins
+    - devs
