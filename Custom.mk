@@ -1,6 +1,9 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 
 ## Tool Binaries
+HELMIFY_VER ?= v0.3.18
+HELMIFY ?= $(LOCALBIN)/helmify
+
 REVIVE_VER ?= v1.2.4
 REVIVE     ?= $(LOCALBIN)/revive
 
@@ -23,8 +26,8 @@ test-e2e:
 
 .PHONY: revive
 revive: $(REVIVE) ## Download revive locally if necessary.
-$(REVIVE): $(LOCALBIN)
-	test -s $(LOCALBIN)/revive || GOBIN=$(LOCALBIN) go install github.com/mgechev/revive@$(REVIVE_VER)
+$(REVIVE): $(LOCALBIN) Custom.mk
+	GOBIN=$(LOCALBIN) go install github.com/mgechev/revive@$(REVIVE_VER)
 
 ##@ Build CLI
 .PHONY: cli
@@ -35,3 +38,13 @@ outputs/ozctl-osx: ozctl controllers api $(SOURCE)
 
 outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
 	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
+
+## https://github.com/arttor/helmify#integrate-to-your-operator-sdkkubebuilder-project
+helmify: $(HELMIFY) ## Download helmify locally if necessary.
+$(HELMIFY): $(LOCALBIN) Custom.mk
+	GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@$(HELMIFY_VER)
+
+helm: manifests kustomize helmify
+	$(KUSTOMIZE) build config/default | $(HELMIFY) \
+		-crd-dir \
+		charts/oz
