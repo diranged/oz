@@ -9,7 +9,7 @@ package builders
 // live traffic, and then Role and RoleBindings are created to grant the developer access into the
 // Pod.
 type AccessBuilder struct {
-	*BaseBuilder
+	BaseBuilder
 }
 
 // GeneratePodName returns back the PodName field which will be populated into the AccessRequest.

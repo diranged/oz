@@ -13,7 +13,7 @@ import (
 // OzRequestReconciler provides a base reconciler with common functions for handling our Template CRDs
 // (ExecAccessTemplate, AccessTemplate, etc)
 type OzRequestReconciler struct {
-	*OzReconciler
+	OzReconciler
 }
 
 // verifyDuration checks a few components of whether or not the AccessRequest is still valid:

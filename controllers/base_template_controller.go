@@ -11,7 +11,7 @@ import (
 // OzTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
 // (ExecAccessTemplate, AccessTemplate, etc)
 type OzTemplateReconciler struct {
-	*OzReconciler
+	OzReconciler
 }
 
 // VerifyTargetRef ensures that the Spec.targetRef points to a valid and understood controller that we

@@ -33,7 +33,7 @@ import (
 // AccessRequestReconciler reconciles a AccessRequest object
 type AccessRequestReconciler struct {
 	// Pass in the common functions from our BaseController
-	*OzRequestReconciler
+	OzRequestReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests,verbs=get;list;watch;create;update;patch;delete
@@ -54,7 +54,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.setReconciliationInterval()
+	r.SetReconciliationInterval()
 
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
@@ -86,7 +86,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.AccessBuilder{
-		BaseBuilder: &builders.BaseBuilder{
+		BaseBuilder: builders.BaseBuilder{
 			Client:    r.Client,
 			Ctx:       ctx,
 			Scheme:    r.Scheme,

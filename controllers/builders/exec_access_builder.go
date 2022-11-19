@@ -21,7 +21,7 @@ import (
 // specific Controller (DaemonSet, Deployment, StatefulSet). This privileged access is generally
 // only used when it is critical to troubleshoot a live Pod that is serving a particular workload.
 type ExecAccessBuilder struct {
-	*BaseBuilder
+	BaseBuilder
 
 	Request  *api.ExecAccessRequest
 	Template *api.ExecAccessTemplate

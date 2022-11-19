@@ -41,9 +41,9 @@ type OzReconciler struct {
 	ReconcililationInterval int
 }
 
-// setReconciliationInterval sets the OzReconciler.ReconciliationInterval value to the
+// SetReconciliationInterval sets the OzReconciler.ReconciliationInterval value to the
 // DEFAULT_RECONCILIATION_INTERVAL if it was not pre-populated.
-func (r *OzReconciler) setReconciliationInterval() {
+func (r *OzReconciler) SetReconciliationInterval() {
 	if r.ReconcililationInterval == 0 {
 		r.ReconcililationInterval = DefaultReconciliationInterval
 	}

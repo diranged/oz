@@ -30,7 +30,8 @@ import (
 
 // AccessTemplateReconciler reconciles a AccessTemplate object
 type AccessTemplateReconciler struct {
-	*OzTemplateReconciler
+	// anonymous field
+	OzTemplateReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates,verbs=get;list;watch;create;update;patch;delete
@@ -53,7 +54,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
-	r.setReconciliationInterval()
+	r.SetReconciliationInterval()
 
 	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
@@ -68,7 +69,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.AccessBuilder{
-		BaseBuilder: &builders.BaseBuilder{
+		BaseBuilder: builders.BaseBuilder{
 			Client:   r.Client,
 			Ctx:      ctx,
 			Scheme:   r.Scheme,
