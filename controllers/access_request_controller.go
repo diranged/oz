@@ -94,8 +94,6 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Request:   resource,
 			Template:  tmpl,
 		},
-		Request:  resource,
-		Template: tmpl,
 	}
 
 	// VERIFICATION: Verifies the requested duration

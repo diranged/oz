@@ -26,6 +26,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const shortUIDLength = 10
+
 // ExecAccessRequestSpec defines the desired state of ExecAccessRequest
 type ExecAccessRequestSpec struct {
 	// Defines the name of the `ExecAcessTemplate` that should be used to grant access to the target
@@ -121,6 +123,17 @@ func (r *ExecAccessRequest) IsReady() bool {
 // SetReady conforms to the interfaces.OzResource interface
 func (r *ExecAccessRequest) SetReady(ready bool) {
 	r.Status.Ready = ready
+}
+
+// GetShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
+// the AccessRequest internally. This is used by the Builders to create unique names for the
+// resources they manage (Roles, RoleBindings, etc).
+//
+// Returns:
+//
+//	shortUID: A 10-digit long shortened UID
+func (r *ExecAccessRequest) GetShortUID() string {
+	return string(r.GetUID())[0:shortUIDLength]
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
