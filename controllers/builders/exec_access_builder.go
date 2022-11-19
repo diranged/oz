@@ -212,54 +212,10 @@ func (b *ExecAccessBuilder) getSpecificPod() (*corev1.Pod, error) {
 	return &podList.Items[0], err
 }
 
-func (b *ExecAccessBuilder) applyAccessRole(podName string) (*rbacv1.Role, error) {
-	role := &rbacv1.Role{}
-
-	role.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetShortUID())
-	role.Namespace = b.Template.Namespace
-	role.Rules = []rbacv1.PolicyRule{
-		{
-			APIGroups:     []string{corev1.GroupName},
-			Resources:     []string{"pods"},
-			ResourceNames: []string{podName},
-			Verbs:         []string{"get", "list", "watch"},
-		},
-		{
-			APIGroups:     []string{corev1.GroupName},
-			Resources:     []string{"pods/exec"},
-			ResourceNames: []string{podName},
-			Verbs:         []string{"create", "update", "delete", "get", "list"},
-		},
-	}
-
-	// Set the ownerRef for the Deployment
-	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	if err := ctrlutil.SetControllerReference(b.Request, role, b.Scheme); err != nil {
-		return nil, err
-	}
-
-	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
-	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
-	// values from the desired role object above.
-	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
-
-	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRole, func() error {
-		emptyRole.ObjectMeta = role.ObjectMeta
-		emptyRole.Rules = role.Rules
-		emptyRole.OwnerReferences = role.OwnerReferences
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return role, nil
-}
-
 func (b *ExecAccessBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 
-	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, b.Request.GetShortUID())
+	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, GetShortUID(b.Request))
 	rb.Namespace = b.Template.Namespace
 	rb.RoleRef = rbacv1.RoleRef{
 		APIGroup: rbacv1.GroupName,
