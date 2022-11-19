@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -105,9 +104,6 @@ func (t *AccessRequest) SetReady(ready bool) {
 
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (t *AccessRequest) SetPodName(name string) error {
-	if t.Status.PodName != "" {
-		return fmt.Errorf("Status.PodName arlready set: %s", t.Status.PodName)
-	}
 	t.Status.PodName = name
 	return nil
 }

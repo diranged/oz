@@ -2,6 +2,7 @@ apiVersion: crds.wizardofoz.co/v1alpha1
 kind: ExecAccessTemplate
 metadata:
   name: deployment-example
+  namespace: oz-system
 spec:
   targetRef:
     apiVersion: apps/v1

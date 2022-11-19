@@ -39,25 +39,27 @@ type ExecAccessBuilder struct {
 //	err: Any errors during the building and application of these resources.
 func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
 	// Get the target Pod Name that the user is going to have access to
-	targetPodName, err := b.generatePodName()
+	targetPodName, err := b.getPodName()
 	if err != nil {
 		return statusString, accessString, err
 	}
 
 	// Get the Role, or error out
-	role, err := b.applyAccessRole(targetPodName)
+	role, err := b.createAccessRole(targetPodName)
 	if err != nil {
 		return statusString, accessString, err
 	}
 
 	// Get the Binding, or error out
-	rb, err := b.applyAccessRoleBinding()
+	rb, err := b.createAccessRoleBinding()
 	if err != nil {
 		return statusString, accessString, err
 	}
 
 	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
-	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", b.Template.Namespace, "asdf")
+	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", b.Template.Namespace, targetPodName)
+
+	b.Request.SetPodName(targetPodName)
 
 	return statusString, accessString, err
 }
@@ -71,12 +73,12 @@ func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, acce
 //     ... is set, call getSpecificPod() to verify that the pod exists and is valid for the request
 //     ... is not set, call getRandomPod() to pick a random pod from the target controller
 //   - Save the picked podName into the request status and update the request object
-//
+
 // Returns:
 //
 //	podname: A string with the pod name (or an empty string in a failure)
 //	error: Any errors generating the podName.
-func (b *ExecAccessBuilder) generatePodName() (podName string, err error) {
+func (b *ExecAccessBuilder) getPodName() (podName string, err error) {
 	logger := log.FromContext(b.Ctx)
 
 	// If this resource already has a status.podName field set, then we respect that no matter what.

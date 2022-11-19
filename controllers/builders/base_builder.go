@@ -4,6 +4,7 @@ package builders
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -20,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const shortUIDLength = 10
+const shortUIDLength = 8
 
 // Builder defines the interface for a particular "access builder". An "access builder" is typically
 // paired with an "access template" struct in the api.v1alpha1 package. Each unique type of access
@@ -211,6 +212,46 @@ func (b *BaseBuilder) getTargetPodSelectorLabels() (labels.Selector, error) {
 	}
 }
 
+func (b *BaseBuilder) getPodSpecFromController() (corev1.PodSpec, error) {
+	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
+	logger := log.FromContext(b.Ctx)
+
+	targetController, err := b.GetTargetRefResource()
+	if err != nil {
+		return corev1.PodSpec{}, err
+	}
+
+	// TODO: Figure out a more generic way to do this that doesn't involve a bunch of checks like this
+	switch kind := targetController.GetObjectKind().GroupVersionKind().Kind; kind {
+	case "Deployment":
+		controller, err := b.getDeployment(targetController)
+		if err != nil {
+			logger.Error(err, "Failed to find target Deployment")
+			return corev1.PodSpec{}, err
+		}
+		return *controller.Spec.Template.Spec.DeepCopy(), nil
+
+	case "DaemonSet":
+		controller, err := b.getDaemonSet(targetController)
+		if err != nil {
+			logger.Error(err, "Failed to find target DaemonSet")
+			return corev1.PodSpec{}, err
+		}
+		return *controller.Spec.Template.Spec.DeepCopy(), nil
+
+	case "StatefulSet":
+		controller, err := b.getStatefulSet(targetController)
+		if err != nil {
+			logger.Error(err, "Failed to find target StatefulSet")
+			return corev1.PodSpec{}, err
+		}
+		return *controller.Spec.Template.Spec.DeepCopy(), nil
+
+	default:
+		return corev1.PodSpec{}, errors.New("invalid input")
+	}
+}
+
 // getDeployment returns a Deployment given the supplied generic client.Object resource
 //
 // Returns:
@@ -256,7 +297,7 @@ func (b *BaseBuilder) getStatefulSet(obj client.Object) (*appsv1.StatefulSet, er
 	return found, err
 }
 
-func (b *BaseBuilder) applyAccessRole(podName string) (*rbacv1.Role, error) {
+func (b *BaseBuilder) createAccessRole(podName string) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{}
 
 	role.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
@@ -300,7 +341,7 @@ func (b *BaseBuilder) applyAccessRole(podName string) (*rbacv1.Role, error) {
 	return role, nil
 }
 
-func (b *BaseBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
+func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 
 	rb.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
@@ -345,6 +386,49 @@ func (b *BaseBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	return rb, nil
 }
 
+func (b *BaseBuilder) createPod(podSpec corev1.PodSpec) (*corev1.Pod, error) {
+	logger := log.FromContext(b.Ctx)
+
+	// Desired pod
+	pod := &corev1.Pod{}
+	pod.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
+	pod.Namespace = b.Template.GetNamespace()
+	pod.Spec = podSpec
+
+	// Generate an emptyPod resource. We use this to define the type, name and namespace of the resource, which
+	// will be passed into the CreateOrUpdate function.
+	emptyPod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: pod.Namespace}}
+
+	// Set the ownerRef for the Deployment
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	if err := ctrlutil.SetControllerReference(b.Request, pod, b.Scheme); err != nil {
+		return nil, err
+	}
+
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
+	//
+	// In an update event, wec an only update the Annotations and the OwnerReference. Nothing else.
+	logger.V(1).Info(fmt.Sprintf("Creating or Updating Pod %s (ns: %s)", pod.Name, pod.Namespace))
+	logger.V(1).Info("Pod Json", "json", ObjectToJSON(pod))
+	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyPod, func() error {
+		// Mutable fields that we can update on each iteration.
+		emptyPod.ObjectMeta.Annotations = pod.GetObjectMeta().GetAnnotations()
+		emptyPod.OwnerReferences = pod.OwnerReferences
+
+		// We can only set the PodSpec once. If the PodSpec is empty, then we pass in the desired
+		// PodSpec. After that, we ignore all future updates to it.
+		if len(emptyPod.Spec.Containers) < 1 {
+			emptyPod.Spec = pod.Spec
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return pod, nil
+}
+
 // GetShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
 // the AccessRequest internally. This is used by the Builders to create unique names for the
 // resources they manage (Roles, RoleBindings, etc).
@@ -354,4 +438,15 @@ func (b *BaseBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 //	shortUID: A 10-digit long shortened UID
 func GetShortUID(obj client.Object) string {
 	return string(obj.GetUID())[0:shortUIDLength]
+}
+
+// ObjectToJSON is a quick helper function for pretty-printing an entire K8S object in JSON form.
+// Used in certain debug log statements primarily.
+func ObjectToJSON(obj client.Object) string {
+	jsonData, err := json.Marshal(obj)
+	if err != nil {
+		fmt.Printf("could not marshal json: %s\n", err)
+		return ""
+	}
+	return string(jsonData)
 }

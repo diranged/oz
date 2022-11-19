@@ -1,0 +1,8 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: AccessRequest
+metadata:
+  name: deployment-example
+  namespace: oz-system
+spec:
+  templateName: deployment-example
+  duration: 5m

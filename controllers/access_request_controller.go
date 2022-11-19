@@ -40,6 +40,16 @@ type AccessRequestReconciler struct {
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/finalizers,verbs=update
 
+// https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb
+//
+// We leverage the escalate verb here because we don't specifically want or need the Oz controller
+// pods to have Exec/Debug privileges on pods, but we want them to be able to grant those privileges
+// to users.
+//
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete;bind;escalate
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
@@ -94,6 +104,8 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Request:   resource,
 			Template:  tmpl,
 		},
+		Request:  resource,
+		Template: tmpl,
 	}
 
 	// VERIFICATION: Verifies the requested duration

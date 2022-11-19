@@ -1,10 +1,11 @@
 # Oz RBAC Controller - Development Guide
 
+[kind]: https://sigs.k8s/kind
+
 ## Prerequisites
 
-You’ll need a Kubernetes cluster to run against. You can use
-[KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run
-against a remote cluster.
+You’ll need a Kubernetes cluster to run against. You can use [KIND][kind] to
+get a local cluster for testing, or run against a remote cluster.
 
 **Note:** Your controller will automatically use the current context in your
 kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
@@ -18,19 +19,67 @@ should provide the most common extensions that will make development easier.
 
 ## Build Environment
 
+
+### Spin up your Kind Cluster
+
+First, spin up an empty [KIND][kind] cluster in your development environment.
+We recommend always creating a new KIND environment for every project you work
+on.
+
+```sh
+$ kind create cluster
+```
+
 ### Running on the cluster
 
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-load manifests deploy
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
+2. Build the docker image, load it into your KIND environment, and
+   install/upgrade the controller:
 
 ```sh
-make deploy
+$ make docker-build docker-load manifests deploy
+...
+service/oz-controller-manager-metrics-service created
+deployment.apps/oz-controller-manager created
+kubectl -n oz-system rollout restart deployment -l app.kubernetes.io/component=manager
+deployment.apps/oz-controller-manager restarted
 ```
+
+3. Install some test resources:
+
+The [`examples`](./examples) directory includes some test resources - a
+`Deployment`, `AccessTemplate`, `AccessRequest`, `ExecAccessTemplate` and
+`AccessTemplate`. These resources can be used to quickly test the controller
+locally.
+
+First, spin up the target workload - a [`Deployment`](./examples/deployment.yaml):
+
+```sh
+$ kubectl apply -f examples/deployment.yaml
+deployment.apps/example created
+$ kubectl apply -f k apply -f examples/access_template.yaml
+accesstemplate.crds.wizardofoz.co/deployment-example created
+```
+
+Once they are installed, verify that the `AccessTemplate` is in a good healthy state:
+```sh
+$ kubectl describe accesstemplate deployment-example | tail -15
+  Conditions:
+    Last Transition Time:  2022-11-19T22:23:15Z
+    Message:               Success
+    Observed Generation:   1
+    Reason:                Success
+    Status:                True
+    Type:                  TargetRefExists
+    Last Transition Time:  2022-11-19T22:23:15Z
+    Message:               spec.defaultDuration and spec.maxDuration valid
+    Observed Generation:   1
+    Reason:                Success
+    Status:                True
+    Type:                  AccessDurationsValid
+  Ready:                   true
+Events:                    <none>
+```
+
 
 ### Uninstall CRDs
 To delete the CRDs from the cluster:
@@ -52,8 +101,8 @@ make undeploy
 ### How it works
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
+It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/)
+which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster
 
 ### Test It Out
 1. Install the CRDs into the cluster:
@@ -96,4 +145,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // AccessBuilder implements the required resources for the api.AccessTemplate CRD.
@@ -21,14 +23,6 @@ type AccessBuilder struct {
 	Template *api.AccessTemplate
 }
 
-// GeneratePodName returns back the PodName field which will be populated into the AccessRequest.
-//
-// TODO: GeneratePodName needs to figure out the PodName after it has created the target pod in the first place? Or
-// it could just generate a static name with a clean function and return that.
-func (b *AccessBuilder) generatePodName() (string, error) {
-	return "junk", nil
-}
-
 // GenerateAccessResources is the primary function called by the reconciler to this Builder object. This function
 // is responsible for building all of the temporary access resources, and returning back information about them
 // to the user. Any error causes this function to stop and fail.
@@ -43,26 +37,42 @@ func (b *AccessBuilder) generatePodName() (string, error) {
 //
 //	err: Any errors during the building and application of these resources.
 func (b *AccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
-	// Get the target Pod Name that the user is going to have access to
-	targetPodName, err := b.generatePodName()
+	logger := log.FromContext(b.Ctx)
+
+	// First, get the desired PodSpec. If there's a failure at this point, return it.
+	podSpec, err := b.generatePodSpec()
 	if err != nil {
+		logger.Error(err, "Failed to generate PodSpec for AccessRequest")
+		return statusString, accessString, err
+	}
+
+	// Generate a Pod for the user to access
+	pod, err := b.createPod(podSpec)
+	if err != nil {
+		logger.Error(err, "Failed to create Pod for AccessRequest")
 		return statusString, accessString, err
 	}
 
 	// Get the Role, or error out
-	role, err := b.applyAccessRole(targetPodName)
+	role, err := b.createAccessRole(pod.GetName())
 	if err != nil {
 		return statusString, accessString, err
 	}
 
 	// Get the Binding, or error out
-	rb, err := b.applyAccessRoleBinding()
+	rb, err := b.createAccessRoleBinding()
 	if err != nil {
 		return statusString, accessString, err
 	}
 
-	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
-	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", b.Template.Namespace, "asdf")
+	statusString = fmt.Sprintf("Success. Pod %s, Role %s, RoleBinding %s created", pod.Name, role.Name, rb.Name)
+	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", pod.GetNamespace(), pod.GetName())
+
+	b.Request.Status.PodName = pod.GetName()
 
 	return statusString, accessString, err
+}
+
+func (b *AccessBuilder) generatePodSpec() (corev1.PodSpec, error) {
+	return b.getPodSpecFromController()
 }

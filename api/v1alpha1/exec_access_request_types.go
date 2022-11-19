@@ -55,12 +55,6 @@ type ExecAccessRequestStatus struct {
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
 
-	// The name of the Role created for this temporary access request
-	RoleName string `json:"roleName,omitempty"`
-
-	// The name of th RoleBinding created for this temporary access request
-	RoleBindingName string `json:"roleBindingName,omitempty"`
-
 	// Simple boolean to let us know if the resource is ready for use or not
 	Ready bool `json:"ready,omitempty"`
 }
