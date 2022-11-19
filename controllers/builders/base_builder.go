@@ -10,13 +10,17 @@ import (
 	"github.com/diranged/oz/interfaces"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+const shortUIDLength = 10
 
 // Builder defines the interface for a particular "access builder". An "access builder" is typically
 // paired with an "access template" struct in the api.v1alpha1 package. Each unique type of access
@@ -247,4 +251,107 @@ func (b *BaseBuilder) getStatefulSet(obj client.Object) (*appsv1.StatefulSet, er
 		Namespace: obj.GetNamespace(),
 	}, found)
 	return found, err
+}
+
+// applyPodAccessRole creates an rbac/v1/Role resource that provides access to `kubectl exec` into a
+// particular pod.
+func (b *BaseBuilder) applyPodAccessRole(podName string) (*rbacv1.Role, error) {
+	role := &rbacv1.Role{}
+
+	role.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), b.GetShortUID(b.Request))
+	role.Namespace = b.Template.GetNamespace()
+	role.Rules = []rbacv1.PolicyRule{
+		{
+			APIGroups:     []string{corev1.GroupName},
+			Resources:     []string{"pods"},
+			ResourceNames: []string{podName},
+			Verbs:         []string{"get", "list", "watch"},
+		},
+		{
+			APIGroups:     []string{corev1.GroupName},
+			Resources:     []string{"pods/exec"},
+			ResourceNames: []string{podName},
+			Verbs:         []string{"create", "update", "delete", "get", "list"},
+		},
+	}
+
+	// Set the ownerRef for the Deployment
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	if err := ctrlutil.SetControllerReference(b.Request, role, b.Scheme); err != nil {
+		return nil, err
+	}
+
+	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
+	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
+	// values from the desired role object above.
+	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
+
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
+	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRole, func() error {
+		emptyRole.ObjectMeta = role.ObjectMeta
+		emptyRole.Rules = role.Rules
+		emptyRole.OwnerReferences = role.OwnerReferences
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+// applyAccessRoleBinding creates an rbac/v1/RoleBinding resource that connects a list of Groups to a particular Role.
+func (b *BaseBuilder) applyAccessRoleBinding(role *rbacv1.Role, groups []string) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+
+	rb.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), b.GetShortUID(b.Request))
+	rb.Namespace = b.Template.GetNamespace()
+	rb.RoleRef = rbacv1.RoleRef{
+		APIGroup: rbacv1.GroupName,
+		Kind:     "Role",
+		Name:     role.GetName(),
+	}
+	rb.Subjects = []rbacv1.Subject{}
+
+	for _, group := range groups {
+		rb.Subjects = append(rb.Subjects, rbacv1.Subject{
+			APIGroup: rbacv1.SchemeGroupVersion.Group,
+			Kind:     rbacv1.GroupKind,
+			Name:     group,
+		})
+	}
+
+	// Set the ownerRef for the Deployment
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	if err := ctrlutil.SetControllerReference(b.Request, rb, b.Scheme); err != nil {
+		return nil, err
+	}
+
+	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
+	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
+	// values from the desired role object above.
+	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
+
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
+	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRb, func() error {
+		emptyRb.ObjectMeta = rb.ObjectMeta
+		emptyRb.RoleRef = rb.RoleRef
+		emptyRb.Subjects = rb.Subjects
+		emptyRb.OwnerReferences = rb.OwnerReferences
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return rb, nil
+}
+
+// GetShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
+// the AccessRequest internally. This is used by the Builders to create unique names for the
+// resources they manage (Roles, RoleBindings, etc).
+//
+// Returns:
+//
+//	shortUID: A 10-digit long shortened UID
+func (b *BaseBuilder) GetShortUID(obj client.Object) string {
+	return string(obj.GetUID())[0:shortUIDLength]
 }
