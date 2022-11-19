@@ -6,7 +6,7 @@
 
 # Oz RBAC Controller
 
-[![ci](https://github.com/diranged/oz/actions/workflows/ci.yaml/badge.svg)](https://github.com/diranged/oz/actions/workflows/ci.yaml)
+[![ci](https://github.com/diranged/oz/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/diranged/oz/actions/workflows/main.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/diranged/oz)](https://goreportcard.com/report/github.com/diranged/oz)
 
 _The Wizard of Oz_: The "Great and Powerfull Oz", or also known as the "man
