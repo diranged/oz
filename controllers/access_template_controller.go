@@ -67,7 +67,7 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
+	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.AccessBuilder{
 		BaseBuilder: builders.BaseBuilder{
 			Client:   r.Client,

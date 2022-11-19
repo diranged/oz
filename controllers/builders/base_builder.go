@@ -42,6 +42,9 @@ type Builder interface {
 
 	// Generates all of the resources required to fulfill the access request.
 	GenerateAccessResources() (statusString string, accessString string, err error)
+
+	// TODO:
+	GetTargetRefResource() (client.Object, error)
 }
 
 // BaseBuilder provides a starting point struct with a set of common methods. These methods are used
