@@ -11,7 +11,7 @@ import (
 // OzTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
 // (ExecAccessTemplate, AccessTemplate, etc)
 type OzTemplateReconciler struct {
-	*OzReconciler
+	OzReconciler
 }
 
 // VerifyTargetRef ensures that the Spec.targetRef points to a valid and understood controller that we
@@ -20,22 +20,24 @@ type OzTemplateReconciler struct {
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *OzTemplateReconciler) VerifyTargetRef(builder *builders.AccessBuilder) error {
+func (r *OzTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
 	var err error
+	ctx := builder.GetCtx()
+	tmpl := builder.GetTemplate()
 
-	logger := log.FromContext(builder.Ctx)
+	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Beginning TargetRef Verification")
 
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
 		return r.updateCondition(
-			builder.Ctx, builder.Template, conditionTargetRefExists, metav1.ConditionFalse,
+			ctx, tmpl, conditionTargetRefExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
 	return r.updateCondition(
-		builder.Ctx, builder.Template, conditionTargetRefExists, metav1.ConditionTrue,
+		ctx, tmpl, conditionTargetRefExists, metav1.ConditionTrue,
 		string(metav1.StatusSuccess), "Success")
 }
 
@@ -44,28 +46,31 @@ func (r *OzTemplateReconciler) VerifyTargetRef(builder *builders.AccessBuilder) 
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *OzTemplateReconciler) VerifyMiscSettings(builder *builders.AccessBuilder) error {
+func (r *OzTemplateReconciler) VerifyMiscSettings(builder builders.Builder) error {
+	ctx := builder.GetCtx()
+	tmpl := builder.GetTemplate()
+
 	// Verify that MaxDuration is greater than DesiredDuration.
-	defaultDuration, err := builder.Template.GetDefaultDuration()
+	defaultDuration, err := tmpl.GetDefaultDuration()
 	if err != nil {
 		return r.updateCondition(
-			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
 	}
-	maxDuration, err := builder.Template.GetMaxDuration()
+	maxDuration, err := tmpl.GetMaxDuration()
 	if err != nil {
 		return r.updateCondition(
-			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.maxDuration: %s", err))
 	}
 	if defaultDuration > maxDuration {
 		return r.updateCondition(
-			builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable),
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
 	}
 	return r.updateCondition(
-		builder.Ctx, builder.Template, conditionDurationsValid, metav1.ConditionTrue,
+		ctx, tmpl, conditionDurationsValid, metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"spec.defaultDuration and spec.maxDuration valid")
 }

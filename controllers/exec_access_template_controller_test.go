@@ -147,8 +147,8 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Reconciling the custom resource")
 			reconciler := &ExecAccessTemplateReconciler{
-				OzTemplateReconciler: &OzTemplateReconciler{
-					OzReconciler: &OzReconciler{
+				OzTemplateReconciler: OzTemplateReconciler{
+					OzReconciler: OzReconciler{
 						Client:    k8sClient,
 						Scheme:    k8sClient.Scheme(),
 						APIReader: k8sClient,
@@ -227,8 +227,8 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Reconciling the custom resource")
 			reconciler := &ExecAccessTemplateReconciler{
-				OzTemplateReconciler: &OzTemplateReconciler{
-					OzReconciler: &OzReconciler{
+				OzTemplateReconciler: OzTemplateReconciler{
+					OzReconciler: OzReconciler{
 						Client:    k8sClient,
 						Scheme:    k8sClient.Scheme(),
 						APIReader: k8sClient,

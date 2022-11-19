@@ -20,10 +20,10 @@ runs:
       uses: actions/cache@v3
       with:
         path: ${{ steps.go.outputs.build-cache }}
-        key: ${{ runner.os }}-build-${{ github.sha }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
     - name: Cache Go Dependencies
       uses: actions/cache@v3
       with:
         path: ${{ steps.go.outputs.mod-cache }}
-        key: ${{ runner.os }}-mod-${{ github.sha }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-mod-${{ hashFiles('**/go.sum') }}

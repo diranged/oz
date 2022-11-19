@@ -100,6 +100,11 @@ func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 
+// GetAllowedGroups returns the Spec.AllowedGroups for this particular template
+func (t *ExecAccessTemplate) GetAllowedGroups() []string {
+	return t.Spec.AllowedGroups
+}
+
 // GetDefaultDuration parses the Spec.defaultDuration field into a time.Duration struct.
 //
 // Returns:

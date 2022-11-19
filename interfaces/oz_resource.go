@@ -46,6 +46,9 @@ type OzTemplateResource interface {
 	// Returns a CrossVersionObjectReference to the controller target for the template. Eg Deployment, StatefulSet, etc.
 	GetTargetRef() *api.CrossVersionObjectReference
 
+	// Returns back the Spec.allowedGroups field
+	GetAllowedGroups() []string
+
 	// Returns the Spec.defaultDuration in time.Duration() format
 	GetDefaultDuration() (time.Duration, error)
 
