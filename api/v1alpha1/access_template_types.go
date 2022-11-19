@@ -126,6 +126,11 @@ func (t *AccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 
+// GetAllowedGroups returns the Spec.AllowedGroups for this particular template
+func (t *AccessTemplate) GetAllowedGroups() []string {
+	return t.Spec.AllowedGroups
+}
+
 //+kubebuilder:object:root=true
 
 // AccessTemplateList contains a list of AccessTemplate

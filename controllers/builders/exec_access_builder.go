@@ -6,10 +6,7 @@ import (
 
 	api "github.com/diranged/oz/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -210,49 +207,4 @@ func (b *ExecAccessBuilder) getSpecificPod() (*corev1.Pod, error) {
 
 	// Return the first element from the list
 	return &podList.Items[0], err
-}
-
-func (b *ExecAccessBuilder) applyAccessRoleBinding() (*rbacv1.RoleBinding, error) {
-	rb := &rbacv1.RoleBinding{}
-
-	rb.Name = fmt.Sprintf("%s-%s", b.Request.Name, GetShortUID(b.Request))
-	rb.Namespace = b.Template.Namespace
-	rb.RoleRef = rbacv1.RoleRef{
-		APIGroup: rbacv1.GroupName,
-		Kind:     "Role",
-		Name:     rb.Name,
-	}
-	rb.Subjects = []rbacv1.Subject{}
-
-	for _, group := range b.Template.Spec.AllowedGroups {
-		rb.Subjects = append(rb.Subjects, rbacv1.Subject{
-			APIGroup: rbacv1.SchemeGroupVersion.Group,
-			Kind:     rbacv1.GroupKind,
-			Name:     group,
-		})
-	}
-
-	// Set the ownerRef for the Deployment
-	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	if err := ctrlutil.SetControllerReference(b.Request, rb, b.Scheme); err != nil {
-		return nil, err
-	}
-
-	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
-	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
-	// values from the desired role object above.
-	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
-
-	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
-	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRb, func() error {
-		emptyRb.ObjectMeta = rb.ObjectMeta
-		emptyRb.RoleRef = rb.RoleRef
-		emptyRb.Subjects = rb.Subjects
-		emptyRb.OwnerReferences = rb.OwnerReferences
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return rb, nil
 }
