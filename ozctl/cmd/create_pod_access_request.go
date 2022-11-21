@@ -112,8 +112,8 @@ var createPodAccessRequestCmd = &cobra.Command{
 
 			// Check the status
 			if req.GetStatus().IsReady() {
-				cmd.Println("\nSuccess, your access request is ready!")
-				cmd.Printf("\nAccess your pod with: kubectl exec -ti -n %s %s\n", req.GetNamespace(), req.GetPodName())
+				cmd.Println("\nSuccess, your access request is ready! Here are your access instructions:\n")
+				cmd.Println(req.GetStatus().GetAccessMessage())
 				break
 			}
 

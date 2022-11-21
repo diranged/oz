@@ -130,6 +130,7 @@ func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (a
 
 	statusString, accessString, err := builder.GenerateAccessResources()
 	if err != nil {
+		builder.GetRequest().GetStatus().SetAccessMessage("")
 		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			conditionAccessResourcesCreated,
@@ -139,6 +140,7 @@ func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (a
 		return accessString, err
 	}
 
+	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
 	if err := r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
 		conditionAccessResourcesCreated,

@@ -12,6 +12,11 @@ import (
 // controller (Deployment, DaemonSet, StatefulSet) can be used as the reference for the PodSpec
 // that is launched for the user. However, the operator may want to make modifications to the
 // PodSpec at launch time (eg, change the entrypoint command or arguments).
+//
+// TODO: Add podAnnotations
+// TODO: Add podLabels
+// TODO: Add nodeSelector
+// TODO: Add affinity
 type PodSpecMutationConfig struct {
 	// DefaultContainerName allows the operator to define which container is considered the default
 	// container, and that is the container that this mutation configuration applies to. If not set,
@@ -36,6 +41,12 @@ type PodSpecMutationConfig struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
+// getDefaultContainerID returns the numerical identifier of the container within the
+// PodSpec.Containers[] list that the mutation configuration should apply to.
+//
+// Returns:
+//
+//	int: The identifier in the PodSpec.Containers[] list of the "default" container to mutate.
 func (c *PodSpecMutationConfig) getDefaultContainerID(pod corev1.PodSpec) (int, error) {
 	// By default, return 0.
 	if c.DefaultContainerName == "" {
@@ -55,6 +66,10 @@ func (c *PodSpecMutationConfig) getDefaultContainerID(pod corev1.PodSpec) (int, 
 
 // PatchPodSpec returns a mutated new PodSpec object based on the supplied spec, and the parameters
 // in the PodSpecMutationConfig struct.
+//
+// Returns:
+//
+//	corev1.PodSpec: A new PodSpec object with the mutated configuration.
 func (c *PodSpecMutationConfig) PatchPodSpec(orig corev1.PodSpec) (corev1.PodSpec, error) {
 	n := *orig.DeepCopy()
 
