@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/diranged/oz/interfaces"
+	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,7 +88,7 @@ func (r *OzReconciler) updateStatus(ctx context.Context, obj client.Object) erro
 // Finally we call the UpdateStatus() function to push the update to Kubernetes.
 func (r *OzReconciler) updateCondition(
 	ctx context.Context,
-	res interfaces.OzResource,
+	res api.OzResource,
 	conditionType OzResourceConditionTypes,
 	conditionStatus metav1.ConditionStatus,
 	reason string,
@@ -116,7 +116,7 @@ func (r *OzReconciler) updateCondition(
 //
 // Status.Ready is used by the 'ozctl' commandline tool to inform users when their access request
 // has been approved and configured.
-func (r *OzReconciler) setReadyStatus(ctx context.Context, res interfaces.OzResource) error {
+func (r *OzReconciler) setReadyStatus(ctx context.Context, res api.OzResource) error {
 	logger := r.getLogger(ctx)
 	logger.V(1).Info("Checking final condition state")
 

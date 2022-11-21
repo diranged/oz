@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/diranged/oz/interfaces"
+	api "github.com/diranged/oz/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -35,8 +35,8 @@ type Builder interface {
 	GetCtx() context.Context
 	GetScheme() *runtime.Scheme
 
-	GetRequest() interfaces.OzRequestResource
-	GetTemplate() interfaces.OzTemplateResource
+	GetRequest() api.OzRequestResource
+	GetTemplate() api.OzTemplateResource
 
 	// Returns back the PodName that the user is being granted direct access to.
 	GeneratePodName() (podName string, err error)
@@ -67,11 +67,11 @@ type BaseBuilder struct {
 
 	// Generic struct that satisfies the OzRequestResource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
-	Request interfaces.OzRequestResource
+	Request api.OzRequestResource
 
 	// Generic struct that satisfies the OzTemplateREsource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
-	Template interfaces.OzTemplateResource
+	Template api.OzTemplateResource
 }
 
 // GetClient provides an access method for the cached and default client.Client resource from the
@@ -102,23 +102,23 @@ func (b *BaseBuilder) GetScheme() *runtime.Scheme {
 	return b.Scheme
 }
 
-// GetTemplate provides an access method to the generic interfaces.OzTemplateResource interface
+// GetTemplate provides an access method to the generic api.OzTemplateResource interface
 // which is used to access common methods that each Access Template must expose.
 //
 // Returns:
 //
-//	interfaces.OzTemplateResource
-func (b *BaseBuilder) GetTemplate() interfaces.OzTemplateResource {
+//	api.OzTemplateResource
+func (b *BaseBuilder) GetTemplate() api.OzTemplateResource {
 	return b.Template
 }
 
-// GetRequest provides an access method to the generic interfaces.OzRequestResource interface
+// GetRequest provides an access method to the generic api.OzRequestResource interface
 // which is used to access common methods that each Access Request must expose.
 //
 // Returns:
 //
-//	interfaces.OzRequestResource
-func (b *BaseBuilder) GetRequest() interfaces.OzRequestResource {
+//	api.OzRequestResource
+func (b *BaseBuilder) GetRequest() api.OzRequestResource {
 	return b.Request
 }
 
