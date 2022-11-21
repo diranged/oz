@@ -14,7 +14,7 @@ type AccessConfig struct {
 	// +kubebuilder:validation:Required
 	AllowedGroups []string `json:"allowedGroups"`
 
-	// DefaultDuration sets the default time that an `ExecAccessRequest` resource will live. Must
+	// DefaultDuration sets the default time that an access request resource will live. Must
 	// be set below MaxDuration.
 	//
 	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
@@ -22,7 +22,7 @@ type AccessConfig struct {
 	// +kubebuilder:default:="1h"
 	DefaultDuration string `json:"defaultDuration"`
 
-	// MaxDuration sets the maximum duration that an `ExecAccessRequest` resource can request to
+	// MaxDuration sets the maximum duration that an access request resource can request to
 	// stick around.
 	//
 	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".

@@ -130,7 +130,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 
 			// Check the status
 			if req.GetStatus().IsReady() {
-				cmd.Println("\nSuccess, your access request is ready! Here are your access instructions:\n")
+				cmd.Printf("\nSuccess, your access request is ready! Here are your access instructions:\n\n")
 				cmd.Println(req.GetStatus().GetAccessMessage())
 				break
 			}
