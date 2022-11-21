@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	"context"
-	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,45 +26,19 @@ import (
 
 // ExecAccessTemplateSpec defines the desired state of ExecAccessTemplate
 type ExecAccessTemplateSpec struct {
+	// AccessConfig provides a common struct for defining who has access to the resources this
+	// template controls, how long they have access, etc.
+	AccessConfig AccessConfig `json:"accessConfig"`
+
 	// TargetRef provides a pattern for referencing objects from another API in a generic way.
 	// +kubebuilder:validation:Required
 	TargetRef CrossVersionObjectReference `json:"targetRef"`
-
-	// AllowedGroups lists out the groups (in string name form) that will be allowed to Exec into
-	// the target pod.
-	//
-	// +kubebuilder:validation:Required
-	AllowedGroups []string `json:"allowedGroups"`
-
-	// DefaultDuration sets the default time that an `ExecAccessRequest` resource will live. Must
-	// be set below MaxDuration.
-	//
-	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-	//
-	// +kubebuilder:default:="1h"
-	DefaultDuration string `json:"defaultDuration"`
-
-	// MaxDuration sets the maximum duration that an `ExecAccessRequest` resource can request to
-	// stick around.
-	//
-	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-	//
-	// +kubebuilder:default:="24h"
-	MaxDuration string `json:"maxDuration"`
 }
 
 // ExecAccessTemplateStatus is the core set of status fields that we expect to be in each and every one of
 // our template (AccessTemplate, ExecAccessTemplate, etc) resources.
 type ExecAccessTemplateStatus struct {
-	// Available refers to whether or not the ExecAccessTemplate resource has been validated and is
-	// available for use.
-	// Available bool `json:"available,omitempty"`
-
-	// Conditions represent the latest state of the resource
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
-
-	// Simple boolean to let us know if the resource is ready for use or not
-	Ready bool `json:"ready,omitempty"`
+	CoreStatus `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -80,49 +53,27 @@ type ExecAccessTemplate struct {
 	Status ExecAccessTemplateStatus `json:"status,omitempty"`
 }
 
-// GetConditions conforms to the controllers.OzResource interface.
-func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
-	return &t.Status.Conditions
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var _ ITemplateResource = &ExecAccessTemplate{}
+var _ ITemplateResource = (*ExecAccessTemplate)(nil)
+
+// GetStatus returns the core Status field for this resource.
+//
+// Returns:
+//
+//	AccessRequestStatus
+func (t *ExecAccessTemplate) GetStatus() ICoreStatus {
+	return &t.Status
 }
 
-// IsReady conforms to the interfaces.OzResource interface
-func (t *ExecAccessTemplate) IsReady() bool {
-	return t.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (t *ExecAccessTemplate) SetReady(ready bool) {
-	t.Status.Ready = ready
+// GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
+func (t *ExecAccessTemplate) GetAccessConfig() *AccessConfig {
+	return &t.Spec.AccessConfig
 }
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
-}
-
-// GetAllowedGroups returns the Spec.AllowedGroups for this particular template
-func (t *ExecAccessTemplate) GetAllowedGroups() []string {
-	return t.Spec.AllowedGroups
-}
-
-// GetDefaultDuration parses the Spec.defaultDuration field into a time.Duration struct.
-//
-// Returns:
-//
-//	time.Duration: Populated struct (or nil, if error)
-//	error: If any error occurs in the parsing, the error is returned
-func (t *ExecAccessTemplate) GetDefaultDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.DefaultDuration)
-}
-
-// GetMaxDuration parses the Spec.maxDuration field into a time.Duration struct.
-//
-// Returns:
-//
-//	time.Duration: Populated struct (or nil, if error)
-//	error: If any error occurs in the parsing, the error is returned
-func (t *ExecAccessTemplate) GetMaxDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.MaxDuration)
 }
 
 // GetExecAccessTemplate returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or returns back an error.

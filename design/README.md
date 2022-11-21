@@ -3,8 +3,8 @@
 [kube_crd]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
 [kube_rbac]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [exec_access_request]: ./crds/v1alpha1_exec_access_request.md
-[access_request]: ./crds/v1alpha1_access_request.md
-[access_template]: ./crds/v1alpha1_access_template.md
+[pod_access_request]: ./crds/v1alpha1_access_request.md
+[pod_access_template]: ./crds/v1alpha1_access_template.md
 [exec_access_request]: ./crds/v1alpha1_exec_access_request.md
 [exec_access_template]: ./crds/v1alpha1_exec_access_template.md
 [access_approval]: ./crds/v1alpha1_access_request_approval.md
@@ -23,42 +23,66 @@ The Kubernetes [RBAC][kube_rbac] system does not currently allow for wildcards (
 
 _How will Oz solve this?_
 
-"Oz" will provide an automated method for launching a dedicated shell Pod based on the `PodSpec` from the desired service. This pod will have all of the same environment variables, volume mounts and other specifications - but "Oz" will override the `spec.container[].command`, `spec.container[].args`, and `metadata.labels` fields so that the core application does not start up, and the Pod is not discovered by any corresponding `Services`. Access for the developer will be granted through dynamically provisioned `Role` and `RoleBindings`, ensuring narrowly scoped access to just the Pod that has been created.
+"Oz" will provide an automated method for launching a dedicated shell Pod based on the `PodSpec`
+from the desired service. This pod will have all of the same environment variables, volume mounts
+and other specifications - but "Oz" will override the `spec.container[].command`,
+`spec.container[].args`, and `metadata.labels` fields so that the core application does not start
+up, and the Pod is not discovered by any corresponding `Services`. Access for the developer will be
+granted through dynamically provisioned `Role` and `RoleBindings`, ensuring narrowly scoped access
+to just the Pod that has been created.
 
 #### Approved "Exec" Access into Specific Pods
 
-Certain workloads (`DaemonSets` and `StatefulSets` mostly) have different charactaristics where launching a copy of a Pod may not be enough to provide operational access to the applications. In some cases you do need to have native `kubectl exec ...` or `kubectl debug ...` access for specific pods. 
+Certain workloads (`DaemonSets` and `StatefulSets` mostly) have different charactaristics where
+launching a copy of a Pod may not be enough to provide operational access to the applications. In
+some cases you do need to have native `kubectl exec ...` or `kubectl debug ...` access for specific
+pods. 
 
 _Why is this not possible today with RBAC?_
-For the same reason as above (the resource wildcard issue), you may only grant access to _all_ or _none_ of the Pods in a namespace via the `kubectl exec` and `kubectl debug` commands.
+For the same reason as above (the resource wildcard issue), you may only grant access to _all_ or
+_none_ of the Pods in a namespace via the `kubectl exec` and `kubectl debug` commands.
 
-Authentication in Kubernetes is pretty great - the [Kubernetes RBAC system][kube_rbac] provides the ability to narrowly scope permissions to individual Users, Groups and ServiceAccounts for almost API call and resource in the cluster.
+Authentication in Kubernetes is pretty great - the [Kubernetes RBAC system][kube_rbac] provides the
+ability to narrowly scope permissions to individual Users, Groups and ServiceAccounts for almost API
+call and resource in the cluster.
 
 ## Kubernetes-Native Design
 
-The entire design of the "Oz" system will be kubernetes-native ... it will operate on a number of [CRDs][kube_crd] that provide both configuration, access request and approval models. Through these CRDs, a developer (or any other tool) can request access with native Kubernetes tooling.
+The entire design of the "Oz" system will be kubernetes-native ... it will operate on a number of
+[CRDs][kube_crd] that provide both configuration, access request and approval models. Through these
+CRDs, a developer (or any other tool) can request access with native Kubernetes tooling.
 
-### [`AccessTemplate`][access_template]
+### [`PodAccessTemplate`][pod_access_template]
 
-In order to configure "Oz" to understand how to create a particular "workload" pod, an [`AccessTemplate`][access_template] resource first must be created. This resource defines a configuration for a `Pod` that is either based on an existing controller (`Deployment`, `StatefulSet`, `DaemonSet`), or may just be its own `PodSpec` entirely on its own.
+In order to configure "Oz" to understand how to create a particular "workload" pod, an
+[`PodAccessTemplate`][access_template] resource first must be created. This resource defines a
+configuration for a `Pod` that is either based on an existing controller (`Deployment`,
+`StatefulSet`, `DaemonSet`), or may just be its own `PodSpec` entirely on its own.
 
-In addition to the Pod configuration, the `AccessTemplate` defines _who_ can request one of these pods, and _how_ they request it.
+In addition to the Pod configuration, the `AccessTemplate` defines _who_ can request one of these
+pods, and _how_ they request it.
 
 **Who - A list of Groups**
 
-This tool is designed to be used by humans, so the only focus here is on `Users` and `Groups` within Kubernetes. `Groups` are identified by whatever authentication system a user is using - commonly an OIDC login system. A list of allowed groups is included in the `AccessTemplate`.
+This tool is designed to be used by humans, so the only focus here is on `Users` and `Groups` within
+Kubernetes. `Groups` are identified by whatever authentication system a user is using - commonly an
+OIDC login system. A list of allowed groups is included in the `PodAccessTemplate`.
 
-When an `AccessRequest` is created, a `ValidatingWebhookConfiguration` verifies with "Oz" whether or not the requesting user has approval to create that `AccessRequest` against that particular `AccessTemplate`.
+When an `PodAccessRequest` is created, a `ValidatingWebhookConfiguration` verifies with "Oz" whether
+or not the requesting user has approval to create that `PodAccessRequest` against that particular
+`PodAccessTemplate`.
 
 **How - Future plumbing for Approvals**
 
-In a future phase of the project, [`AccessApproval`](#accessapproval-phase-two) resources will be implemented. When these are in place, the `AccessTemplate` will optionally define a number of "approvals" required for the request to go through. This system will allow for elevated privileges in certain cases, given a manual approval by another human operator.
+In a future phase of the project, [`AccessApproval`](#accessapproval-phase-two) resources will be implemented. When these are in place, the `PodAccessTemplate` will optionally define a number of "approvals" required for the request to go through. This system will allow for elevated privileges in certain cases, given a manual approval by another human operator.
 
-### [`AccessRequest`][access_request]
+### [`PodAccessRequest`][pod_access_request]
 
-An `AccessRequest` resource is used by a user to request a dedicated workload pod to be created. The user identifies which [`AccessTemplate`](#accesstemplate) that they are targeting, which will define the configuration of their pod.
+An `PodAccessRequest` resource is used by a user to request a dedicated workload pod to be created.
+The user identifies which [`PodAccessTemplate`](#accesstemplate) that they are targeting, which will
+define the configuration of their pod.
 
-The `AccessRequest` CR is deliberately left as simple as possible to reduce user configuration errors, as well as to ensure that the cluster/application operators who define the [`AccessTemplates`](#accesstemplate) are the ones who define the shapes (memory, CPU, service account, custom environment variables, etc) of the pods.
+The `PodAccessRequest` CR is deliberately left as simple as possible to reduce user configuration errors, as well as to ensure that the cluster/application operators who define the [`PodAccessTemplates`](#podaccesstemplate) are the ones who define the shapes (memory, CPU, service account, custom environment variables, etc) of the pods.
 
 ### [`ExecAccessTemplate`][exec_access_template]
 
@@ -76,11 +100,11 @@ Stubbing this out as a future resource. In the future we will provide the abilit
 
 ## Command Line Interface
 
-A CLI tool will provide a more user-friendly experience for creating [`AccessRequest`](#accessrequest), [`ExecAccessRequest`](#execaccessrequest) and [`AccessApproval`](#accessapproval-phase-two) CRs. The tool is primarily here to provide a clean interface for developers, but it is not strictly required as everything is done through standard Kubernetes resources.
+A CLI tool will provide a more user-friendly experience for creating [`PodAccessRequest`](#podaccessrequest), [`ExecAccessRequest`](#execaccessrequest) and [`AccessApproval`](#accessapproval-phase-two) CRs. The tool is primarily here to provide a clean interface for developers, but it is not strictly required as everything is done through standard Kubernetes resources.
 
 Eg:
 ```bash
-$ oz access-request <existingAccessRequestTemplate> -m 128Mi -c 2
+$ ozctl create pod-access-request -t <existingAccessRequestTemplate> -m 128Mi -c 2
 Generating `access-request-fdcdac1` CR...
 Waiting for approval...
 Waiting for Pod...

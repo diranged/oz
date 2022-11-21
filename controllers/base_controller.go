@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/diranged/oz/interfaces"
+	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,7 +88,7 @@ func (r *OzReconciler) updateStatus(ctx context.Context, obj client.Object) erro
 // Finally we call the UpdateStatus() function to push the update to Kubernetes.
 func (r *OzReconciler) updateCondition(
 	ctx context.Context,
-	res interfaces.OzResource,
+	res api.ICoreResource,
 	conditionType OzResourceConditionTypes,
 	conditionStatus metav1.ConditionStatus,
 	reason string,
@@ -97,7 +97,7 @@ func (r *OzReconciler) updateCondition(
 	logger := r.getLogger(ctx)
 	logger.V(1).Info(fmt.Sprintf("Updating condition \"%s\" to \"%s\"", conditionType, conditionStatus))
 
-	meta.SetStatusCondition(res.GetConditions(), metav1.Condition{
+	meta.SetStatusCondition(res.GetStatus().GetConditions(), metav1.Condition{
 		Type:               string(conditionType),
 		Status:             conditionStatus,
 		ObservedGeneration: res.GetGeneration(),
@@ -116,7 +116,7 @@ func (r *OzReconciler) updateCondition(
 //
 // Status.Ready is used by the 'ozctl' commandline tool to inform users when their access request
 // has been approved and configured.
-func (r *OzReconciler) setReadyStatus(ctx context.Context, res interfaces.OzResource) error {
+func (r *OzReconciler) setReadyStatus(ctx context.Context, res api.ICoreResource) error {
 	logger := r.getLogger(ctx)
 	logger.V(1).Info("Checking final condition state")
 
@@ -125,7 +125,7 @@ func (r *OzReconciler) setReadyStatus(ctx context.Context, res interfaces.OzReso
 	ready := true
 
 	// Get the pointer to the conditions list
-	conditions := res.GetConditions()
+	conditions := res.GetStatus().GetConditions()
 
 	// Iterate. If any are not true, then we flip the ready flag to false.
 	for _, cond := range *conditions {
@@ -136,7 +136,7 @@ func (r *OzReconciler) setReadyStatus(ctx context.Context, res interfaces.OzReso
 
 	// Save the flag, and update the object. Return the result of the object update (if its an error).
 	logger.Info(fmt.Sprintf("Setting ready state to %s", strconv.FormatBool(ready)))
-	res.SetReady(ready)
+	res.GetStatus().SetReady(ready)
 	return r.updateStatus(ctx, res)
 }
 

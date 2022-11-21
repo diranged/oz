@@ -30,15 +30,25 @@ import (
 	"github.com/diranged/oz/controllers/builders"
 )
 
-// AccessRequestReconciler reconciles a AccessRequest object
-type AccessRequestReconciler struct {
+// PodAccessRequestReconciler reconciles a AccessRequest object
+type PodAccessRequestReconciler struct {
 	// Pass in the common functions from our BaseController
 	OzRequestReconciler
 }
 
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accessrequests/finalizers,verbs=update
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests/finalizers,verbs=update
+
+// https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb
+//
+// We leverage the escalate verb here because we don't specifically want or need the Oz controller
+// pods to have Exec/Debug privileges on pods, but we want them to be able to grant those privileges
+// to users.
+//
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete;bind;escalate
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -49,8 +59,8 @@ type AccessRequestReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithName("AccessRequestReconciler")
+func (r *PodAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx).WithName("PodAccessRequestReconciler")
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
@@ -59,10 +69,10 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
-	logger.Info("Verifying AccessRequest exists")
-	resource, err := api.GetAccessRequest(ctx, r.Client, req.Name, req.Namespace)
+	logger.Info("Verifying PodAccessRequest exists")
+	resource, err := api.GetPodAccessRequest(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
-		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req.Name))
+		logger.Info(fmt.Sprintf("Failed to find PodAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil
 	}
 
@@ -72,7 +82,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	// OWNER UPDATE: Update the ExecAccessRequest OwnerRef to the TargetTemplate.
+	// OWNER UPDATE: Update the OwnerRef to the TargetTemplate.
 	//
 	// Ensure that if the TargetTemplate is ever deleted, that all of the AccessRequests are
 	// also deleted, which will cascade down and delete any roles/bindings/etc.
@@ -85,7 +95,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := &builders.AccessBuilder{
+	builder := &builders.PodAccessBuilder{
 		BaseBuilder: builders.BaseBuilder{
 			Client:    r.Client,
 			Ctx:       ctx,
@@ -94,6 +104,8 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Request:   resource,
 			Template:  tmpl,
 		},
+		Request:  resource,
+		Template: tmpl,
 	}
 
 	// VERIFICATION: Verifies the requested duration
@@ -136,13 +148,13 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // Returns:
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
-func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.AccessRequest) (*api.AccessTemplate, error) {
+func (r *PodAccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.PodAccessRequest) (*api.PodAccessTemplate, error) {
 	logger := r.getLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
 
-	var tmpl *api.AccessTemplate
+	var tmpl *api.PodAccessTemplate
 	var err error
-	if tmpl, err = api.GetAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
+	if tmpl, err = api.GetPodAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
 		return nil, r.updateCondition(
 			ctx, req, conditionTargetTemplateExists, metav1.ConditionFalse,
@@ -155,8 +167,8 @@ func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *ap
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *AccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *PodAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.AccessRequest{}).
+		For(&api.PodAccessRequest{}).
 		Complete(r)
 }

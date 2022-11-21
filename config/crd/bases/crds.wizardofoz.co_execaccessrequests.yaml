@@ -58,8 +58,15 @@ spec:
           status:
             description: ExecAccessRequestStatus defines the observed state of ExecAccessRequest
             properties:
+              accessMessage:
+                description: "AccessMessage is used to describe to the user how they
+                  can make use of their temporary access request. Eg, for a PodAccessTemplate
+                  the value set here would be something like: \n \"Access Graned,
+                  connect to your pod with: kubectl exec -ti -n namespace pod-xyz
+                  -- /bin/bash\""
+                type: string
               conditions:
-                description: Current status of the Access Request
+                description: Current status of the Access Template
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
@@ -134,14 +141,6 @@ spec:
                 description: Simple boolean to let us know if the resource is ready
                   for use or not
                 type: boolean
-              roleBindingName:
-                description: The name of th RoleBinding created for this temporary
-                  access request
-                type: string
-              roleName:
-                description: The name of the Role created for this temporary access
-                  request
-                type: string
             type: object
         type: object
     served: true

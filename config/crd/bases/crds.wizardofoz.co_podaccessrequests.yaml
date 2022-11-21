@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: accessrequests.crds.wizardofoz.co
+  name: podaccessrequests.crds.wizardofoz.co
 spec:
   group: crds.wizardofoz.co
   names:
-    kind: AccessRequest
-    listKind: AccessRequestList
-    plural: accessrequests
-    singular: accessrequest
+    kind: PodAccessRequest
+    listKind: PodAccessRequestList
+    plural: podaccessrequests
+    singular: podaccessrequest
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: AccessRequest is the Schema for the accessrequests API
+        description: PodAccessRequest is the Schema for the accessrequests API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,15 +33,15 @@ spec:
           metadata:
             type: object
           spec:
-            description: AccessRequestSpec defines the desired state of AccessRequest
+            description: PodAccessRequestSpec defines the desired state of AccessRequest
             properties:
               duration:
                 description: "Duration sets the length of time from the `spec.creationTimestamp`
                   that this object will live. After the time has expired, the resouce
                   will be automatically deleted on the next reconcilliation loop.
                   \n If omitted, the spec.defautlDuration from the ExecAccessTemplate
-                  is used. \n Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\",
-                  \"s\", \"m\", \"h\"."
+                  is used. \n Valid time units are \"s\", \"m\", \"h\"."
+                pattern: ^[0-9]+(s|m|h)$
                 type: string
               templateName:
                 description: Defines the name of the `ExecAcessTemplate` that should
@@ -51,8 +51,15 @@ spec:
             - templateName
             type: object
           status:
-            description: AccessRequestStatus defines the observed state of AccessRequest
+            description: PodAccessRequestStatus defines the observed state of AccessRequest
             properties:
+              accessMessage:
+                description: "AccessMessage is used to describe to the user how they
+                  can make use of their temporary access request. Eg, for a PodAccessTemplate
+                  the value set here would be something like: \n \"Access Graned,
+                  connect to your pod with: kubectl exec -ti -n namespace pod-xyz
+                  -- /bin/bash\""
+                type: string
               conditions:
                 description: Current status of the Access Template
                 items:

@@ -138,7 +138,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.AccessTemplateReconciler{
+	if err = (&controllers.PodAccessTemplateReconciler{
 		OzTemplateReconciler: controllers.OzTemplateReconciler{
 			OzReconciler: controllers.OzReconciler{
 				Client:                  mgr.GetClient(),
@@ -152,7 +152,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.AccessRequestReconciler{
+	if err = (&controllers.PodAccessRequestReconciler{
 		OzRequestReconciler: controllers.OzRequestReconciler{
 			OzReconciler: controllers.OzReconciler{
 				Client:                  mgr.GetClient(),

@@ -101,11 +101,9 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
 	builder := &builders.ExecAccessBuilder{
 		BaseBuilder: builders.BaseBuilder{
-			// Boilerplate
-			Client: r.Client,
-			Ctx:    ctx,
-			Scheme: r.Scheme,
-			// Ours
+			Client:    r.Client,
+			Ctx:       ctx,
+			Scheme:    r.Scheme,
 			APIReader: r.APIReader,
 			Request:   resource,
 			Template:  tmpl,

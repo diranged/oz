@@ -42,14 +42,14 @@ func (r *OzRequestReconciler) verifyDuration(builder builders.Builder) error {
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("spec.duration error: %s", err))
 		return err
 	}
-	templateDefaultDuration, err := builder.GetTemplate().GetDefaultDuration()
+	templateDefaultDuration, err := builder.GetTemplate().GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err))
 		return err
 	}
 
-	templateMaxDuration, err := builder.GetTemplate().GetMaxDuration()
+	templateMaxDuration, err := builder.GetTemplate().GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.maxDuration error: %s", err))
@@ -106,7 +106,7 @@ func (r *OzRequestReconciler) verifyDuration(builder builders.Builder) error {
 func (r *OzRequestReconciler) isAccessExpired(builder builders.Builder) (bool, error) {
 	logger := r.getLogger(builder.GetCtx())
 	logger.Info("Checking if access has expired or not...")
-	cond := meta.FindStatusCondition(*builder.GetRequest().GetConditions(), string(conditionAccessStillValid))
+	cond := meta.FindStatusCondition(*builder.GetRequest().GetStatus().GetConditions(), string(conditionAccessStillValid))
 	if cond == nil {
 		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", conditionAccessStillValid))
 		return false, nil
@@ -130,6 +130,7 @@ func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (a
 
 	statusString, accessString, err := builder.GenerateAccessResources()
 	if err != nil {
+		builder.GetRequest().GetStatus().SetAccessMessage("")
 		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			conditionAccessResourcesCreated,
@@ -139,6 +140,7 @@ func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (a
 		return accessString, err
 	}
 
+	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
 	if err := r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
 		conditionAccessResourcesCreated,

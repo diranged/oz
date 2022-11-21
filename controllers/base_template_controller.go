@@ -51,13 +51,13 @@ func (r *OzTemplateReconciler) VerifyMiscSettings(builder builders.Builder) erro
 	tmpl := builder.GetTemplate()
 
 	// Verify that MaxDuration is greater than DesiredDuration.
-	defaultDuration, err := tmpl.GetDefaultDuration()
+	defaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		return r.updateCondition(
 			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
 	}
-	maxDuration, err := tmpl.GetMaxDuration()
+	maxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		return r.updateCondition(
 			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,

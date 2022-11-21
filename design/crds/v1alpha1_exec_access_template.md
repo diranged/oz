@@ -14,14 +14,16 @@ metadata:
   name: <some predictable name>
   namespace: <target namespace>
 spec:
+  accessConfig:
+    # A list of Kubernetes Groups that are allowed to request access through this template.
+    allowedGroups:
+      - admins
+      - devs
+
   # Identifies the target workload that is having access granted.
   targetRef:
     apiVersion: apps/v1
     kind: DaemonSet
     name: targetApp
 
-  # A list of Kubernetes Groups that are allowed to request access through this template.
-  allowedGroups:
-    - admins
-    - devs
 ```

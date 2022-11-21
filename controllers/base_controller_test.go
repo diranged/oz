@@ -82,12 +82,12 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 		})
 
 		It("UpdateStatus() should work", func() {
-			originalReq := &api.AccessRequest{
+			originalReq := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      TestName,
 					Namespace: TestName,
 				},
-				Spec: api.AccessRequestSpec{
+				Spec: api.PodAccessRequestSpec{
 					TemplateName: "Junk",
 					Duration:     "1h",
 				},
@@ -112,7 +112,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Get a new reference to the AccessRequest, verify the PodName status")
-			freshReq := &api.AccessRequest{}
+			freshReq := &api.PodAccessRequest{}
 			err = k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
 				Namespace: TestName,
@@ -122,12 +122,12 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 		})
 
 		It("UpdateStatus() should return failures properly", func() {
-			request := &api.AccessRequest{
+			request := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      fmt.Sprintf("%s-fail-test", TestName),
 					Namespace: TestName,
 				},
-				Spec: api.AccessRequestSpec{
+				Spec: api.PodAccessRequestSpec{
 					TemplateName: "Junk",
 					Duration:     "1h",
 				},

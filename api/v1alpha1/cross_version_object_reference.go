@@ -71,3 +71,10 @@ func (r *CrossVersionObjectReference) GetObject() client.Object {
 	obj.SetGroupVersionKind(groupVersionKind)
 	return obj
 }
+
+// GetTypedObject attempts to do a thing..
+func (r *CrossVersionObjectReference) GetTypedObject(obj client.Object) client.Object {
+	groupVersionKind := r.GetGroupVersionKind()
+	obj.GetObjectKind().SetGroupVersionKind(groupVersionKind)
+	return obj
+}

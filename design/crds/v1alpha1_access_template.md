@@ -1,29 +1,30 @@
 # Group: `wizardoz.io/v1alpha1`
-# Kind: `AccessTemplate`
+# Kind: `PodAccessTemplate`
 
 **Phase: One**
 
-An `AccessTemplate` resource is used to pre-define allowed access rules into a particular workload. This resource can be launched either by the application owners as part of their release process, or could be pre-created by cluster administrators.
+An `PodAccessTemplate` resource is used to pre-define allowed access rules into a particular workload. This resource can be launched either by the application owners as part of their release process, or could be pre-created by cluster administrators.
 
-`AccessTemplate` resources define the "shape" of the access provided into a particular workload. For example, an `AccessTemplate` can be used to define the shell that should be entered by default, or define the maximum amount of time that a subsequent `AccessRequest` pod may live.
+`PodAccessTemplate` resources define the "shape" of the access provided into a particular workload. For example, an `PodAccessTemplate` can be used to define the shell that should be entered by default, or define the maximum amount of time that a subsequent `PodAccessRequest` pod may live.
 
 ```yaml
 apiVersion: wizardoz.io/v1alpha
-kind: AccessTemplate
+kind: PodAccessTemplate
 metadata:
   name: <some predictable name>
   namespace: <target namespace>
 spec:
+  accessConfig:
+    # A list of Kubernetes Groups that are allowed to request access through this template.
+    allowedGroups:
+      - admins
+      - devs
+
   # Identifies the target controller who's `PodSpec` should be used
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: targetApp
-
-  # A list of Kubernetes Groups that are allowed to request access through this template.
-  allowedGroups:
-    - admins
-    - devs
 
   # Overrides the default container's `command` - used to prevent the core application from starting
   # up (for example, if it is a background task processing application instead of a web service).

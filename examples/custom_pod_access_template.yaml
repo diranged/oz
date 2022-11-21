@@ -1,0 +1,33 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: PodAccessTemplate
+metadata:
+  name: deployment-example
+  namespace: oz-system
+spec:
+  accessConfig:
+    # todo: figure out why these are required
+    maxDuration: 2h
+    defaultDuration: 1h
+
+    # A list of Kubernetes Groups that are allowed to request access through this template.
+    allowedGroups:
+      - admins
+      - devs
+
+  podSpec:
+    containers:
+      - image: ubuntu:latest
+        imagePullPolicy: IfNotPresent
+        name: ubuntu
+        command: [/bin/sleep, '999']
+        resources:
+          limits:
+            cpu: 1
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+
+  maxMemory: 1Gi
+  maxCpu: 1
+  maxStorage: 1Gi

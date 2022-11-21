@@ -22,6 +22,7 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -49,20 +50,10 @@ type ExecAccessRequestSpec struct {
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest
 type ExecAccessRequestStatus struct {
-	// Current status of the Access Request
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
-
-	// The name of the Role created for this temporary access request
-	RoleName string `json:"roleName,omitempty"`
-
-	// The name of th RoleBinding created for this temporary access request
-	RoleBindingName string `json:"roleBindingName,omitempty"`
-
-	// Simple boolean to let us know if the resource is ready for use or not
-	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -75,6 +66,19 @@ type ExecAccessRequest struct {
 
 	Spec   ExecAccessRequestSpec   `json:"spec,omitempty"`
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
+}
+
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var _ IPodRequestResource = &ExecAccessRequest{}
+var _ IPodRequestResource = (*ExecAccessRequest)(nil)
+
+// GetStatus returns the core Status field for this resource.
+//
+// Returns:
+//
+//	AccessRequestStatus
+func (r *ExecAccessRequest) GetStatus() ICoreStatus {
+	return &r.Status
 }
 
 // GetDuration conforms to the interfaces.OzRequestResource interface
@@ -106,21 +110,16 @@ func (r *ExecAccessRequest) GetPodName() string {
 	return r.Status.PodName
 }
 
-// GetConditions returns a pointer to the list of conditions in the ExecAccessRequestStatus object.
+// ValidateUpdate prevents immutable updates to the ExecAccessRequest.
 //
-// Conform to the interfaces.OzResource interface
-func (r *ExecAccessRequest) GetConditions() *[]metav1.Condition {
-	return &r.Status.Conditions
-}
-
-// IsReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) IsReady() bool {
-	return r.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) SetReady(ready bool) {
-	r.Status.Ready = ready
+// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
+// TODO: is this webhook only?
+func (r *ExecAccessRequest) ValidateUpdate(old runtime.Object) error {
+	oldRequest, _ := old.(*ExecAccessRequest)
+	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
+		return fmt.Errorf("error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead")
+	}
+	return nil
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
