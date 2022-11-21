@@ -78,8 +78,7 @@ type AccessTemplateSpec struct {
 
 // AccessTemplateStatus defines the observed state of AccessRequest
 type AccessTemplateStatus struct {
-	// Current status of the Access Template
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	ozResourceCoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
@@ -89,9 +88,6 @@ type AccessTemplateStatus struct {
 
 	// The name of th RoleBinding created for this temporary access request
 	RoleBindingName string `json:"roleBindingName,omitempty"`
-
-	// Simple boolean to let us know if the resource is ready for use or not
-	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true

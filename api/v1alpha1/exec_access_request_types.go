@@ -49,14 +49,10 @@ type ExecAccessRequestSpec struct {
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest
 type ExecAccessRequestStatus struct {
-	// Current status of the Access Request
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	ozResourceCoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
-
-	// Simple boolean to let us know if the resource is ready for use or not
-	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true

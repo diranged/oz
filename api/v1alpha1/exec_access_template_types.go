@@ -57,15 +57,7 @@ type ExecAccessTemplateSpec struct {
 // ExecAccessTemplateStatus is the core set of status fields that we expect to be in each and every one of
 // our template (AccessTemplate, ExecAccessTemplate, etc) resources.
 type ExecAccessTemplateStatus struct {
-	// Available refers to whether or not the ExecAccessTemplate resource has been validated and is
-	// available for use.
-	// Available bool `json:"available,omitempty"`
-
-	// Conditions represent the latest state of the resource
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
-
-	// Simple boolean to let us know if the resource is ready for use or not
-	Ready bool `json:"ready,omitempty"`
+	ozResourceCoreStatus `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
