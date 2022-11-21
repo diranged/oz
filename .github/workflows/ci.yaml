@@ -41,9 +41,16 @@ jobs:
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/test-e2e.yaml
 
-  publish-dry:
+  publish-docker-dry:
     needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
-    uses: ./.github/workflows/publish.yaml
+    uses: ./.github/workflows/publish-docker.yaml
     with:
       push: false
+
+  publish-cli-dry:
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+    uses: ./.github/workflows/publish-cli.yaml
+    with:
+      release: false

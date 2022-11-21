@@ -8,8 +8,12 @@ on:
       - '[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
 
 jobs:
-  publish:
-    uses: ./.github/workflows/publish.yaml
+  publish-docker:
+    uses: ./.github/workflows/publish-docker.yaml
     with:
       push: true
+
+  publish-cli:
+    uses: ./.github/workflows/publish-cli.yaml
+    with:
       release: true
