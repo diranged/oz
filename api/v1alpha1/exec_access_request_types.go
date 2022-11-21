@@ -63,6 +63,8 @@ type ExecAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	ozResourceCore `json:",inline"`
+
 	Spec   ExecAccessRequestSpec   `json:"spec,omitempty"`
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
 }
@@ -94,23 +96,6 @@ func (r *ExecAccessRequest) SetPodName(name string) error {
 // GetPodName conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) GetPodName() string {
 	return r.Status.PodName
-}
-
-// GetConditions returns a pointer to the list of conditions in the ExecAccessRequestStatus object.
-//
-// Conform to the interfaces.OzResource interface
-func (r *ExecAccessRequest) GetConditions() *[]metav1.Condition {
-	return &r.Status.Conditions
-}
-
-// IsReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) IsReady() bool {
-	return r.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) SetReady(ready bool) {
-	r.Status.Ready = ready
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
