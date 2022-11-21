@@ -49,7 +49,7 @@ type ExecAccessRequestSpec struct {
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest
 type ExecAccessRequestStatus struct {
-	ozResourceCoreStatus `json:",inline"`
+	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
@@ -65,6 +65,19 @@ type ExecAccessRequest struct {
 
 	Spec   ExecAccessRequestSpec   `json:"spec,omitempty"`
 	Status ExecAccessRequestStatus `json:"status,omitempty"`
+}
+
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var _ IRequestResource = &ExecAccessRequest{}
+var _ IRequestResource = (*ExecAccessRequest)(nil)
+
+// GetStatus returns the core Status field for this resource.
+//
+// Returns:
+//
+//	AccessRequestStatus
+func (r *ExecAccessRequest) GetStatus() ICoreStatus {
+	return &r.Status
 }
 
 // GetDuration conforms to the interfaces.OzRequestResource interface
@@ -94,23 +107,6 @@ func (r *ExecAccessRequest) SetPodName(name string) error {
 // GetPodName conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) GetPodName() string {
 	return r.Status.PodName
-}
-
-// GetConditions returns a pointer to the list of conditions in the ExecAccessRequestStatus object.
-//
-// Conform to the interfaces.OzResource interface
-func (r *ExecAccessRequest) GetConditions() *[]metav1.Condition {
-	return &r.Status.Conditions
-}
-
-// IsReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) IsReady() bool {
-	return r.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (r *ExecAccessRequest) SetReady(ready bool) {
-	r.Status.Ready = ready
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to

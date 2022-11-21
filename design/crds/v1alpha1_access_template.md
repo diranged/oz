@@ -14,16 +14,17 @@ metadata:
   name: <some predictable name>
   namespace: <target namespace>
 spec:
+  accessConfig:
+    # A list of Kubernetes Groups that are allowed to request access through this template.
+    allowedGroups:
+      - admins
+      - devs
+
   # Identifies the target controller who's `PodSpec` should be used
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: targetApp
-
-  # A list of Kubernetes Groups that are allowed to request access through this template.
-  allowedGroups:
-    - admins
-    - devs
 
   # Overrides the default container's `command` - used to prevent the core application from starting
   # up (for example, if it is a background task processing application instead of a web service).

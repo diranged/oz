@@ -4,19 +4,22 @@ metadata:
   name: deployment-example
   namespace: oz-system
 spec:
+  accessConfig:
+    # todo: figure out why these are required
+    maxDuration: 2h
+    defaultDuration: 1h
+
+    # A list of Kubernetes Groups that are allowed to request access through this template.
+    allowedGroups:
+      - admins
+      - devs
+
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: example
 
-  # todo: figure out why these are required
-  maxDuration: 2h
-  defaultDuration: 1h
 
-  # A list of Kubernetes Groups that are allowed to request access through this template.
-  allowedGroups:
-    - admins
-    - devs
 
   resources:
     requests:

@@ -4,12 +4,13 @@ metadata:
   name: deployment-example
   namespace: oz-system
 spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: example
-
+  accessConfig:
   # A list of Kubernetes Groups that are allowed to request access through this template.
   allowedGroups:
     - admins
     - devs
+
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example

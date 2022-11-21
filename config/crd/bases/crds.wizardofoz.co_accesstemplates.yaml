@@ -35,12 +35,35 @@ spec:
           spec:
             description: AccessTemplateSpec defines the desired state of AccessTemplate
             properties:
-              allowedGroups:
-                description: AllowedGroups lists out the groups (in string name form)
-                  that will be allowed to  into the target pod.
-                items:
-                  type: string
-                type: array
+              accessConfig:
+                description: AccessConfig provides a common struct for defining who
+                  has access to the resources this template controls, how long they
+                  have access, etc.
+                properties:
+                  allowedGroups:
+                    description: AllowedGroups lists out the groups (in string name
+                      form) that will be allowed to Exec into the target pod.
+                    items:
+                      type: string
+                    type: array
+                  defaultDuration:
+                    default: 1h
+                    description: "DefaultDuration sets the default time that an `ExecAccessRequest`
+                      resource will live. Must be set below MaxDuration. \n Valid
+                      time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\",
+                      \"h\"."
+                    type: string
+                  maxDuration:
+                    default: 24h
+                    description: "MaxDuration sets the maximum duration that an `ExecAccessRequest`
+                      resource can request to stick around. \n Valid time units are
+                      \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
+                    type: string
+                required:
+                - allowedGroups
+                - defaultDuration
+                - maxDuration
+                type: object
               command:
                 description: Command is used to override the .Spec.containers[0].command
                   field for the target Pod and Container. This can be handy in ensuring
@@ -49,12 +72,6 @@ spec:
                 items:
                   type: string
                 type: array
-              defaultDuration:
-                default: 1h
-                description: "DefaultDuration sets the default time that an `AccessRequest`
-                  resource will live. Must be set below MaxDuration. \n Valid time
-                  units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
-                type: string
               maxCpu:
                 anyOf:
                 - type: integer
@@ -63,12 +80,6 @@ spec:
                   against this tmemplate for the primary container.
                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                 x-kubernetes-int-or-string: true
-              maxDuration:
-                default: 24h
-                description: "MaxDuration sets the maximum duration that an `AccessRequest`
-                  resource can request to stick around. \n Valid time units are \"ns\",
-                  \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
-                type: string
               maxMemory:
                 anyOf:
                 - type: integer
@@ -139,9 +150,7 @@ spec:
                 - name
                 type: object
             required:
-            - allowedGroups
-            - defaultDuration
-            - maxDuration
+            - accessConfig
             - targetRef
             type: object
           status:

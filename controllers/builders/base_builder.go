@@ -35,8 +35,8 @@ type Builder interface {
 	GetCtx() context.Context
 	GetScheme() *runtime.Scheme
 
-	GetRequest() api.OzRequestResource
-	GetTemplate() api.OzTemplateResource
+	GetRequest() api.IRequestResource
+	GetTemplate() api.ITemplateResource
 
 	// Returns back the PodName that the user is being granted direct access to.
 	GeneratePodName() (podName string, err error)
@@ -67,11 +67,11 @@ type BaseBuilder struct {
 
 	// Generic struct that satisfies the OzRequestResource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
-	Request api.OzRequestResource
+	Request api.IRequestResource
 
 	// Generic struct that satisfies the OzTemplateREsource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
-	Template api.OzTemplateResource
+	Template api.ITemplateResource
 }
 
 // GetClient provides an access method for the cached and default client.Client resource from the
@@ -108,7 +108,7 @@ func (b *BaseBuilder) GetScheme() *runtime.Scheme {
 // Returns:
 //
 //	api.OzTemplateResource
-func (b *BaseBuilder) GetTemplate() api.OzTemplateResource {
+func (b *BaseBuilder) GetTemplate() api.ITemplateResource {
 	return b.Template
 }
 
@@ -118,7 +118,7 @@ func (b *BaseBuilder) GetTemplate() api.OzTemplateResource {
 // Returns:
 //
 //	api.OzRequestResource
-func (b *BaseBuilder) GetRequest() api.OzRequestResource {
+func (b *BaseBuilder) GetRequest() api.IRequestResource {
 	return b.Request
 }
 
@@ -300,7 +300,7 @@ func (b *BaseBuilder) getStatefulSet(obj client.Object) (*appsv1.StatefulSet, er
 func (b *BaseBuilder) createAccessRole(podName string) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{}
 
-	role.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
+	role.Name = generateResourceName(b.Request)
 	role.Namespace = b.Template.GetNamespace()
 	role.Rules = []rbacv1.PolicyRule{
 		{
@@ -344,7 +344,7 @@ func (b *BaseBuilder) createAccessRole(podName string) (*rbacv1.Role, error) {
 func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 
-	rb.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
+	rb.Name = generateResourceName(b.Request)
 	rb.Namespace = b.Template.GetNamespace()
 	rb.RoleRef = rbacv1.RoleRef{
 		APIGroup: rbacv1.GroupName,
@@ -353,7 +353,7 @@ func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	}
 	rb.Subjects = []rbacv1.Subject{}
 
-	for _, group := range b.Template.GetAllowedGroups() {
+	for _, group := range b.Template.GetAccessConfig().GetAllowedGroups() {
 		rb.Subjects = append(rb.Subjects, rbacv1.Subject{
 			APIGroup: rbacv1.SchemeGroupVersion.Group,
 			Kind:     rbacv1.GroupKind,
@@ -391,7 +391,7 @@ func (b *BaseBuilder) createPod(podSpec corev1.PodSpec) (*corev1.Pod, error) {
 
 	// Desired pod
 	pod := &corev1.Pod{}
-	pod.Name = fmt.Sprintf("%s-%s", b.Request.GetName(), GetShortUID(b.Request))
+	pod.Name = generateResourceName(b.Request)
 	pod.Namespace = b.Template.GetNamespace()
 	pod.Spec = podSpec
 
@@ -429,15 +429,25 @@ func (b *BaseBuilder) createPod(podSpec corev1.PodSpec) (*corev1.Pod, error) {
 	return pod, nil
 }
 
-// GetShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
+// getShortUID returns back a shortened version of the UID that the Kubernetes cluster used to store
 // the AccessRequest internally. This is used by the Builders to create unique names for the
 // resources they manage (Roles, RoleBindings, etc).
 //
 // Returns:
 //
 //	shortUID: A 10-digit long shortened UID
-func GetShortUID(obj client.Object) string {
+func getShortUID(obj client.Object) string {
 	return string(obj.GetUID())[0:shortUIDLength]
+}
+
+// generateResourceName takes in an API.IRequestResource conforming object and returns a unique
+// resource name string that can be used to safely create other resources (roles, bindings, etc).
+//
+// Returns:
+//
+//	string: A resource name string
+func generateResourceName(req api.IRequestResource) string {
+	return fmt.Sprintf("%s-%s", req.GetName(), getShortUID(req))
 }
 
 // ObjectToJSON is a quick helper function for pretty-printing an entire K8S object in JSON form.

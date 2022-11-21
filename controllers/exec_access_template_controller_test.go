@@ -126,9 +126,11 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 							Kind:       "Deployment",
 							Name:       deployment.Name,
 						},
-						AllowedGroups:   []string{"testGroupA"},
-						DefaultDuration: "1h",
-						MaxDuration:     "2h",
+						AccessConfig: api.AccessConfig{
+							AllowedGroups:   []string{"testGroupA"},
+							DefaultDuration: "1h",
+							MaxDuration:     "2h",
+						},
 					},
 				}
 				err = k8sClient.Create(ctx, template)
@@ -173,10 +175,10 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 				// Wait until the 2 conditions are met before checking the ready status. This ensures
 				// a full reconciliation loop.
-				if found.IsReady() {
+				if found.GetStatus().IsReady() {
 					return nil
 				}
-				return fmt.Errorf(fmt.Sprintf("Failed to reconcile resource: %s", strconv.FormatBool(found.IsReady())))
+				return fmt.Errorf(fmt.Sprintf("Failed to reconcile resource: %s", strconv.FormatBool(found.GetStatus().IsReady())))
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 		})
@@ -196,8 +198,14 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 						Namespace: namespace.Name,
 					},
 					Spec: api.ExecAccessTemplateSpec{
-						// VALID
-						AllowedGroups: []string{"testGroupA"},
+						AccessConfig: api.AccessConfig{
+							// VALID
+							AllowedGroups: []string{"testGroupA"},
+
+							// INVALID: DefaultDuraiton cannot be longer than MaxDuration
+							DefaultDuration: "2h",
+							MaxDuration:     "1h",
+						},
 
 						// INVALID: This target does not exist
 						TargetRef: api.CrossVersionObjectReference{
@@ -205,10 +213,6 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 							Kind:       "Deployment",
 							Name:       "invalid-name",
 						},
-
-						// INVALID: DefaultDuraiton cannot be longer than MaxDuration
-						DefaultDuration: "2h",
-						MaxDuration:     "1h",
 					},
 				}
 				err = k8sClient.Create(ctx, template)
@@ -251,7 +255,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					Namespace: TestName,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(conditionTargetRefExists), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(conditionTargetRefExists), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					return nil
@@ -268,7 +272,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					Namespace: TestName,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetConditions(), string(conditionDurationsValid), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(conditionDurationsValid), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					logger.V(1).Info("shit")

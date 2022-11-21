@@ -129,7 +129,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 			}
 
 			// Check the status
-			if req.IsReady() {
+			if req.GetStatus().IsReady() {
 				cmd.Println("\nSuccess, your access request is ready!")
 				cmd.Printf("\nAccess your pod with: kubectl exec -ti -n %s %s\n", req.GetNamespace(), req.GetPodName())
 				break
@@ -137,7 +137,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 
 			if waitCtx.Err() != nil {
 				fmt.Println("\nError - timed out waiting for ExecAccessRequest to be ready")
-				for _, cond := range *req.GetConditions() {
+				for _, cond := range *req.GetStatus().GetConditions() {
 					cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
 				}
 				os.Exit(1)

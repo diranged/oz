@@ -47,7 +47,7 @@ type AccessRequestSpec struct {
 
 // AccessRequestStatus defines the observed state of AccessRequest
 type AccessRequestStatus struct {
-	ozResourceCoreStatus `json:",inline"`
+	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
@@ -65,48 +65,43 @@ type AccessRequest struct {
 	Status AccessRequestStatus `json:"status,omitempty"`
 }
 
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var _ IRequestResource = &AccessRequest{}
+var _ IRequestResource = (*AccessRequest)(nil)
+
+// GetStatus returns the core Status field for this resource.
+//
+// Returns:
+//
+//	AccessRequestStatus
+func (r *AccessRequest) GetStatus() ICoreStatus {
+	return &r.Status
+}
+
 // GetDuration conform to the interfaces.OzRequestResource interface
-func (t *AccessRequest) GetDuration() (time.Duration, error) {
-	if t.Spec.Duration != "" {
-		return time.ParseDuration(t.Spec.Duration)
+func (r *AccessRequest) GetDuration() (time.Duration, error) {
+	if r.Spec.Duration != "" {
+		return time.ParseDuration(r.Spec.Duration)
 	}
 	return time.Duration(0), nil
 }
 
 // GetUptime conform to the interfaces.OzRequestResource interface
-func (t *AccessRequest) GetUptime() time.Duration {
+func (r *AccessRequest) GetUptime() time.Duration {
 	now := time.Now()
-	creation := t.CreationTimestamp.Time
+	creation := r.CreationTimestamp.Time
 	return now.Sub(creation)
 }
 
-// GetConditions returns back a pointer to the list of conditions in the ExecAccessRequestStatus
-// object.
-//
-// Conform to the interfaces.OzResource interface
-func (t *AccessRequest) GetConditions() *[]metav1.Condition {
-	return &t.Status.Conditions
-}
-
-// IsReady conforms to the interfaces.OzResource interface
-func (t *AccessRequest) IsReady() bool {
-	return t.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (t *AccessRequest) SetReady(ready bool) {
-	t.Status.Ready = ready
-}
-
 // SetPodName conforms to the interfaces.OzRequestResource interface
-func (t *AccessRequest) SetPodName(name string) error {
-	t.Status.PodName = name
+func (r *AccessRequest) SetPodName(name string) error {
+	r.Status.PodName = name
 	return nil
 }
 
 // GetPodName returns the PodName that has been assigned to the Status field within this AccessRequest.
-func (t *AccessRequest) GetPodName() string {
-	return t.Status.PodName
+func (r *AccessRequest) GetPodName() string {
+	return r.Status.PodName
 }
 
 // GetAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the

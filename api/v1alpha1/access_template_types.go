@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	"context"
-	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -29,31 +28,13 @@ import (
 
 // AccessTemplateSpec defines the desired state of AccessTemplate
 type AccessTemplateSpec struct {
+	// AccessConfig provides a common struct for defining who has access to the resources this
+	// template controls, how long they have access, etc.
+	AccessConfig AccessConfig `json:"accessConfig"`
+
 	// TargetRef provides a pattern for referencing objects from another API in a generic way.
 	// +kubebuilder:validation:Required
 	TargetRef CrossVersionObjectReference `json:"targetRef"`
-
-	// AllowedGroups lists out the groups (in string name form) that will be allowed to  into
-	// the target pod.
-	//
-	// +kubebuilder:validation:Required
-	AllowedGroups []string `json:"allowedGroups"`
-
-	// DefaultDuration sets the default time that an `AccessRequest` resource will live. Must
-	// be set below MaxDuration.
-	//
-	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-	//
-	// +kubebuilder:default:="1h"
-	DefaultDuration string `json:"defaultDuration"`
-
-	// MaxDuration sets the maximum duration that an `AccessRequest` resource can request to
-	// stick around.
-	//
-	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-	//
-	// +kubebuilder:default:="24h"
-	MaxDuration string `json:"maxDuration"`
 
 	// Command is used to override the .Spec.containers[0].command field for the target Pod and Container. This can
 	// be handy in ensuring that the default application does not start up and do any work. If set, this overrides the
@@ -78,7 +59,7 @@ type AccessTemplateSpec struct {
 
 // AccessTemplateStatus defines the observed state of AccessRequest
 type AccessTemplateStatus struct {
-	ozResourceCoreStatus `json:",inline"`
+	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
@@ -102,19 +83,17 @@ type AccessTemplate struct {
 	Status AccessTemplateStatus `json:"status,omitempty"`
 }
 
-// GetConditions conforms to the interfaces.OzResource interface.
-func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
-	return &t.Status.Conditions
-}
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var _ ITemplateResource = &AccessTemplate{}
+var _ ITemplateResource = (*AccessTemplate)(nil)
 
-// IsReady conforms to the interfaces.OzResource interface
-func (t *AccessTemplate) IsReady() bool {
-	return t.Status.Ready
-}
-
-// SetReady conforms to the interfaces.OzResource interface
-func (t *AccessTemplate) SetReady(ready bool) {
-	t.Status.Ready = ready
+// GetStatus returns the core Status field for this resource.
+//
+// Returns:
+//
+//	AccessRequestStatus
+func (t *AccessTemplate) GetStatus() ICoreStatus {
+	return &t.Status
 }
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
@@ -122,9 +101,9 @@ func (t *AccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 
-// GetAllowedGroups returns the Spec.AllowedGroups for this particular template
-func (t *AccessTemplate) GetAllowedGroups() []string {
-	return t.Spec.AllowedGroups
+// GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
+func (t *AccessTemplate) GetAccessConfig() *AccessConfig {
+	return &t.Spec.AccessConfig
 }
 
 //+kubebuilder:object:root=true
@@ -134,16 +113,6 @@ type AccessTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []AccessTemplate `json:"items"`
-}
-
-// GetDefaultDuration conforms to the controllers.OzTemplateResource interface.
-func (t *AccessTemplate) GetDefaultDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.DefaultDuration)
-}
-
-// GetMaxDuration conforms to the controllers.OzTemplateREsource interface.
-func (t *AccessTemplate) GetMaxDuration() (time.Duration, error) {
-	return time.ParseDuration(t.Spec.MaxDuration)
 }
 
 func init() {
