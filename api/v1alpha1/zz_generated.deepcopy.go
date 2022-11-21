@@ -30,7 +30,6 @@ func (in *AccessRequest) DeepCopyInto(out *AccessRequest) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	in.ozResourceCore.DeepCopyInto(&out.ozResourceCore)
 	out.Spec = in.Spec
 	in.Status.DeepCopyInto(&out.Status)
 }
@@ -121,7 +120,6 @@ func (in *AccessTemplate) DeepCopyInto(out *AccessTemplate) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	in.ozResourceCore.DeepCopyInto(&out.ozResourceCore)
 	in.Spec.DeepCopyInto(&out.Spec)
 	in.Status.DeepCopyInto(&out.Status)
 }
@@ -242,7 +240,6 @@ func (in *ExecAccessRequest) DeepCopyInto(out *ExecAccessRequest) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	in.ozResourceCore.DeepCopyInto(&out.ozResourceCore)
 	out.Spec = in.Spec
 	in.Status.DeepCopyInto(&out.Status)
 }
@@ -333,7 +330,6 @@ func (in *ExecAccessTemplate) DeepCopyInto(out *ExecAccessTemplate) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	in.ozResourceCore.DeepCopyInto(&out.ozResourceCore)
 	in.Spec.DeepCopyInto(&out.Spec)
 	in.Status.DeepCopyInto(&out.Status)
 }

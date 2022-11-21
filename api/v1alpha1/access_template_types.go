@@ -98,10 +98,23 @@ type AccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	ozResourceCore `json:",inline"`
-
 	Spec   AccessTemplateSpec   `json:"spec,omitempty"`
 	Status AccessTemplateStatus `json:"status,omitempty"`
+}
+
+// GetConditions conforms to the interfaces.OzResource interface.
+func (t *AccessTemplate) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
+// IsReady conforms to the interfaces.OzResource interface
+func (t *AccessTemplate) IsReady() bool {
+	return t.Status.Ready
+}
+
+// SetReady conforms to the interfaces.OzResource interface
+func (t *AccessTemplate) SetReady(ready bool) {
+	t.Status.Ready = ready
 }
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.

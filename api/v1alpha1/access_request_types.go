@@ -61,8 +61,6 @@ type AccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	ozResourceCore `json:",inline"`
-
 	Spec   AccessRequestSpec   `json:"spec,omitempty"`
 	Status AccessRequestStatus `json:"status,omitempty"`
 }
@@ -80,6 +78,24 @@ func (t *AccessRequest) GetUptime() time.Duration {
 	now := time.Now()
 	creation := t.CreationTimestamp.Time
 	return now.Sub(creation)
+}
+
+// GetConditions returns back a pointer to the list of conditions in the ExecAccessRequestStatus
+// object.
+//
+// Conform to the interfaces.OzResource interface
+func (t *AccessRequest) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
+// IsReady conforms to the interfaces.OzResource interface
+func (t *AccessRequest) IsReady() bool {
+	return t.Status.Ready
+}
+
+// SetReady conforms to the interfaces.OzResource interface
+func (t *AccessRequest) SetReady(ready bool) {
+	t.Status.Ready = ready
 }
 
 // SetPodName conforms to the interfaces.OzRequestResource interface
