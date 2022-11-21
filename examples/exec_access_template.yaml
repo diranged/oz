@@ -5,10 +5,15 @@ metadata:
   namespace: oz-system
 spec:
   accessConfig:
-  # A list of Kubernetes Groups that are allowed to request access through this template.
-  allowedGroups:
-    - admins
-    - devs
+    # todo: figure out why these are required
+    maxDuration: 2h
+    defaultDuration: 1h
+
+    # A list of Kubernetes Groups that are allowed to request access through
+    # this template.
+    allowedGroups:
+      - admins
+      - devs
 
   targetRef:
     apiVersion: apps/v1

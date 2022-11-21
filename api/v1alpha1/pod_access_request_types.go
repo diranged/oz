@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,8 +29,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// AccessRequestSpec defines the desired state of AccessRequest
-type AccessRequestSpec struct {
+// PodAccessRequestSpec defines the desired state of AccessRequest
+type PodAccessRequestSpec struct {
 	// Defines the name of the `ExecAcessTemplate` that should be used to grant access to the target
 	// resource.
 	//
@@ -45,8 +46,8 @@ type AccessRequestSpec struct {
 	Duration string `json:"duration,omitempty"`
 }
 
-// AccessRequestStatus defines the observed state of AccessRequest
-type AccessRequestStatus struct {
+// PodAccessRequestStatus defines the observed state of AccessRequest
+type PodAccessRequestStatus struct {
 	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
@@ -56,30 +57,30 @@ type AccessRequestStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// AccessRequest is the Schema for the accessrequests API
-type AccessRequest struct {
+// PodAccessRequest is the Schema for the accessrequests API
+type PodAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AccessRequestSpec   `json:"spec,omitempty"`
-	Status AccessRequestStatus `json:"status,omitempty"`
+	Spec   PodAccessRequestSpec   `json:"spec,omitempty"`
+	Status PodAccessRequestStatus `json:"status,omitempty"`
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ IRequestResource = &AccessRequest{}
-var _ IRequestResource = (*AccessRequest)(nil)
+var _ IPodRequestResource = &PodAccessRequest{}
+var _ IPodRequestResource = (*PodAccessRequest)(nil)
 
 // GetStatus returns the core Status field for this resource.
 //
 // Returns:
 //
 //	AccessRequestStatus
-func (r *AccessRequest) GetStatus() ICoreStatus {
+func (r *PodAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
 }
 
 // GetDuration conform to the interfaces.OzRequestResource interface
-func (r *AccessRequest) GetDuration() (time.Duration, error) {
+func (r *PodAccessRequest) GetDuration() (time.Duration, error) {
 	if r.Spec.Duration != "" {
 		return time.ParseDuration(r.Spec.Duration)
 	}
@@ -87,27 +88,30 @@ func (r *AccessRequest) GetDuration() (time.Duration, error) {
 }
 
 // GetUptime conform to the interfaces.OzRequestResource interface
-func (r *AccessRequest) GetUptime() time.Duration {
+func (r *PodAccessRequest) GetUptime() time.Duration {
 	now := time.Now()
 	creation := r.CreationTimestamp.Time
 	return now.Sub(creation)
 }
 
 // SetPodName conforms to the interfaces.OzRequestResource interface
-func (r *AccessRequest) SetPodName(name string) error {
+func (r *PodAccessRequest) SetPodName(name string) error {
+	if r.Status.PodName != "" {
+		return fmt.Errorf("Immutable field Status.PodName already set (%s). Cannot update to %s.", r.Status.PodName, name)
+	}
 	r.Status.PodName = name
 	return nil
 }
 
 // GetPodName returns the PodName that has been assigned to the Status field within this AccessRequest.
-func (r *AccessRequest) GetPodName() string {
+func (r *PodAccessRequest) GetPodName() string {
 	return r.Status.PodName
 }
 
 // GetAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*AccessRequest, error) {
-	tmpl := &AccessRequest{}
+func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*PodAccessRequest, error) {
+	tmpl := &PodAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
 }
@@ -118,9 +122,9 @@ func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namesp
 type AccessRequestList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AccessRequest `json:"items"`
+	Items           []PodAccessRequest `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AccessRequest{}, &AccessRequestList{})
+	SchemeBuilder.Register(&PodAccessRequest{}, &AccessRequestList{})
 }

@@ -148,7 +148,7 @@ func (r *AccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // Returns:
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
-func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.AccessRequest) (*api.AccessTemplate, error) {
+func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.PodAccessRequest) (*api.AccessTemplate, error) {
 	logger := r.getLogger(ctx)
 	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
 
@@ -169,6 +169,6 @@ func (r *AccessRequestReconciler) getTargetTemplate(ctx context.Context, req *ap
 // SetupWithManager sets up the controller with the Manager.
 func (r *AccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.AccessRequest{}).
+		For(&api.PodAccessRequest{}).
 		Complete(r)
 }

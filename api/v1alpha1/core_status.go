@@ -15,7 +15,6 @@ type ICoreStatus interface {
 
 // CoreStatus provides a common set of .Status fields and functions. The goal is to
 // conform to the interfaces.OzResource interface commonly across all of our core CRDs.
-// +kubebuilder:object:generate=false
 type CoreStatus struct {
 	// Current status of the Access Template
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`

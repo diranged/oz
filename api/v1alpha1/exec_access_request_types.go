@@ -68,8 +68,8 @@ type ExecAccessRequest struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ IRequestResource = &ExecAccessRequest{}
-var _ IRequestResource = (*ExecAccessRequest)(nil)
+var _ IPodRequestResource = &ExecAccessRequest{}
+var _ IPodRequestResource = (*ExecAccessRequest)(nil)
 
 // GetStatus returns the core Status field for this resource.
 //

@@ -35,7 +35,7 @@ type Builder interface {
 	GetCtx() context.Context
 	GetScheme() *runtime.Scheme
 
-	GetRequest() api.IRequestResource
+	GetRequest() api.IPodRequestResource
 	GetTemplate() api.ITemplateResource
 
 	// Returns back the PodName that the user is being granted direct access to.
@@ -67,7 +67,7 @@ type BaseBuilder struct {
 
 	// Generic struct that satisfies the OzRequestResource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
-	Request api.IRequestResource
+	Request api.IPodRequestResource
 
 	// Generic struct that satisfies the OzTemplateREsource interface. This is used for the common
 	// functions inside the BaseBuilder struct.
@@ -118,7 +118,7 @@ func (b *BaseBuilder) GetTemplate() api.ITemplateResource {
 // Returns:
 //
 //	api.OzRequestResource
-func (b *BaseBuilder) GetRequest() api.IRequestResource {
+func (b *BaseBuilder) GetRequest() api.IPodRequestResource {
 	return b.Request
 }
 

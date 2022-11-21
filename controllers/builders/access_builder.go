@@ -19,7 +19,7 @@ import (
 type AccessBuilder struct {
 	BaseBuilder
 
-	Request  *api.AccessRequest
+	Request  *api.PodAccessRequest
 	Template *api.AccessTemplate
 }
 

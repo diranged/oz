@@ -1,15 +1,15 @@
 # Group: `wizardoz.io/v1alpha1`
-# Kind: `AccessTemplate`
+# Kind: `PodAccessTemplate`
 
 **Phase: One**
 
-An `AccessTemplate` resource is used to pre-define allowed access rules into a particular workload. This resource can be launched either by the application owners as part of their release process, or could be pre-created by cluster administrators.
+An `PodAccessTemplate` resource is used to pre-define allowed access rules into a particular workload. This resource can be launched either by the application owners as part of their release process, or could be pre-created by cluster administrators.
 
-`AccessTemplate` resources define the "shape" of the access provided into a particular workload. For example, an `AccessTemplate` can be used to define the shell that should be entered by default, or define the maximum amount of time that a subsequent `AccessRequest` pod may live.
+`PodAccessTemplate` resources define the "shape" of the access provided into a particular workload. For example, an `PodAccessTemplate` can be used to define the shell that should be entered by default, or define the maximum amount of time that a subsequent `PodAccessRequest` pod may live.
 
 ```yaml
 apiVersion: wizardoz.io/v1alpha
-kind: AccessTemplate
+kind: PodAccessTemplate
 metadata:
   name: <some predictable name>
   namespace: <target namespace>

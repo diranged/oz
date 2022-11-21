@@ -9,6 +9,7 @@ import (
 
 // The ICoreResource interface wraps a standard client.Object resource (metav1.Object + runtime.Object)
 // with a few additional requirements for common methods that we use throughout our reconciliation process.
+//
 // +kubebuilder:object:generate=false
 type ICoreResource interface {
 	// Common client.Object stuff
@@ -23,6 +24,7 @@ type ICoreResource interface {
 // templates provide different types of access into resources (eg, "Exec" vs "Debug" vs "launch me a
 // dedicated pod"). A set of common methods are required though that are used by the
 // OzTemplateReconciler.
+//
 // +kubebuilder:object:generate=false
 type ITemplateResource interface {
 	ICoreResource
@@ -36,6 +38,7 @@ type ITemplateResource interface {
 
 // IRequestResource represents a common "AccesRequest" resource for the Oz operator. These requests
 // have a common set of required methods that are used by the OzRequestReconciler.
+//
 // +kubebuilder:object:generate=false
 type IRequestResource interface {
 	ICoreResource
@@ -45,6 +48,14 @@ type IRequestResource interface {
 
 	// Returns the uptime in time.Duration() format
 	GetUptime() time.Duration
+}
+
+// IPodRequestResource is a Pod-access specific request interface that exposes a few more functions
+// for storing references to specific Pods that the requestor is being granted access to.
+//
+// +kubebuilder:object:generate=false
+type IPodRequestResource interface {
+	IRequestResource
 
 	// Sets the Status.PodName field if it is empty. If it is set, returns an error.
 	SetPodName(string) error

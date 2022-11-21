@@ -13,19 +13,19 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// createAccessRequestCmd represents the create command
-var createAccessRequestCmd = &cobra.Command{
-	Aliases: []string{"accessrequest", "accessrequests"},
-	Use:     "AccessRequest --template <AccessTemplate Name>",
-	Short:   "Create AccessRequest resources",
-	Long: `This command creates AccessRequest resources. Example:
+// createPodAccessRequestCmd represents the create command
+var createPodAccessRequestCmd = &cobra.Command{
+	Aliases: []string{"podaccessrequest", "podaccessrequests", "pod-access-request", "pod"},
+	Use:     "PodAccessRequest --template <PodAccessTemplate Name>",
+	Short:   "Create PodAccessRequest resources",
+	Long: `This command creates PodAccessRequest resources. Example:
 
-	By default, an AccessRequest will randomly select a target Pod for you:
-	$ ozctl create AccessRequest --template <existing template>
+	By default, an PodAccessRequest will randomly select a target Pod for you:
+	$ ozctl create PodAccessRequest --template <existing template>
 	...
 
     You can optionally target a specific Pod:
-	$ ozctl create AccessRequest --template <existing template> --targetPod my-existing-pod
+	$ ozctl create PodAccessRequest --template <existing template> --targetPod my-existing-pod
 	...
 	`,
 	Args: cobra.OnlyValidArgs,
@@ -72,28 +72,28 @@ var createAccessRequestCmd = &cobra.Command{
 		cmd.Printf("it does!\n")
 
 		// Create a dynamically named request template
-		req := &api.AccessRequest{
+		req := &api.PodAccessRequest{
 			ObjectMeta: metav1.ObjectMeta{
 				GenerateName: fmt.Sprintf("%s-", requestNamePrefix),
 				Namespace:    KubeNamespace,
 			},
-			Spec: api.AccessRequestSpec{
+			Spec: api.PodAccessRequestSpec{
 				TemplateName: template,
 				Duration:     duration,
 			},
 		}
 
 		// Create the request object
-		cmd.Printf("Creating %s... ", api.AccessRequest{}.Kind)
+		cmd.Printf("Creating %s... ", api.PodAccessRequest{}.Kind)
 		if err = KubeClient.Create(cmd.Context(), req); err != nil {
-			fmt.Printf("Error - Creating %s failed:\n  %s\n", api.AccessRequest{}.Kind, err)
+			fmt.Printf("Error - Creating %s failed:\n  %s\n", api.PodAccessRequest{}.Kind, err)
 		}
 		cmd.Printf("%s created!\n", req.Name)
 
 		// Wait until we are either fully succesful, or we've hit our timeout.
 		//
 		// Newline intentionally missing.
-		cmd.Print("Waiting for AccessRequest to be ready.")
+		cmd.Print("Waiting for PodAccessRequest to be ready.")
 
 		// Create a timeout context... we'll use this to bail out of our loop after waitTime has been hit.
 		waitDuration, _ := time.ParseDuration(waitTime)
@@ -118,7 +118,7 @@ var createAccessRequestCmd = &cobra.Command{
 			}
 
 			if waitCtx.Err() != nil {
-				fmt.Println("\nError - timed out waiting for AccessRequest to be ready")
+				fmt.Println("\nError - timed out waiting for PodAccessRequest to be ready")
 				for _, cond := range *req.GetStatus().GetConditions() {
 					cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
 				}
@@ -134,10 +134,10 @@ var createAccessRequestCmd = &cobra.Command{
 }
 
 func init() {
-	createAccessRequestCmd.Flags().StringVarP(&template, "template", "t", "", "Name of the AccessTemplate to request access from")
-	createAccessRequestCmd.MarkFlagRequired("template")
-	createAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
-	createAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", Username, "Prefix name to use when creating the `AccessRequest` objects.")
+	createPodAccessRequestCmd.Flags().StringVarP(&template, "template", "t", "", "Name of the AccessTemplate to request access from")
+	createPodAccessRequestCmd.MarkFlagRequired("template")
+	createPodAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
+	createPodAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", Username, "Prefix name to use when creating the `AccessRequest` objects.")
 
-	createCmd.AddCommand(createAccessRequestCmd)
+	createCmd.AddCommand(createPodAccessRequestCmd)
 }

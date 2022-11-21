@@ -32,7 +32,7 @@ var (
 
 // createAccessRequestCmd represents the create command
 var createExecAccessRequestCmd = &cobra.Command{
-	Aliases: []string{"execaccessrequest", "execaccessrequests"},
+	Aliases: []string{"execaccessrequest", "execaccessrequests", "exec-access-request", "exec"},
 	Use:     "ExecAccessRequest --template <ExecAccessTemplate Name>",
 	Short:   "Create ExecAccessRequest resources",
 	Long: `This command creates ExecAccessRequest resources. Example:
