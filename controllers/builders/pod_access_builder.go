@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// AccessBuilder implements the required resources for the api.AccessTemplate CRD.
+// PodAccessBuilder implements the required resources for the api.AccessTemplate CRD.
 //
 // An "AccessRequest" is used to generate access that has been defined through an "AccessTemplate".
 //
@@ -16,7 +16,7 @@ import (
 // existing Deployment (or StatefulSet, DaemonSet), mutated so that the Pod is not in the path of
 // live traffic, and then Role and RoleBindings are created to grant the developer access into the
 // Pod.
-type AccessBuilder struct {
+type PodAccessBuilder struct {
 	BaseBuilder
 
 	Request  *api.PodAccessRequest
@@ -36,13 +36,21 @@ type AccessBuilder struct {
 //	string may go away.
 //
 //	err: Any errors during the building and application of these resources.
-func (b *AccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
+func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
 	logger := log.FromContext(b.Ctx)
 
 	// First, get the desired PodSpec. If there's a failure at this point, return it.
 	podSpec, err := b.generatePodSpec()
 	if err != nil {
-		logger.Error(err, "Failed to generate PodSpec for AccessRequest")
+		logger.Error(err, "Failed to generate PodSpec for PodAccessRequest")
+		return statusString, accessString, err
+	}
+
+	// Run the PodSpec through the optional mutation config
+	mutator := b.Template.Spec.ControllerTargetMutationConfig
+	podSpec, err = mutator.PatchPodSpec(podSpec)
+	if err != nil {
+		logger.Error(err, "Failed to mutate PodSpec for PodAccessRequest")
 		return statusString, accessString, err
 	}
 
@@ -73,6 +81,6 @@ func (b *AccessBuilder) GenerateAccessResources() (statusString string, accessSt
 	return statusString, accessString, err
 }
 
-func (b *AccessBuilder) generatePodSpec() (corev1.PodSpec, error) {
+func (b *PodAccessBuilder) generatePodSpec() (corev1.PodSpec, error) {
 	return b.getPodSpecFromController()
 }

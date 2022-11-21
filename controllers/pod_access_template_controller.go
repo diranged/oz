@@ -67,7 +67,7 @@ func (r *PodAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := &builders.AccessBuilder{
+	builder := &builders.PodAccessBuilder{
 		BaseBuilder: builders.BaseBuilder{
 			Client:   r.Client,
 			Ctx:      ctx,

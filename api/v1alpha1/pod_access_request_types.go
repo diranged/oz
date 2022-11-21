@@ -42,7 +42,10 @@ type PodAccessRequestSpec struct {
 	//
 	// If omitted, the spec.defautlDuration from the ExecAccessTemplate is used.
 	//
-	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+	// Valid time units are "s", "m", "h".
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Pattern="^[0-9]+(s|m|h)$"
 	Duration string `json:"duration,omitempty"`
 }
 

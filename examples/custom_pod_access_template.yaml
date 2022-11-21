@@ -14,20 +14,19 @@ spec:
       - admins
       - devs
 
-  controllerTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: example
-
-  controllerTargetMutationConfig:
-    command: [/bin/sleep, '60']
-    env:
-      - name: FOO
-        value: bar
-    resources:
-      requests:
-        memory: 42Mi
-        cpu: 100m
+  podSpec:
+    containers:
+      - image: ubuntu:latest
+        imagePullPolicy: IfNotPresent
+        name: ubuntu
+        command: [/bin/sleep, '999']
+        resources:
+          limits:
+            cpu: 1
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
 
   maxMemory: 1Gi
   maxCpu: 1

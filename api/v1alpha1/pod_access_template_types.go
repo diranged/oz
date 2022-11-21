@@ -18,6 +18,8 @@ package v1alpha1
 
 import (
 	"context"
+	"errors"
+	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -32,19 +34,16 @@ type PodAccessTemplateSpec struct {
 	// template controls, how long they have access, etc.
 	AccessConfig AccessConfig `json:"accessConfig"`
 
-	// TargetRef provides a pattern for referencing objects from another API in a generic way.
+	// ControllerTargetRef provides a pattern for referencing objects from another API in a generic way.
 	// +kubebuilder:validation:Required
-	TargetRef CrossVersionObjectReference `json:"targetRef"`
+	ControllerTargetRef CrossVersionObjectReference `json:"controllerTargetRef"`
 
-	// Command is used to override the .Spec.containers[0].command field for the target Pod and Container. This can
-	// be handy in ensuring that the default application does not start up and do any work. If set, this overrides the
-	// Spec.conatiners[0].args property as well.
-	Command []string `json:"command,omitempty"`
+	// ControllerTargetMutationConfig contains parameters that allow for customizing the copy of a
+	// controller-sourced PodSpec. This setting is only valid if controllerTargetRef is set.
+	ControllerTargetMutationConfig PodSpecMutationConfig `json:"controllerTargetMutationConfig,omitempty"`
 
-	// If supplied these resource requirements will override the default .Spec.containers[0].resource requested for the
-	// the pod. Note though that we do not override all of the resource requests in the Pod because there may be many
-	// containers.
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	// PodSpec ...
+	PodSpec corev1.PodSpec `json:"podSpec,omitempty"`
 
 	// Upper bound of the ephemeral storage that an AccessRequest can make against this template for
 	// the primary container.
@@ -98,12 +97,25 @@ func (t *PodAccessTemplate) GetStatus() ICoreStatus {
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *PodAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
-	return &t.Spec.TargetRef
+	return &t.Spec.ControllerTargetRef
 }
 
 // GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
 func (t *PodAccessTemplate) GetAccessConfig() *AccessConfig {
 	return &t.Spec.AccessConfig
+}
+
+// Validate the inputs
+func (t *PodAccessTemplate) Validate() error {
+	if (t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
+		return errors.New("cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other")
+	}
+
+	if (t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
+		return errors.New("cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set")
+	}
+
+	return nil
 }
 
 //+kubebuilder:object:root=true
