@@ -28,15 +28,14 @@ import (
 	"github.com/diranged/oz/controllers/builders"
 )
 
-// AccessTemplateReconciler reconciles a AccessTemplate object
-type AccessTemplateReconciler struct {
-	// anonymous field
+// PodAccessTemplateReconciler reconciles a AccessTemplate object
+type PodAccessTemplateReconciler struct {
 	OzTemplateReconciler
 }
 
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=accesstemplates/finalizers,verbs=update
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;statefulsets,verbs=get;list;watch
 
@@ -49,21 +48,21 @@ type AccessTemplateReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PodAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("Starting reconcile loop")
 
 	// SETUP
 	r.SetReconciliationInterval()
 
-	// Get the ExecAccessTemplate resource if it exists. If not, we bail out quietly.
+	// Get the PodAccessTemplate resource if it exists. If not, we bail out quietly.
 	//
 	// TODO: If this resource is deleted, then we need to find all AccessRequests pointing to it,
 	// and delete them as well.
-	logger.Info("Verifying AccessTemplate exists")
-	resource, err := api.GetAccessTemplate(ctx, r.Client, req.Name, req.Namespace)
+	logger.Info("Verifying PodAccessTemplate exists")
+	resource, err := api.GetPodAccessTemplate(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
-		logger.Info(fmt.Sprintf("Failed to find AccessTemplate %s, perhaps deleted.", req))
+		logger.Info(fmt.Sprintf("Failed to find PodAccessTemplate %s, perhaps deleted.", req))
 		return ctrl.Result{}, nil
 	}
 
@@ -101,8 +100,8 @@ func (r *AccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *AccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *PodAccessTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.AccessTemplate{}).
+		For(&api.PodAccessTemplate{}).
 		Complete(r)
 }

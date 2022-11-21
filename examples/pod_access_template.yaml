@@ -1,5 +1,5 @@
 apiVersion: crds.wizardofoz.co/v1alpha1
-kind: AccessTemplate
+kind: PodAccessTemplate
 metadata:
   name: deployment-example
   namespace: oz-system

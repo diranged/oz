@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: accesstemplates.crds.wizardofoz.co
+  name: podaccesstemplates.crds.wizardofoz.co
 spec:
   group: crds.wizardofoz.co
   names:
-    kind: AccessTemplate
-    listKind: AccessTemplateList
-    plural: accesstemplates
-    singular: accesstemplate
+    kind: PodAccessTemplate
+    listKind: PodAccessTemplateList
+    plural: podaccesstemplates
+    singular: podaccesstemplate
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: AccessTemplate is the Schema for the accesstemplates API
+        description: PodAccessTemplate is the Schema for the accesstemplates API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,7 +33,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: AccessTemplateSpec defines the desired state of AccessTemplate
+            description: PodAccessTemplateSpec defines the desired state of AccessTemplate
             properties:
               accessConfig:
                 description: AccessConfig provides a common struct for defining who
@@ -154,7 +154,7 @@ spec:
             - targetRef
             type: object
           status:
-            description: AccessTemplateStatus defines the observed state of AccessRequest
+            description: PodAccessTemplateStatus defines the observed state of AccessRequest
             properties:
               conditions:
                 description: Current status of the Access Template

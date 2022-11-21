@@ -20,7 +20,7 @@ type AccessBuilder struct {
 	BaseBuilder
 
 	Request  *api.PodAccessRequest
-	Template *api.AccessTemplate
+	Template *api.PodAccessTemplate
 }
 
 // GenerateAccessResources is the primary function called by the reconciler to this Builder object. This function

@@ -64,7 +64,7 @@ var createPodAccessRequestCmd = &cobra.Command{
 
 		// Verify the template exists
 		cmd.Printf("Verifying Template %s exists... ", template)
-		_, err := api.GetAccessTemplate(cmd.Context(), KubeClient, template, KubeNamespace)
+		_, err := api.GetPodAccessTemplate(cmd.Context(), KubeClient, template, KubeNamespace)
 		if err != nil {
 			fmt.Printf("Error - Invalid --template name flag passed in:\n  %s\n", err)
 			os.Exit(1)

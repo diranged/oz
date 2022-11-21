@@ -97,7 +97,7 @@ func (r *PodAccessRequest) GetUptime() time.Duration {
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *PodAccessRequest) SetPodName(name string) error {
 	if r.Status.PodName != "" {
-		return fmt.Errorf("Immutable field Status.PodName already set (%s). Cannot update to %s.", r.Status.PodName, name)
+		return fmt.Errorf("immutable field Status.PodName already set (%s), cannot update to %s", r.Status.PodName, name)
 	}
 	r.Status.PodName = name
 	return nil
@@ -108,9 +108,9 @@ func (r *PodAccessRequest) GetPodName() string {
 	return r.Status.PodName
 }
 
-// GetAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
+// GetPodAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*PodAccessRequest, error) {
+func GetPodAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*PodAccessRequest, error) {
 	tmpl := &PodAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -118,13 +118,13 @@ func GetAccessRequest(ctx context.Context, cl client.Reader, name string, namesp
 
 //+kubebuilder:object:root=true
 
-// AccessRequestList contains a list of AccessRequest
-type AccessRequestList struct {
+// PodAccessRequestList contains a list of AccessRequest
+type PodAccessRequestList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []PodAccessRequest `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&PodAccessRequest{}, &AccessRequestList{})
+	SchemeBuilder.Register(&PodAccessRequest{}, &PodAccessRequestList{})
 }

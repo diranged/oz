@@ -26,8 +26,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// AccessTemplateSpec defines the desired state of AccessTemplate
-type AccessTemplateSpec struct {
+// PodAccessTemplateSpec defines the desired state of AccessTemplate
+type PodAccessTemplateSpec struct {
 	// AccessConfig provides a common struct for defining who has access to the resources this
 	// template controls, how long they have access, etc.
 	AccessConfig AccessConfig `json:"accessConfig"`
@@ -57,8 +57,8 @@ type AccessTemplateSpec struct {
 	MaxMemory resource.Quantity `json:"maxMemory,omitempty"`
 }
 
-// AccessTemplateStatus defines the observed state of AccessRequest
-type AccessTemplateStatus struct {
+// PodAccessTemplateStatus defines the observed state of AccessRequest
+type PodAccessTemplateStatus struct {
 	CoreStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
@@ -74,55 +74,55 @@ type AccessTemplateStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// AccessTemplate is the Schema for the accesstemplates API
-type AccessTemplate struct {
+// PodAccessTemplate is the Schema for the accesstemplates API
+type PodAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AccessTemplateSpec   `json:"spec,omitempty"`
-	Status AccessTemplateStatus `json:"status,omitempty"`
+	Spec   PodAccessTemplateSpec   `json:"spec,omitempty"`
+	Status PodAccessTemplateStatus `json:"status,omitempty"`
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ITemplateResource = &AccessTemplate{}
-var _ ITemplateResource = (*AccessTemplate)(nil)
+var _ ITemplateResource = &PodAccessTemplate{}
+var _ ITemplateResource = (*PodAccessTemplate)(nil)
 
 // GetStatus returns the core Status field for this resource.
 //
 // Returns:
 //
-//	AccessRequestStatus
-func (t *AccessTemplate) GetStatus() ICoreStatus {
+//	PodAccessRequestStatus
+func (t *PodAccessTemplate) GetStatus() ICoreStatus {
 	return &t.Status
 }
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
-func (t *AccessTemplate) GetTargetRef() *CrossVersionObjectReference {
+func (t *PodAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 	return &t.Spec.TargetRef
 }
 
 // GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
-func (t *AccessTemplate) GetAccessConfig() *AccessConfig {
+func (t *PodAccessTemplate) GetAccessConfig() *AccessConfig {
 	return &t.Spec.AccessConfig
 }
 
 //+kubebuilder:object:root=true
 
-// AccessTemplateList contains a list of AccessTemplate
-type AccessTemplateList struct {
+// PodAccessTemplateList contains a list of AccessTemplate
+type PodAccessTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AccessTemplate `json:"items"`
+	Items           []PodAccessTemplate `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AccessTemplate{}, &AccessTemplateList{})
+	SchemeBuilder.Register(&PodAccessTemplate{}, &PodAccessTemplateList{})
 }
 
-// GetAccessTemplate returns back an AccessTemplate resource matching the request supplied to the
+// GetPodAccessTemplate returns back an AccessTemplate resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*AccessTemplate, error) {
-	tmpl := &AccessTemplate{}
+func GetPodAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*PodAccessTemplate, error) {
+	tmpl := &PodAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
 }

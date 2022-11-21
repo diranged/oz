@@ -30,58 +30,6 @@ rules:
 - apiGroups:
   - crds.wizardofoz.co
   resources:
-  - accessrequests
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - accessrequests/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - accessrequests/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - accesstemplates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - accesstemplates/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - accesstemplates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
   - execaccessrequests
   verbs:
   - create
@@ -139,6 +87,58 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccessrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccessrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccessrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccesstemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccesstemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - crds.wizardofoz.co
+  resources:
+  - podaccesstemplates/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
