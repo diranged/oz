@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // createPodAccessRequestCmd represents the create command
@@ -62,8 +63,13 @@ var createPodAccessRequestCmd = &cobra.Command{
 		cmd.Printf("  Request Name Prefix: %s\n", requestNamePrefix)
 		cmd.Printf("\n")
 
+		// Get the client
+		kubeRestCfg, _ := kubeConfigFlags.ToRESTConfig()
+		KubeClient, _ := client.New(kubeRestCfg, client.Options{})
+		KubeNamespace := getDefaultKubeNamespace(kubeConfigFlags)
+
 		// Verify the template exists
-		cmd.Printf("Verifying Template %s exists... ", template)
+		cmd.Printf("Verifying Template %s exists (ns: %s)... ", template, KubeNamespace)
 		_, err := api.GetPodAccessTemplate(cmd.Context(), KubeClient, template, KubeNamespace)
 		if err != nil {
 			fmt.Printf("Error - Invalid --template name flag passed in:\n  %s\n", err)
@@ -138,6 +144,8 @@ func init() {
 	createPodAccessRequestCmd.MarkFlagRequired("template")
 	createPodAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
 	createPodAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", Username, "Prefix name to use when creating the `AccessRequest` objects.")
+
+	kubeConfigFlags.AddFlags(createPodAccessRequestCmd.Flags())
 
 	createCmd.AddCommand(createPodAccessRequestCmd)
 }
