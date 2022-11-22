@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	"github.com/diranged/oz/controllers/builders"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -13,6 +14,38 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+type FakeBuilder struct {
+	builders.BaseBuilder
+
+	// Flags for faking GeneratePodName
+	retPodname string
+
+	// Flags for faking GenerateAccessResources
+	retStatusString string
+	retAccessString string
+
+	// Flags for faking GetTargetRefResource()
+	retTargetRefResource client.Object
+
+	// Flags for faking an error
+	retErr error
+}
+
+func (b *FakeBuilder) GeneratePodName() (podName string, err error) {
+	return b.retPodname, b.retErr
+}
+
+func (b *FakeBuilder) GetTargetRefResource() (client.Object, error) {
+	return b.retTargetRefResource, b.retErr
+}
+
+func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
+	return b.retStatusString, b.retAccessString, b.retErr
+}
+
+var _ builders.Builder = &FakeBuilder{}
+var _ builders.Builder = (*FakeBuilder)(nil)
 
 var _ = Describe("OzReconciler Tests", Ordered, func() {
 	Context("Method Tests", func() {
