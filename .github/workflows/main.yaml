@@ -7,7 +7,7 @@ on:
 
 jobs:
   goreportcard:
-    name: goreportcard-refresh
+    runs-on: ubuntu-latest
     steps:
       - uses: creekorful/goreportcard-action@v1.0
 
