@@ -18,5 +18,8 @@ jobs:
       - name: Build Docs
         run: make godocs
 
+      - name: temp
+        run: pwd
+
       - name: Git diff
         run: git diff --exit-code
