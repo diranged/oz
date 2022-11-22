@@ -111,8 +111,8 @@ func main() {
 	}
 
 	if err = (&controllers.ExecAccessTemplateReconciler{
-		OzTemplateReconciler: controllers.OzTemplateReconciler{
-			OzReconciler: controllers.OzReconciler{
+		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
+			BaseReconciler: controllers.BaseReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
 				APIReader:               mgr.GetAPIReader(),
@@ -125,8 +125,8 @@ func main() {
 	}
 
 	if err = (&controllers.ExecAccessRequestReconciler{
-		OzRequestReconciler: controllers.OzRequestReconciler{
-			OzReconciler: controllers.OzReconciler{
+		BaseRequestReconciler: controllers.BaseRequestReconciler{
+			BaseReconciler: controllers.BaseReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
 				APIReader:               mgr.GetAPIReader(),
@@ -139,8 +139,8 @@ func main() {
 	}
 
 	if err = (&controllers.PodAccessTemplateReconciler{
-		OzTemplateReconciler: controllers.OzTemplateReconciler{
-			OzReconciler: controllers.OzReconciler{
+		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
+			BaseReconciler: controllers.BaseReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
 				APIReader:               mgr.GetAPIReader(),
@@ -153,8 +153,8 @@ func main() {
 	}
 
 	if err = (&controllers.PodAccessRequestReconciler{
-		OzRequestReconciler: controllers.OzRequestReconciler{
-			OzReconciler: controllers.OzReconciler{
+		BaseRequestReconciler: controllers.BaseRequestReconciler{
+			BaseReconciler: controllers.BaseReconciler{
 				Client:                  mgr.GetClient(),
 				Scheme:                  mgr.GetScheme(),
 				APIReader:               mgr.GetAPIReader(),

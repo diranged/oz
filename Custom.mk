@@ -15,6 +15,10 @@ docker-load:
 cover:
 	go tool cover -func cover.out
 
+.PHONY: coverhtml
+coverhtml:
+	go tool cover -html cover.out
+
 .PHONY: lint
 lint: revive
 	$(REVIVE) -config revive.toml -formatter stylish ./...

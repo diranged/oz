@@ -10,10 +10,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// OzRequestReconciler provides a base reconciler with common functions for handling our Template CRDs
+// BaseRequestReconciler provides a base reconciler with common functions for handling our Template CRDs
 // (ExecAccessTemplate, AccessTemplate, etc)
-type OzRequestReconciler struct {
-	OzReconciler
+type BaseRequestReconciler struct {
+	BaseReconciler
 }
 
 // verifyDuration checks a few components of whether or not the AccessRequest is still valid:
@@ -27,7 +27,7 @@ type OzRequestReconciler struct {
 //   - Is the access request duration less than its current age?
 //     yes? approve
 //     no? mark the resource for deletion
-func (r *OzRequestReconciler) verifyDuration(builder builders.Builder) error {
+func (r *BaseRequestReconciler) verifyDuration(builder builders.Builder) error {
 	var err error
 	logger := r.getLogger(builder.GetCtx())
 
@@ -103,7 +103,7 @@ func (r *OzRequestReconciler) verifyDuration(builder builders.Builder) error {
 //	true: if the resource is expired, AND has now been deleted
 //	false: if the resource is still valid
 //	error: any error during the checks
-func (r *OzRequestReconciler) isAccessExpired(builder builders.Builder) (bool, error) {
+func (r *BaseRequestReconciler) isAccessExpired(builder builders.Builder) (bool, error) {
 	logger := r.getLogger(builder.GetCtx())
 	logger.Info("Checking if access has expired or not...")
 	cond := meta.FindStatusCondition(*builder.GetRequest().GetStatus().GetConditions(), string(conditionAccessStillValid))
@@ -124,7 +124,7 @@ func (r *OzRequestReconciler) isAccessExpired(builder builders.Builder) (bool, e
 // verifyAccessResources calls out to the Builder interface's GenerateAccessResources() method to build out
 // all of the resources that are required for thie particular access request. The Status.Conditions field is
 // then updated with the ConditionAccessResourcesCreated condition appropriately.
-func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (accessString string, err error) {
+func (r *BaseRequestReconciler) verifyAccessResources(builder builders.Builder) (accessString string, err error) {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are built")
 
@@ -158,6 +158,6 @@ func (r *OzRequestReconciler) verifyAccessResources(builder builders.Builder) (a
 // Returns:
 //
 //	error: Any error during the deletion
-func (r *OzRequestReconciler) DeleteResource(builder builders.Builder) error {
+func (r *BaseRequestReconciler) DeleteResource(builder builders.Builder) error {
 	return r.Delete(builder.GetCtx(), builder.GetRequest())
 }

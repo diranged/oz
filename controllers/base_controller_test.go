@@ -48,7 +48,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			}
 
 			// Base OzReconciler
-			reconciler := &OzReconciler{
+			reconciler := &BaseReconciler{
 				Client:    k8sClient,
 				Scheme:    k8sClient.Scheme(),
 				APIReader: k8sClient,
@@ -93,7 +93,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 				},
 			}
 
-			reconciler := &OzReconciler{
+			reconciler := &BaseReconciler{
 				Client:    k8sClient,
 				Scheme:    k8sClient.Scheme(),
 				APIReader: k8sClient,
@@ -133,7 +133,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 				},
 			}
 
-			reconciler := &OzReconciler{
+			reconciler := &BaseReconciler{
 				Client:    client.NewNamespacedClient(k8sClient, "bogus"),
 				Scheme:    k8sClient.Scheme(),
 				APIReader: client.NewNamespacedClient(k8sClient, "bogus"),

@@ -35,7 +35,7 @@ import (
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
 type ExecAccessRequestReconciler struct {
 	// Pass in the common functions from our BaseController
-	OzRequestReconciler
+	BaseRequestReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
