@@ -6,6 +6,9 @@ on:
     tags-ignore: '*'
 
 jobs:
+  goreportcard:
+    uses: creekorful/goreportcard-action@v1.0
+
   build:
     uses: ./.github/workflows/build.yaml
 
