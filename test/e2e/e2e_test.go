@@ -29,12 +29,10 @@ var _ = Describe("oz-controller", Ordered, func() {
 			controllers.ConditionTargetRefExists,
 		}
 		requestSuccessConditions = []controllers.OzResourceConditionTypes{
+			controllers.ConditionDurationsValid,
 			controllers.ConditionTargetTemplateExists,
-			controllers.ConditionRoleCreated,
-			controllers.ConditionRoleBindingCreated,
 			controllers.ConditionAccessStillValid,
 			controllers.ConditionAccessResourcesCreated,
-			controllers.ConditionTargetPodSelected,
 		}
 
 		deploymentTemplate = filepath.Join(projectDir, "examples/deployment.yaml")
@@ -47,6 +45,14 @@ var _ = Describe("oz-controller", Ordered, func() {
 			_, err = utils.Run(cmd)
 			return err
 		}, time.Minute, time.Second).Should(Succeed())
+		EventuallyWithOffset(1, func() error {
+			cmd := exec.Command(
+				"kubectl", "wait", "-f", deploymentTemplate, "-n", namespace, "--timeout=1s",
+				"--for=condition=Available",
+			)
+			_, err = utils.Run(cmd)
+			return err
+		}, (5 * time.Minute), time.Second).Should(Succeed())
 	})
 
 	AfterAll(func() {
@@ -77,7 +83,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			for _, cond := range templateSuccessConditions {
 				EventuallyWithOffset(1, func() error {
 					cmd := exec.Command(
-						"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=5s",
+						"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
 					_, err = utils.Run(cmd)
@@ -104,7 +110,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			for _, cond := range requestSuccessConditions {
 				EventuallyWithOffset(1, func() error {
 					cmd := exec.Command(
-						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=5s",
+						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
 					_, err = utils.Run(cmd)
@@ -135,7 +141,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				for _, cond := range templateSuccessConditions {
 					EventuallyWithOffset(1, func() error {
 						cmd := exec.Command(
-							"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=5s",
+							"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
 							fmt.Sprintf("--for=condition=%s", cond),
 						)
 						_, err = utils.Run(cmd)
@@ -162,7 +168,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				for _, cond := range requestSuccessConditions {
 					EventuallyWithOffset(1, func() error {
 						cmd := exec.Command(
-							"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=5s",
+							"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
 							fmt.Sprintf("--for=condition=%s", cond),
 						)
 						_, err = utils.Run(cmd)

@@ -24,16 +24,19 @@ const (
 	// indicates whether or not the various duration fields are valid.
 	ConditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
 
-	// Access Requests
-	ConditionTargetTemplateExists   OzResourceConditionTypes = "TargetTemplateExists"
-	ConditionRoleCreated            OzResourceConditionTypes = "RoleCreated"
-	ConditionRoleBindingCreated     OzResourceConditionTypes = "RoleBindingCreated"
-	ConditionAccessStillValid       OzResourceConditionTypes = "AccessStillValid"
+	// ConditionTargetTemplateExists indicates that the Access Request is pointing to a valid Access
+	// Template.
+	ConditionTargetTemplateExists OzResourceConditionTypes = "TargetTemplateExists"
+
+	// ConditionAccessStillValid is continaully updated based on whether or not the Access Request
+	// has timed out.
+	ConditionAccessStillValid OzResourceConditionTypes = "AccessStillValid"
+
+	// ConditionAccessResourcesCreated indicates whether or not the target access request resources
+	// have been properly created.
 	ConditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
 
-	// TODO: maybe get ridof?
-	ConditionTargetPodSelected OzResourceConditionTypes = "TargetPodSelected"
-
-	// Access Templates
+	// ConditionTargetRefExists indicates whether or not an AccessTemplate is pointing to a valid
+	// Controller.
 	ConditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
 )
