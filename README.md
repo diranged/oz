@@ -5,6 +5,7 @@
 [pod_access_template]: docs.md#podaccesstemplate
 [kube_crd]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
 [kube_rbac]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+[kube_subjects]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
 
 # Oz RBAC Controller
 
@@ -28,8 +29,8 @@ the principal of least privilege is honored.
 to create a "template" for how a particular type of short-term access can be
 granted. For example, the [`ExecAccessTemplate`][exec_access_template] defines
 a particular target (`DaemonSet` for example) that a user can request access
-to, the `Groups` that are allowed to have that access, and rules around the
-maximum duration that the request can remain active.
+to, the [`Groups`][kube_subjects] that are allowed to have that access, and
+rules around the maximum duration that the request can remain active.
 
 **Access Requests** are created by end-users when they need access to a
 resource. RBAC privileges must be granted to users to even create the resource -
@@ -98,7 +99,7 @@ _How does Oz solve this?_
 target pods that are allowed to be `kubectl exec`'d into. When an
 [`ExecAccessRequest`][exec_access_request] is created and validated, *Oz* will
 then provision temporary `Role` and `RoleBindings` that grant the appropriate
-`Groups` access to the pod.
+[`Groups`][kube_subjects] access to the pod.
 
 ## Installation
 
@@ -150,17 +151,20 @@ where a new `Role` and `RoleBinding` are created to grant access to existing
 
 #### [`ExecAccessTemplate`][exec_access_template]
 
-For the full spec, please see the [`ExecAccessTemplate`][exec_access_template]
-CRD design docs. The documentation here only discusses the required options.
+_For the full spec, please see the [`ExecAccessTemplate`][exec_access_template]
+CRD API docs. The documentation here only discusses the required options._
 
 ```yaml
 apiVersion: wizardofoz.io/v1alpha
 kind: ExecAccessTemplate
 metadata:
-  name: <targetNamespace>
+  name: myAccessTemplate
 spec:
   accessConfig:
-    # A list of Kubernetes Groups that are allowed to request access through this template.
+    # A list of Kubernetes Groups that are allowed to request access through
+    # this template. These should be Kubernetes "Groups" - read the docs at
+    # https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
+    # to further understand how "Groups" work in Kubernetes.
     allowedGroups:
       - admins
       - devs
@@ -172,6 +176,31 @@ spec:
     name: targetApp
 ```
 
+#### [`ExecAccessRequest`][exec_access_request]
+
+_For the full spec, please see the [`ExecAccessRequest`][exec_accesss_request]
+CRD API docs. The documentation here only discusses the most common options._
+
+```yaml
+apiVersion: wizardofoz.io/v1alpha
+kind: ExecAccessRequest
+metadata:
+  generateName: accessRequest-
+spec:
+  # The `templateName` property refers to an ExecAccessTemplate within the same
+  # namespace as the ExecAccessRequest.
+  templateName: myAccessTemplate
+
+  # (Optional) Request access to a specific Pod. This pod must belong to the
+  # controller in the ExecAccessTemplate this request is using. If not supplied,
+  # a random pod is selected.
+  targetPod: mypod-abcdc1
+
+  # (Optional) How long should the request live? At the end of this time, the
+  # request (and therefore access) is removed automatically. Must be lower than
+  # the ExecAccessTemplate.Spec.accessConfig.maxDuration.
+  duration: 1h
+```
 
 #### 
 
