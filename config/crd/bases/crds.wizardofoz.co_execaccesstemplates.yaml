@@ -66,9 +66,9 @@ spec:
                 - defaultDuration
                 - maxDuration
                 type: object
-              targetRef:
-                description: TargetRef provides a pattern for referencing objects
-                  from another API in a generic way.
+              controllerTargetRef:
+                description: ControllerTargetRef provides a pattern for referencing
+                  objects from another API in a generic way.
                 properties:
                   apiVersion:
                     description: "Defines the \"APIVersion\" of the resource being
@@ -92,7 +92,7 @@ spec:
                 type: object
             required:
             - accessConfig
-            - targetRef
+            - controllerTargetRef
             type: object
           status:
             description: ExecAccessTemplateStatus is the core set of status fields

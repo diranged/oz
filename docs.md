@@ -458,7 +458,7 @@ template controls, how long they have access, etc.</p>
 </tr>
 <tr>
 <td>
-<code>targetRef</code><br/>
+<code>controllerTargetRef</code><br/>
 <em>
 <a href="#crds.wizardofoz.co/v1alpha1.CrossVersionObjectReference">
 CrossVersionObjectReference
@@ -466,7 +466,7 @@ CrossVersionObjectReference
 </em>
 </td>
 <td>
-<p>TargetRef provides a pattern for referencing objects from another API in a generic way.</p>
+<p>ControllerTargetRef provides a pattern for referencing objects from another API in a generic way.</p>
 </td>
 </tr>
 </table>
@@ -518,7 +518,7 @@ template controls, how long they have access, etc.</p>
 </tr>
 <tr>
 <td>
-<code>targetRef</code><br/>
+<code>controllerTargetRef</code><br/>
 <em>
 <a href="#crds.wizardofoz.co/v1alpha1.CrossVersionObjectReference">
 CrossVersionObjectReference
@@ -526,7 +526,7 @@ CrossVersionObjectReference
 </em>
 </td>
 <td>
-<p>TargetRef provides a pattern for referencing objects from another API in a generic way.</p>
+<p>ControllerTargetRef provides a pattern for referencing objects from another API in a generic way.</p>
 </td>
 </tr>
 </tbody>

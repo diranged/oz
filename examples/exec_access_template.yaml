@@ -15,7 +15,7 @@ spec:
       - admins
       - devs
 
-  targetRef:
+  controllerTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: example

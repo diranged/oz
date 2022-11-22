@@ -94,7 +94,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "targetDeployment",
@@ -139,7 +139,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -222,7 +222,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -269,7 +269,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1invalidtimeframe",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -316,7 +316,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "1invalidtimeframe",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -363,7 +363,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "1m",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",

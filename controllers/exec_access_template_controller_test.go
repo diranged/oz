@@ -120,7 +120,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 						Namespace: namespace.Name,
 					},
 					Spec: api.ExecAccessTemplateSpec{
-						TargetRef: api.CrossVersionObjectReference{
+						ControllerTargetRef: &api.CrossVersionObjectReference{
 							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       deployment.Name,
@@ -207,7 +207,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 						},
 
 						// INVALID: This target does not exist
-						TargetRef: api.CrossVersionObjectReference{
+						ControllerTargetRef: &api.CrossVersionObjectReference{
 							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       "invalid-name",

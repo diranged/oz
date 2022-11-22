@@ -338,7 +338,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "targetDeployment",
