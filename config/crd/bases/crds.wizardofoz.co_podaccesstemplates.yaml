@@ -48,16 +48,17 @@ spec:
                     type: array
                   defaultDuration:
                     default: 1h
-                    description: "DefaultDuration sets the default time that an `ExecAccessRequest`
-                      resource will live. Must be set below MaxDuration. \n Valid
-                      time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\",
-                      \"h\"."
+                    description: "DefaultDuration sets the default time that an access
+                      request resource will live. Must be set below MaxDuration. \n
+                      Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\",
+                      \"m\", \"h\"."
                     type: string
                   maxDuration:
                     default: 24h
-                    description: "MaxDuration sets the maximum duration that an `ExecAccessRequest`
-                      resource can request to stick around. \n Valid time units are
-                      \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"."
+                    description: "MaxDuration sets the maximum duration that an access
+                      request resource can request to stick around. \n Valid time
+                      units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\",
+                      \"h\"."
                     type: string
                 required:
                 - allowedGroups
