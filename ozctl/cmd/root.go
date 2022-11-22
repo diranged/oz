@@ -65,7 +65,3 @@ func init() {
 }
 
 func initConfig() {}
-
-func main() {
-
-}
