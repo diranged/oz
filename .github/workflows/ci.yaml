@@ -46,9 +46,12 @@ jobs:
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/test-e2e.yaml
 
-  publish-dry:
-    needs: detect-noop
-    if: needs.detect-noop.outputs.noop != 'true'
-    uses: ./.github/workflows/publish.yaml
-    with:
-      push: false
+  # Disabled: The cross-platform builds take 10+m... so limiting these builds
+  # to just `main` for now.
+  #
+  # publish-dry:
+  #   needs: detect-noop
+  #   if: needs.detect-noop.outputs.noop != 'true'
+  #   uses: ./.github/workflows/publish.yaml
+  #   with:
+  #     push: false
