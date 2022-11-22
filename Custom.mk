@@ -35,7 +35,7 @@ $(GEN_CRD_API_DOCS):
 .PHONY: godocs
 godocs: $(GEN_CRD_API_DOCS)
 	bin/gen-crd-api-reference-docs \
-		-config $$(go env GOPATH)/src/github.com/diranged/oz/gen-crd-api-reference-docs.json \
+		-config ./gen-crd-api-reference-docs.json \
 		-api-dir ./api/v1alpha1 \
 		-template-dir $$(go env GOMODCACHE)/github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)/template \
 		-out-file docs.md \
