@@ -17,16 +17,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some helper
-// functions for refetching objects directly from the API, pushing status updates, etc.
+// BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some
+// helper functions for refetching objects directly from the API, pushing status updates, etc.
 type BaseReconciler struct {
-	// Extend the standard client.Client interface, which is a requirement for the base reconciliation code
+	// Extend the standard client.Client interface, which is a requirement for the base
+	// reconciliation code
 	client.Client
 	Scheme *runtime.Scheme
 
-	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object. This is used
-	// for certain Get() calls where we need to ensure we are getting the latest version from the API, and not a cached
-	// object.
+	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object.
+	// This is used for certain Get() calls where we need to ensure we are getting the latest
+	// version from the API, and not a cached object.
 	//
 	// See https://github.com/kubernetes-sigs/controller-runtime/issues/585#issuecomment-528102351
 	//
@@ -36,8 +37,9 @@ type BaseReconciler struct {
 	// GetLogger() method.
 	logger logr.Logger
 
-	// ReconciliationInterval is the time to wait inbetween re-reconciling ExecAccessRequests. This primarily matters
-	// for setting the maximum time after an AccessRequest has expired that it will be purged by the controller.
+	// ReconciliationInterval is the time to wait inbetween re-reconciling ExecAccessRequests. This
+	// primarily matters for setting the maximum time after an AccessRequest has expired that it
+	// will be purged by the controller.
 	ReconcililationInterval int
 }
 
