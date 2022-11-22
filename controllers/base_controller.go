@@ -17,9 +17,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// OzReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some helper
+// BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some helper
 // functions for refetching objects directly from the API, pushing status updates, etc.
-type OzReconciler struct {
+type BaseReconciler struct {
 	// Extend the standard client.Client interface, which is a requirement for the base reconciliation code
 	client.Client
 	Scheme *runtime.Scheme
@@ -41,9 +41,9 @@ type OzReconciler struct {
 	ReconcililationInterval int
 }
 
-// SetReconciliationInterval sets the OzReconciler.ReconciliationInterval value to the
+// SetReconciliationInterval sets the BaseReconciler.ReconciliationInterval value to the
 // DEFAULT_RECONCILIATION_INTERVAL if it was not pre-populated.
-func (r *OzReconciler) SetReconciliationInterval() {
+func (r *BaseReconciler) SetReconciliationInterval() {
 	if r.ReconcililationInterval == 0 {
 		r.ReconcililationInterval = DefaultReconciliationInterval
 	}
@@ -52,7 +52,7 @@ func (r *OzReconciler) SetReconciliationInterval() {
 // refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
 // supplied object reference. This is critical to avoid "the object has been modified; please apply
 // your changes to the latest version and try again" errors when updating object status fields.
-func (r *OzReconciler) refetch(ctx context.Context, obj client.Object) error {
+func (r *BaseReconciler) refetch(ctx context.Context, obj client.Object) error {
 	return r.APIReader.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
@@ -65,7 +65,7 @@ func (r *OzReconciler) refetch(ctx context.Context, obj client.Object) error {
 //
 // This wrapper makes it much easier to update the Status field of an object iteratively throughout
 // a reconciliation loop.
-func (r *OzReconciler) updateStatus(ctx context.Context, obj client.Object) error {
+func (r *BaseReconciler) updateStatus(ctx context.Context, obj client.Object) error {
 	logger := r.getLogger(ctx)
 
 	// Update the status, handle failure.
@@ -86,7 +86,7 @@ func (r *OzReconciler) updateStatus(ctx context.Context, obj client.Object) erro
 // When an updateCondition() call is made, we retrieve the current list of conditions first from the request object.
 // From there, we insert in a new Condition into the resource.
 // Finally we call the UpdateStatus() function to push the update to Kubernetes.
-func (r *OzReconciler) updateCondition(
+func (r *BaseReconciler) updateCondition(
 	ctx context.Context,
 	res api.ICoreResource,
 	conditionType OzResourceConditionTypes,
@@ -116,7 +116,7 @@ func (r *OzReconciler) updateCondition(
 //
 // Status.Ready is used by the 'ozctl' commandline tool to inform users when their access request
 // has been approved and configured.
-func (r *OzReconciler) setReadyStatus(ctx context.Context, res api.ICoreResource) error {
+func (r *BaseReconciler) setReadyStatus(ctx context.Context, res api.ICoreResource) error {
 	logger := r.getLogger(ctx)
 	logger.V(1).Info("Checking final condition state")
 
@@ -140,7 +140,7 @@ func (r *OzReconciler) setReadyStatus(ctx context.Context, res api.ICoreResource
 	return r.updateStatus(ctx, res)
 }
 
-func (r *OzReconciler) getLogger(ctx context.Context) logr.Logger {
+func (r *BaseReconciler) getLogger(ctx context.Context) logr.Logger {
 	if (r.logger == logr.Logger{}) {
 		// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 		r.logger = log.FromContext(ctx)

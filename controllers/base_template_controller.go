@@ -8,10 +8,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// OzTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
+// BaseTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
 // (ExecAccessTemplate, AccessTemplate, etc)
-type OzTemplateReconciler struct {
-	OzReconciler
+type BaseTemplateReconciler struct {
+	BaseReconciler
 }
 
 // VerifyTargetRef ensures that the Spec.targetRef points to a valid and understood controller that we
@@ -20,7 +20,7 @@ type OzTemplateReconciler struct {
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *OzTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
 	var err error
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
@@ -46,7 +46,7 @@ func (r *OzTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *OzTemplateReconciler) VerifyMiscSettings(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.Builder) error {
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
 

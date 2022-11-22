@@ -30,7 +30,7 @@ import (
 
 // PodAccessTemplateReconciler reconciles a AccessTemplate object
 type PodAccessTemplateReconciler struct {
-	OzTemplateReconciler
+	BaseTemplateReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates,verbs=get;list;watch;create;update;patch;delete

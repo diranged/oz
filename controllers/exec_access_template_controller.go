@@ -30,7 +30,7 @@ import (
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
 type ExecAccessTemplateReconciler struct {
-	OzTemplateReconciler
+	BaseTemplateReconciler
 }
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
