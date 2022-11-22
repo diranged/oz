@@ -2,7 +2,6 @@ apiVersion: crds.wizardofoz.co/v1alpha1
 kind: ExecAccessTemplate
 metadata:
   name: deployment-example
-  namespace: oz-system
 spec:
   accessConfig:
     # todo: figure out why these are required

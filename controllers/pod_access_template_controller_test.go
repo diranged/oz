@@ -269,13 +269,13 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 					Namespace: namespace.Name,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(conditionTargetRefExists), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(ConditionTargetRefExists), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					return nil
 				}
 				// Return a failure. We'll loop over this a few times before giving up.
-				return fmt.Errorf("Expected %s to be %s", conditionTargetRefExists, metav1.ConditionFalse)
+				return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 			By("Verify that the TargetDuration condition is False")
@@ -286,14 +286,14 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 					Namespace: namespace.Name,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(conditionDurationsValid), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(ConditionDurationsValid), metav1.ConditionFalse) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					logger.V(1).Info("shit")
 					return nil
 				}
 				// Return a failure. We'll loop over this a few times before giving up.
-				return fmt.Errorf("Expected %s to be %s", conditionTargetRefExists, metav1.ConditionFalse)
+				return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 		})

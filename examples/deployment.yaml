@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example
-  namespace: oz-system
 spec:
   replicas: 5
   revisionHistoryLimit: 10
@@ -14,6 +13,7 @@ spec:
       labels:
         oz-examples: example
     spec:
+      terminationGracePeriodSeconds: 0
       containers:
       - image: nginx:latest
         imagePullPolicy: IfNotPresent

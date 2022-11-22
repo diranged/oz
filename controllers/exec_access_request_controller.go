@@ -162,12 +162,12 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req
 	if tmpl, err = api.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
 		return nil, r.updateCondition(
-			ctx, req, conditionTargetTemplateExists, metav1.ConditionFalse,
+			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 
 	}
 	return tmpl, r.updateCondition(
-		ctx, req, conditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
+		ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
 		"Found Target Template")
 }
 

@@ -20,20 +20,20 @@ const (
 type OzResourceConditionTypes string
 
 const (
-	// conditionDurationsValid is used by both AccessTemplate and AccessRequest resources. It
+	// ConditionDurationsValid is used by both AccessTemplate and AccessRequest resources. It
 	// indicates whether or not the various duration fields are valid.
-	conditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
+	ConditionDurationsValid OzResourceConditionTypes = "AccessDurationsValid"
 
 	// Access Requests
-	conditionTargetTemplateExists   OzResourceConditionTypes = "TargetTemplateExists"
-	conditionRoleCreated            OzResourceConditionTypes = "RoleCreated"
-	conditionRoleBindingCreated     OzResourceConditionTypes = "RoleBindingCreated"
-	conditionAccessStillValid       OzResourceConditionTypes = "AccessStillValid"
-	conditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
+	ConditionTargetTemplateExists   OzResourceConditionTypes = "TargetTemplateExists"
+	ConditionRoleCreated            OzResourceConditionTypes = "RoleCreated"
+	ConditionRoleBindingCreated     OzResourceConditionTypes = "RoleBindingCreated"
+	ConditionAccessStillValid       OzResourceConditionTypes = "AccessStillValid"
+	ConditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
 
 	// TODO: maybe get ridof?
-	conditionTargetPodSelected OzResourceConditionTypes = "TargetPodSelected"
+	ConditionTargetPodSelected OzResourceConditionTypes = "TargetPodSelected"
 
 	// Access Templates
-	conditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
+	ConditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"
 )

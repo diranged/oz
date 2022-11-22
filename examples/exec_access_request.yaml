@@ -2,7 +2,6 @@ apiVersion: crds.wizardofoz.co/v1alpha1
 kind: ExecAccessRequest
 metadata:
   name: deployment-example
-  namespace: oz-system
 spec:
   templateName: deployment-example
   targetPod: example-574bd66768-5nrlp

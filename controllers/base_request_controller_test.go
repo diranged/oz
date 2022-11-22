@@ -95,9 +95,9 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: the conditions in the request object were updated
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionAccessResourcesCreated),
+				string(ConditionAccessResourcesCreated),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessResourcesCreated))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessResourcesCreated))
 			Expect(cond.Message).To(Equal("success"))
 		})
 
@@ -119,9 +119,9 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: the conditions in the request object were updated
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionAccessResourcesCreated),
+				string(ConditionAccessResourcesCreated),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessResourcesCreated))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessResourcesCreated))
 			Expect(cond.Message).To(Equal("ERROR: i failed"))
 		})
 
@@ -186,7 +186,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 					CoreStatus: api.CoreStatus{
 						Conditions: []metav1.Condition{
 							{
-								Type:    string(conditionAccessStillValid),
+								Type:    string(ConditionAccessStillValid),
 								Status:  metav1.ConditionTrue,
 								Reason:  "Valid",
 								Message: "Valid",
@@ -231,7 +231,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 					CoreStatus: api.CoreStatus{
 						Conditions: []metav1.Condition{
 							{
-								Type:    string(conditionAccessStillValid),
+								Type:    string(ConditionAccessStillValid),
 								Status:  metav1.ConditionFalse,
 								Reason:  "Expired",
 								Message: "Expired",
@@ -397,13 +397,13 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Access requested custom duration (30m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessStillValid))
+			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -443,13 +443,13 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Access request duration defaulting to template duration time (1h0m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessStillValid))
+			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -489,13 +489,13 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Access requested duration (24h0m0s) larger than template maximum duration (2h0m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessStillValid))
+			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -538,11 +538,11 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is False
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 
 			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("spec.duration error: time: unknown unit \"minutes\" in duration \"30minutes\""))
 		})
 
@@ -595,11 +595,11 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is False
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 
 			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Template Error, spec.defaultDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
 		})
 
@@ -652,11 +652,11 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is False
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 
 			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Template Error, spec.maxDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
 		})
 
@@ -696,13 +696,13 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The ConditionDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Access requested custom duration (1m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(conditionAccessStillValid))
+			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
 			Expect(cond.Message).To(Equal("Access expired"))
 		})
 	})

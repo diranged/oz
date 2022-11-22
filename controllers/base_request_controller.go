@@ -38,20 +38,20 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	// from lasting indefinitely.
 	var requestedDuration time.Duration
 	if requestedDuration, err = builder.GetRequest().GetDuration(); err != nil {
-		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("spec.duration error: %s", err))
 		return err
 	}
 	templateDefaultDuration, err := builder.GetTemplate().GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err))
 		return err
 	}
 
 	templateMaxDuration, err := builder.GetTemplate().GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
+		r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonBadRequest), fmt.Sprintf("Template Error, spec.maxDuration error: %s", err))
 		return err
 	}
@@ -77,7 +77,7 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	// Log out the decision, and update the condition
 	logger.Info(reasonStr)
 
-	err = r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionDurationsValid,
+	err = r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
 		metav1.ConditionTrue, string(metav1.StatusSuccess), reasonStr)
 	if err != nil {
 		return err
@@ -85,12 +85,12 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 
 	// If the accessUptime is greater than the accessDuration, kill it.
 	if builder.GetRequest().GetUptime() > accessDuration {
-		return r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionAccessStillValid,
+		return r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
 			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
 	}
 
 	// Update the resource, and let the user know how much time is remaining
-	return r.updateCondition(builder.GetCtx(), builder.GetRequest(), conditionAccessStillValid,
+	return r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
 		metav1.ConditionTrue, string(metav1.StatusReasonTimeout),
 		"Access still valid")
 }
@@ -106,18 +106,18 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool, error) {
 	logger := r.getLogger(builder.GetCtx())
 	logger.Info("Checking if access has expired or not...")
-	cond := meta.FindStatusCondition(*builder.GetRequest().GetStatus().GetConditions(), string(conditionAccessStillValid))
+	cond := meta.FindStatusCondition(*builder.GetRequest().GetStatus().GetConditions(), string(ConditionAccessStillValid))
 	if cond == nil {
-		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", conditionAccessStillValid))
+		logger.Info(fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid))
 		return false, nil
 	}
 
 	if cond.Status == metav1.ConditionFalse {
-		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", conditionAccessStillValid, cond.Status))
+		logger.Info(fmt.Sprintf("Found Condition %s in state %s, terminating rqeuest", ConditionAccessStillValid, cond.Status))
 		return true, r.DeleteResource(builder)
 	}
 
-	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", conditionAccessStillValid, cond.Status))
+	logger.Info(fmt.Sprintf("Found Condition %s in state %s, leaving alone", ConditionAccessStillValid, cond.Status))
 	return false, nil
 }
 
@@ -133,7 +133,7 @@ func (r *BaseRequestReconciler) verifyAccessResources(builder builders.IBuilder)
 		builder.GetRequest().GetStatus().SetAccessMessage("")
 		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
-			conditionAccessResourcesCreated,
+			ConditionAccessResourcesCreated,
 			metav1.ConditionFalse,
 			string(metav1.StatusFailure),
 			fmt.Sprintf("ERROR: %s", err))
@@ -143,7 +143,7 @@ func (r *BaseRequestReconciler) verifyAccessResources(builder builders.IBuilder)
 	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
 	if err := r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
-		conditionAccessResourcesCreated,
+		ConditionAccessResourcesCreated,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		statusString); err != nil {
