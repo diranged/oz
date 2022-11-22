@@ -56,9 +56,16 @@ type IBuilder interface {
 
 	// Generates all of the resources required to fulfill the access request.
 	GenerateAccessResources() (statusString string, accessString string, err error)
+}
 
-	// TODO: Move this into either both the PodAccessBuilder and ExecAccessBuilder privately, or
-	// find another way to remove this "pod".
+// IPodAccessBuilder is an extended interface from the IBuilder that provides a few additional
+// common methods that are specific to validating Access Templates that provide Pod-level access
+// for developers.
+type IPodAccessBuilder interface {
+	IBuilder
+
+	// GetTargetRefResource returns a generic but populated client.Object resource from an Access
+	// Template. Typically this is a Deployment, DaemonSet, etc.
 	GetTargetRefResource() (client.Object, error)
 }
 

@@ -21,16 +21,7 @@ type FakeBuilder struct {
 	// Flags for faking GenerateAccessResources
 	retStatusString string
 	retAccessString string
-
-	// Flags for faking GetTargetRefResource()
-	retTargetRefResource client.Object
-
-	// Flags for faking an error
-	retErr error
-}
-
-func (b *FakeBuilder) GetTargetRefResource() (client.Object, error) {
-	return b.retTargetRefResource, b.retErr
+	retErr          error
 }
 
 func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
