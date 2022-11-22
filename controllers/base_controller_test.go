@@ -18,9 +18,6 @@ import (
 type FakeBuilder struct {
 	builders.BaseBuilder
 
-	// Flags for faking GeneratePodName
-	retPodname string
-
 	// Flags for faking GenerateAccessResources
 	retStatusString string
 	retAccessString string
@@ -32,10 +29,6 @@ type FakeBuilder struct {
 	retErr error
 }
 
-func (b *FakeBuilder) GeneratePodName() (podName string, err error) {
-	return b.retPodname, b.retErr
-}
-
 func (b *FakeBuilder) GetTargetRefResource() (client.Object, error) {
 	return b.retTargetRefResource, b.retErr
 }
@@ -44,8 +37,8 @@ func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessStri
 	return b.retStatusString, b.retAccessString, b.retErr
 }
 
-var _ builders.Builder = &FakeBuilder{}
-var _ builders.Builder = (*FakeBuilder)(nil)
+var _ builders.IBuilder = &FakeBuilder{}
+var _ builders.IBuilder = (*FakeBuilder)(nil)
 
 var _ = Describe("OzReconciler Tests", Ordered, func() {
 	Context("Method Tests", func() {

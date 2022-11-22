@@ -20,7 +20,7 @@ type BaseTemplateReconciler struct {
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IBuilder) error {
 	var err error
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
@@ -46,7 +46,7 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) error {
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
 
