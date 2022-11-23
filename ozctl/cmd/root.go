@@ -27,8 +27,14 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "ozctl",
 	Short: "Manages Oz Access Requests and Approvals",
-	Long: `This tool provides access to create (and approve, in the future)
-Access Requests for resources within a Kubernetes cluster running the Oz RBAC Controller.
+	Long: `
+Manages Oz Access Requests and Approvals.
+
+This tool provides access to create (and approve, in the future) Access Requests
+for resources within a Kubernetes cluster running the Oz RBAC Controller.
+Access Requests are short-lived temporary permissions requests to manage
+existing resources, or requests for dedicated short term resources (like a
+temporary development Pod).
 
 `,
 }

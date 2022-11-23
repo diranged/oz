@@ -19,6 +19,7 @@ var createPodAccessRequestCmd = &cobra.Command{
 	Aliases: []string{"podaccessrequest", "podaccessrequests", "pod-access-request", "pod"},
 	Use:     "PodAccessRequest --template <PodAccessTemplate Name>",
 	Short:   "Create PodAccessRequest resources",
+
 	Long: `This command creates PodAccessRequest resources. Example:
 
 	By default, an PodAccessRequest will randomly select a target Pod for you:
