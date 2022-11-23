@@ -63,7 +63,10 @@ type ExecAccessRequestReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *ExecAccessRequestReconciler) Reconcile(
+	ctx context.Context,
+	req ctrl.Request,
+) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("ExecAccessRequestReconciler")
 	logger.Info("Starting reconcile loop")
 
@@ -129,7 +132,9 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// set up a 30 second delay before the next reconciliation attempt.
 	_, err = r.verifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second)}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 
 	// FINAL: Set Status.Ready state
@@ -142,7 +147,9 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	logger.Info("Ending reconcile loop")
 
 	// Finally, requeue to re-reconcile again in the future
-	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
+	return ctrl.Result{
+		RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute)),
+	}, nil
 }
 
 // getTargetTemplate is used to both verify that the desired Spec.TemplateName field actually exists in the cluster,
@@ -152,9 +159,14 @@ func (r *ExecAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Re
 // Returns:
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
-func (r *ExecAccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.ExecAccessRequest) (*api.ExecAccessTemplate, error) {
+func (r *ExecAccessRequestReconciler) getTargetTemplate(
+	ctx context.Context,
+	req *api.ExecAccessRequest,
+) (*api.ExecAccessTemplate, error) {
 	logger := r.getLogger(ctx)
-	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
+	logger.Info(
+		fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName),
+	)
 
 	var tmpl *api.ExecAccessTemplate
 	var err error

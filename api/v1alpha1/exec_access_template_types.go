@@ -80,7 +80,12 @@ func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 }
 
 // GetExecAccessTemplate returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or returns back an error.
-func GetExecAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*ExecAccessTemplate, error) {
+func GetExecAccessTemplate(
+	ctx context.Context,
+	cl client.Client,
+	name string,
+	namespace string,
+) (*ExecAccessTemplate, error) {
 	tmpl := &ExecAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -90,8 +95,8 @@ func GetExecAccessTemplate(ctx context.Context, cl client.Client, name string, n
 
 // ExecAccessTemplateList contains a list of ExecAccessTemplate
 type ExecAccessTemplateList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                     json:",inline"`
+	metav1.ListMeta `                     json:"metadata,omitempty"`
 	Items           []ExecAccessTemplate `json:"items"`
 }
 

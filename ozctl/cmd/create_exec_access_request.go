@@ -136,7 +136,9 @@ var createExecAccessRequestCmd = &cobra.Command{
 
 			// Check the status
 			if req.GetStatus().IsReady() {
-				cmd.Printf("\nSuccess, your access request is ready! Here are your access instructions:\n\n")
+				cmd.Printf(
+					"\nSuccess, your access request is ready! Here are your access instructions:\n\n",
+				)
 				cmd.Println(req.GetStatus().GetAccessMessage())
 				break
 			}
@@ -144,7 +146,13 @@ var createExecAccessRequestCmd = &cobra.Command{
 			if waitCtx.Err() != nil {
 				fmt.Println("\nError - timed out waiting for ExecAccessRequest to be ready")
 				for _, cond := range *req.GetStatus().GetConditions() {
-					cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
+					cmd.Printf(
+						"Condition %s, State: %s, Reason: %s, Message: %s\n",
+						cond.Type,
+						cond.Status,
+						cond.Reason,
+						cond.Message,
+					)
 				}
 				os.Exit(1)
 			}
@@ -157,11 +165,15 @@ var createExecAccessRequestCmd = &cobra.Command{
 }
 
 func init() {
-	createExecAccessRequestCmd.Flags().StringVarP(&template, "template", "t", "", "Name of the ExecAccessTemplate to request access from")
+	createExecAccessRequestCmd.Flags().
+		StringVarP(&template, "template", "t", "", "Name of the ExecAccessTemplate to request access from")
 	createExecAccessRequestCmd.MarkFlagRequired("template")
-	createExecAccessRequestCmd.Flags().StringVarP(&targetPod, "target-pod", "p", "", "Optional name of a specific target pod to request access for")
-	createExecAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
-	createExecAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `ExecAccessRequest` objects.")
+	createExecAccessRequestCmd.Flags().
+		StringVarP(&targetPod, "target-pod", "p", "", "Optional name of a specific target pod to request access for")
+	createExecAccessRequestCmd.Flags().
+		StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
+	createExecAccessRequestCmd.Flags().
+		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `ExecAccessRequest` objects.")
 
 	kubeConfigFlags.AddFlags(createExecAccessRequestCmd.Flags())
 

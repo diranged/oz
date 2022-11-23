@@ -97,33 +97,42 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				request.Status.Conditions,
 				string(ConditionAccessResourcesCreated),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessResourcesCreated))
+			cond := meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionAccessResourcesCreated),
+			)
 			Expect(cond.Message).To(Equal("success"))
 		})
 
-		It("Should return access message set condition to false if error creating resources", func() {
-			// Configure FakeBuilder to return success
-			builder.retAccessString = "an error happened"
-			builder.retErr = errors.New("i failed")
-			builder.retStatusString = "failure"
+		It(
+			"Should return access message set condition to false if error creating resources",
+			func() {
+				// Configure FakeBuilder to return success
+				builder.retAccessString = "an error happened"
+				builder.retErr = errors.New("i failed")
+				builder.retStatusString = "failure"
 
-			// Build the resources
-			accessStr, err := r.verifyAccessResources(builder)
+				// Build the resources
+				accessStr, err := r.verifyAccessResources(builder)
 
-			// VERIFY: error occurred
-			Expect(err).To(HaveOccurred())
+				// VERIFY: error occurred
+				Expect(err).To(HaveOccurred())
 
-			// VERIFY: accessStr is valid
-			Expect(accessStr).To(Equal("an error happened"))
+				// VERIFY: accessStr is valid
+				Expect(accessStr).To(Equal("an error happened"))
 
-			// VERIFY: the conditions in the request object were updated
-			Expect(meta.IsStatusConditionPresentAndEqual(
-				request.Status.Conditions,
-				string(ConditionAccessResourcesCreated),
-				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessResourcesCreated))
-			Expect(cond.Message).To(Equal("ERROR: i failed"))
-		})
+				// VERIFY: the conditions in the request object were updated
+				Expect(meta.IsStatusConditionPresentAndEqual(
+					request.Status.Conditions,
+					string(ConditionAccessResourcesCreated),
+					metav1.ConditionFalse)).To(BeTrue())
+				cond := meta.FindStatusCondition(
+					request.Status.Conditions,
+					string(ConditionAccessResourcesCreated),
+				)
+				Expect(cond.Message).To(Equal("ERROR: i failed"))
+			},
+		)
 
 		It("Should return an error if the UpdateCondition fails on success", func() {
 			// Configure FakeBuilder to return success
@@ -140,7 +149,9 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 			// VERIFY: error occurred
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("execaccessrequests.crds.wizardofoz.co \"bogus\" not found"))
+			Expect(
+				err.Error(),
+			).To(Equal("execaccessrequests.crds.wizardofoz.co \"bogus\" not found"))
 
 			// VERIFY: accessStr is valid
 			Expect(accessStr).To(Equal("here you go"))
@@ -266,7 +277,9 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Name:      request.Name,
 				Namespace: request.Namespace,
 			}, found)
-			Expect(err.Error()).To(Equal("execaccessrequests.crds.wizardofoz.co \"expiredRequest\" not found"))
+			Expect(
+				err.Error(),
+			).To(Equal("execaccessrequests.crds.wizardofoz.co \"expiredRequest\" not found"))
 		})
 
 		It("Should return False if the AccessValid condition is missing", func() {
@@ -398,11 +411,17 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				request.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
+			cond := meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
 			Expect(cond.Message).To(Equal("Access requested custom duration (30m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
+			cond = meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionAccessStillValid),
+			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -444,11 +463,19 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				request.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Access request duration defaulting to template duration time (1h0m0s)"))
+			cond := meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("Access request duration defaulting to template duration time (1h0m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
+			cond = meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionAccessStillValid),
+			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -490,11 +517,19 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				request.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Access requested duration (24h0m0s) larger than template maximum duration (2h0m0s)"))
+			cond := meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("Access requested duration (24h0m0s) larger than template maximum duration (2h0m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
+			cond = meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionAccessStillValid),
+			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
@@ -532,7 +567,9 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 			// VERIFY: The proper Error was returned
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("time: unknown unit \"minutes\" in duration \"30minutes\""))
+			Expect(
+				err.Error(),
+			).To(Equal("time: unknown unit \"minutes\" in duration \"30minutes\""))
 
 			// VERIFY: The ConditionDurationsValid is False
 			Expect(meta.IsStatusConditionPresentAndEqual(
@@ -541,123 +578,144 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				metav1.ConditionFalse)).To(BeTrue())
 
 			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("spec.duration error: time: unknown unit \"minutes\" in duration \"30minutes\""))
-		})
-
-		It("Should set condition if the referenced template spec.accessConfig.defaultDuration is invalid", func() {
-			// Get the template, and update its defaultDuration to something invalid
-			err := fakeClient.Get(ctx, types.NamespacedName{
-				Name:      template.Name,
-				Namespace: template.Namespace,
-			}, template)
-			Expect(err).To(Not(HaveOccurred()))
-			template.Spec.AccessConfig.DefaultDuration = "1hour"
-			err = fakeClient.Update(ctx, template)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testingRequest",
-					Namespace: "fake",
-					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
-					CreationTimestamp: metav1.NewTime(time.Now()),
-				},
-				Spec: api.ExecAccessRequestSpec{
-					TemplateName: "testingTemplate",
-					Duration:     "30m",
-				},
-			}
-
-			// Create the template resource for real in the fake kubernetes client
-			err = fakeClient.Create(ctx, request)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
-				Client:    fakeClient,
-				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
-				APIReader: fakeClient,
-				Template:  template,
-				Request:   request,
-			}
-
-			// Call the method.. it should succeed.
-			err = r.verifyDuration(builder)
-
-			// VERIFY: The proper Error was returned
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
-
-			// VERIFY: The ConditionDurationsValid is False
-			Expect(meta.IsStatusConditionPresentAndEqual(
+			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
 				string(ConditionDurationsValid),
-				metav1.ConditionFalse)).To(BeTrue())
-
-			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Template Error, spec.defaultDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("spec.duration error: time: unknown unit \"minutes\" in duration \"30minutes\""))
 		})
 
-		It("Should set condition if the referenced template spec.accessConfig.maxDuration is invalid", func() {
-			// Get the template, and update its defaultDuration to something invalid
-			err := fakeClient.Get(ctx, types.NamespacedName{
-				Name:      template.Name,
-				Namespace: template.Namespace,
-			}, template)
-			Expect(err).To(Not(HaveOccurred()))
-			template.Spec.AccessConfig.MaxDuration = "1hour"
-			err = fakeClient.Update(ctx, template)
-			Expect(err).To(Not(HaveOccurred()))
+		It(
+			"Should set condition if the referenced template spec.accessConfig.defaultDuration is invalid",
+			func() {
+				// Get the template, and update its defaultDuration to something invalid
+				err := fakeClient.Get(ctx, types.NamespacedName{
+					Name:      template.Name,
+					Namespace: template.Namespace,
+				}, template)
+				Expect(err).To(Not(HaveOccurred()))
+				template.Spec.AccessConfig.DefaultDuration = "1hour"
+				err = fakeClient.Update(ctx, template)
+				Expect(err).To(Not(HaveOccurred()))
 
-			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testingRequest",
-					Namespace: "fake",
-					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
-					CreationTimestamp: metav1.NewTime(time.Now()),
-				},
-				Spec: api.ExecAccessRequestSpec{
-					TemplateName: "testingTemplate",
-					Duration:     "30m",
-				},
-			}
+				// Create the ExecAccessTemplate object that points to the valid Deployment
+				request = &api.ExecAccessRequest{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "testingRequest",
+						Namespace: "fake",
+						// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
+						CreationTimestamp: metav1.NewTime(time.Now()),
+					},
+					Spec: api.ExecAccessRequestSpec{
+						TemplateName: "testingTemplate",
+						Duration:     "30m",
+					},
+				}
 
-			// Create the template resource for real in the fake kubernetes client
-			err = fakeClient.Create(ctx, request)
-			Expect(err).To(Not(HaveOccurred()))
+				// Create the template resource for real in the fake kubernetes client
+				err = fakeClient.Create(ctx, request)
+				Expect(err).To(Not(HaveOccurred()))
 
-			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
-				Client:    fakeClient,
-				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
-				APIReader: fakeClient,
-				Template:  template,
-				Request:   request,
-			}
+				// Create the Builder that we'll be testing
+				builder = &builders.BaseBuilder{
+					Client:    fakeClient,
+					Ctx:       ctx,
+					Scheme:    &runtime.Scheme{},
+					APIReader: fakeClient,
+					Template:  template,
+					Request:   request,
+				}
 
-			// Call the method.. it should succeed.
-			err = r.verifyDuration(builder)
+				// Call the method.. it should succeed.
+				err = r.verifyDuration(builder)
 
-			// VERIFY: The proper Error was returned
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
+				// VERIFY: The proper Error was returned
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
 
-			// VERIFY: The ConditionDurationsValid is False
-			Expect(meta.IsStatusConditionPresentAndEqual(
-				request.Status.Conditions,
-				string(ConditionDurationsValid),
-				metav1.ConditionFalse)).To(BeTrue())
+				// VERIFY: The ConditionDurationsValid is False
+				Expect(meta.IsStatusConditionPresentAndEqual(
+					request.Status.Conditions,
+					string(ConditionDurationsValid),
+					metav1.ConditionFalse)).To(BeTrue())
 
-			// VERIFY: The Condition was updated properly in the object even though an error was returned
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Template Error, spec.maxDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
-		})
+				// VERIFY: The Condition was updated properly in the object even though an error was returned
+				cond := meta.FindStatusCondition(
+					request.Status.Conditions,
+					string(ConditionDurationsValid),
+				)
+				Expect(
+					cond.Message,
+				).To(Equal("Template Error, spec.defaultDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
+			},
+		)
+
+		It(
+			"Should set condition if the referenced template spec.accessConfig.maxDuration is invalid",
+			func() {
+				// Get the template, and update its defaultDuration to something invalid
+				err := fakeClient.Get(ctx, types.NamespacedName{
+					Name:      template.Name,
+					Namespace: template.Namespace,
+				}, template)
+				Expect(err).To(Not(HaveOccurred()))
+				template.Spec.AccessConfig.MaxDuration = "1hour"
+				err = fakeClient.Update(ctx, template)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Create the ExecAccessTemplate object that points to the valid Deployment
+				request = &api.ExecAccessRequest{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "testingRequest",
+						Namespace: "fake",
+						// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
+						CreationTimestamp: metav1.NewTime(time.Now()),
+					},
+					Spec: api.ExecAccessRequestSpec{
+						TemplateName: "testingTemplate",
+						Duration:     "30m",
+					},
+				}
+
+				// Create the template resource for real in the fake kubernetes client
+				err = fakeClient.Create(ctx, request)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Create the Builder that we'll be testing
+				builder = &builders.BaseBuilder{
+					Client:    fakeClient,
+					Ctx:       ctx,
+					Scheme:    &runtime.Scheme{},
+					APIReader: fakeClient,
+					Template:  template,
+					Request:   request,
+				}
+
+				// Call the method.. it should succeed.
+				err = r.verifyDuration(builder)
+
+				// VERIFY: The proper Error was returned
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
+
+				// VERIFY: The ConditionDurationsValid is False
+				Expect(meta.IsStatusConditionPresentAndEqual(
+					request.Status.Conditions,
+					string(ConditionDurationsValid),
+					metav1.ConditionFalse)).To(BeTrue())
+
+				// VERIFY: The Condition was updated properly in the object even though an error was returned
+				cond := meta.FindStatusCondition(
+					request.Status.Conditions,
+					string(ConditionDurationsValid),
+				)
+				Expect(
+					cond.Message,
+				).To(Equal("Template Error, spec.maxDuration error: time: unknown unit \"hour\" in duration \"1hour\""))
+			},
+		)
 
 		It("Should set access expired if uptime > duration", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
@@ -697,11 +755,17 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				request.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(request.Status.Conditions, string(ConditionDurationsValid))
+			cond := meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
 			Expect(cond.Message).To(Equal("Access requested custom duration (1m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
-			cond = meta.FindStatusCondition(request.Status.Conditions, string(ConditionAccessStillValid))
+			cond = meta.FindStatusCondition(
+				request.Status.Conditions,
+				string(ConditionAccessStillValid),
+			)
 			Expect(cond.Message).To(Equal("Access expired"))
 		})
 	})

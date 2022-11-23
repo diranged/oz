@@ -4,5 +4,14 @@
     "editor.inlayHints.enabled": "on",
     "go.lintOnSave": "workspace",
     "go.lintTool": "revive",
-    "go.lintFlags": ["-config","./revive.toml"]
+    "go.lintFlags": ["-config","./revive.toml"],
+
+    // https://github.com/segmentio/golines#visual-studio-code
+    "emeraldwalk.runonsave": {
+      "commands": [
+        { "match": "\\.go$",
+          "cmd": "golines ${file} -w"
+        }
+      ]
+    }
 }

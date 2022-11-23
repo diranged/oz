@@ -57,7 +57,11 @@ func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, acce
 	}
 
 	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
-	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", b.Template.Namespace, targetPodName)
+	accessString = fmt.Sprintf(
+		"kubectl exec -ti -n %s %s -- /bin/sh",
+		b.Template.Namespace,
+		targetPodName,
+	)
 
 	b.Request.SetPodName(targetPodName)
 

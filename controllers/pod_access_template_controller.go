@@ -48,7 +48,10 @@ type PodAccessTemplateReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *PodAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PodAccessTemplateReconciler) Reconcile(
+	ctx context.Context,
+	req ctrl.Request,
+) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("Starting reconcile loop")
 
@@ -96,7 +99,9 @@ func (r *PodAccessTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
+	return ctrl.Result{
+		RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute)),
+	}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

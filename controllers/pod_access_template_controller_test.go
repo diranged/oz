@@ -47,7 +47,8 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 		// https://github.com/kubernetes-sigs/controller-runtime/issues/880#issuecomment-634493086
 		var createdResources []client.Object
 		deleteResourceAfterTest := func(o client.Object) {
-			logger.V(1).Info(fmt.Sprintf("Adding %s/%s to list of objects to clean up", o.GetNamespace(), o.GetName()))
+			logger.V(1).
+				Info(fmt.Sprintf("Adding %s/%s to list of objects to clean up", o.GetNamespace(), o.GetName()))
 			createdResources = append(createdResources, o)
 		}
 		BeforeEach(func() {
@@ -58,16 +59,40 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 			for i := len(createdResources) - 1; i >= 0; i-- {
 				r := createdResources[i]
 				key := client.ObjectKeyFromObject(r)
-				logger.Info("deleting resource", "namespace", key.Namespace, "name", key.Name, "test", CurrentSpecReport().FullText)
+				logger.Info(
+					"deleting resource",
+					"namespace",
+					key.Namespace,
+					"name",
+					key.Name,
+					"test",
+					CurrentSpecReport().FullText,
+				)
 				Expect(k8sClient.Delete(ctx, r)).To(Succeed())
 
 				_, isNamespace := r.(*corev1.Namespace)
 				if !isNamespace {
-					logger.Info("waiting for resource to disappear", "namespace", key.Namespace, "name", key.Name, "test", CurrentSpecReport().FullText)
+					logger.Info(
+						"waiting for resource to disappear",
+						"namespace",
+						key.Namespace,
+						"name",
+						key.Name,
+						"test",
+						CurrentSpecReport().FullText,
+					)
 					Eventually(func() error {
 						return k8sClient.Get(ctx, key, r)
 					}, time.Minute, time.Second).Should(HaveOccurred())
-					logger.Info("deleted resource", "namespace", key.Namespace, "name", key.Name, "test", CurrentSpecReport().FullText())
+					logger.Info(
+						"deleted resource",
+						"namespace",
+						key.Namespace,
+						"name",
+						key.Name,
+						"test",
+						CurrentSpecReport().FullText(),
+					)
 				}
 			}
 		})
@@ -192,7 +217,12 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				if found.GetStatus().IsReady() {
 					return nil
 				}
-				return fmt.Errorf(fmt.Sprintf("Failed to reconcile resource: %s", strconv.FormatBool(found.GetStatus().IsReady())))
+				return fmt.Errorf(
+					fmt.Sprintf(
+						"Failed to reconcile resource: %s",
+						strconv.FormatBool(found.GetStatus().IsReady()),
+					),
+				)
 			}, 10*time.Second, time.Second).Should(Succeed())
 		})
 
@@ -268,13 +298,21 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 					Namespace: namespace.Name,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(ConditionTargetRefExists), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(
+					*found.GetStatus().GetConditions(),
+					string(ConditionTargetRefExists),
+					metav1.ConditionFalse,
+				) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					return nil
 				}
 				// Return a failure. We'll loop over this a few times before giving up.
-				return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
+				return fmt.Errorf(
+					"Expected %s to be %s",
+					ConditionTargetRefExists,
+					metav1.ConditionFalse,
+				)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 			By("Verify that the TargetDuration condition is False")
@@ -285,14 +323,22 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 					Namespace: namespace.Name,
 				}, found)
 
-				if meta.IsStatusConditionPresentAndEqual(*found.GetStatus().GetConditions(), string(ConditionDurationsValid), metav1.ConditionFalse) {
+				if meta.IsStatusConditionPresentAndEqual(
+					*found.GetStatus().GetConditions(),
+					string(ConditionDurationsValid),
+					metav1.ConditionFalse,
+				) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
 					logger.V(1).Info("shit")
 					return nil
 				}
 				// Return a failure. We'll loop over this a few times before giving up.
-				return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
+				return fmt.Errorf(
+					"Expected %s to be %s",
+					ConditionTargetRefExists,
+					metav1.ConditionFalse,
+				)
 			}, 10*time.Second, time.Second).Should(Succeed())
 		})
 	})

@@ -102,7 +102,11 @@ func (r *PodAccessRequest) GetUptime() time.Duration {
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *PodAccessRequest) SetPodName(name string) error {
 	if r.Status.PodName != "" {
-		return fmt.Errorf("immutable field Status.PodName already set (%s), cannot update to %s", r.Status.PodName, name)
+		return fmt.Errorf(
+			"immutable field Status.PodName already set (%s), cannot update to %s",
+			r.Status.PodName,
+			name,
+		)
 	}
 	r.Status.PodName = name
 	return nil
@@ -115,7 +119,12 @@ func (r *PodAccessRequest) GetPodName() string {
 
 // GetPodAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetPodAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*PodAccessRequest, error) {
+func GetPodAccessRequest(
+	ctx context.Context,
+	cl client.Reader,
+	name string,
+	namespace string,
+) (*PodAccessRequest, error) {
 	tmpl := &PodAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -125,8 +134,8 @@ func GetPodAccessRequest(ctx context.Context, cl client.Reader, name string, nam
 
 // PodAccessRequestList contains a list of AccessRequest
 type PodAccessRequestList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                   json:",inline"`
+	metav1.ListMeta `                   json:"metadata,omitempty"`
 	Items           []PodAccessRequest `json:"items"`
 }
 

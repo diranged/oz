@@ -118,7 +118,9 @@ var createPodAccessRequestCmd = &cobra.Command{
 
 			// Check the status
 			if req.GetStatus().IsReady() {
-				cmd.Printf("\nSuccess, your access request is ready! Here are your access instructions:\n\n")
+				cmd.Printf(
+					"\nSuccess, your access request is ready! Here are your access instructions:\n\n",
+				)
 				cmd.Println(req.GetStatus().GetAccessMessage())
 				break
 			}
@@ -126,7 +128,13 @@ var createPodAccessRequestCmd = &cobra.Command{
 			if waitCtx.Err() != nil {
 				fmt.Println("\nError - timed out waiting for PodAccessRequest to be ready")
 				for _, cond := range *req.GetStatus().GetConditions() {
-					cmd.Printf("Condition %s, State: %s, Reason: %s, Message: %s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
+					cmd.Printf(
+						"Condition %s, State: %s, Reason: %s, Message: %s\n",
+						cond.Type,
+						cond.Status,
+						cond.Reason,
+						cond.Message,
+					)
 				}
 				os.Exit(1)
 			}
@@ -139,10 +147,13 @@ var createPodAccessRequestCmd = &cobra.Command{
 }
 
 func init() {
-	createPodAccessRequestCmd.Flags().StringVarP(&template, "template", "t", "", "Name of the AccessTemplate to request access from")
+	createPodAccessRequestCmd.Flags().
+		StringVarP(&template, "template", "t", "", "Name of the AccessTemplate to request access from")
 	createPodAccessRequestCmd.MarkFlagRequired("template")
-	createPodAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
-	createPodAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
+	createPodAccessRequestCmd.Flags().
+		StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
+	createPodAccessRequestCmd.Flags().
+		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
 
 	kubeConfigFlags.AddFlags(createPodAccessRequestCmd.Flags())
 

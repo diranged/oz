@@ -54,14 +54,28 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 	defaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		return r.updateCondition(
-			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
+			ctx,
+			tmpl,
+			ConditionDurationsValid,
+			metav1.ConditionFalse,
+			string(
+				metav1.StatusReasonNotAcceptable,
+			),
+			fmt.Sprintf("Error on spec.defaultDuration: %s", err),
+		)
 	}
 	maxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		return r.updateCondition(
-			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.maxDuration: %s", err))
+			ctx,
+			tmpl,
+			ConditionDurationsValid,
+			metav1.ConditionFalse,
+			string(
+				metav1.StatusReasonNotAcceptable,
+			),
+			fmt.Sprintf("Error on spec.maxDuration: %s", err),
+		)
 	}
 	if defaultDuration > maxDuration {
 		return r.updateCondition(

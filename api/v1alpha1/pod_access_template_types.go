@@ -120,12 +120,18 @@ func (t *PodAccessTemplate) GetAccessConfig() *AccessConfig {
 
 // Validate the inputs
 func (t *PodAccessTemplate) Validate() error {
-	if (*t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
-		return errors.New("cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other")
+	if (*t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) &&
+		reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
+		return errors.New(
+			"cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other",
+		)
 	}
 
-	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
-		return errors.New("cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set")
+	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) &&
+		reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
+		return errors.New(
+			"cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set",
+		)
 	}
 
 	return nil
@@ -135,8 +141,8 @@ func (t *PodAccessTemplate) Validate() error {
 
 // PodAccessTemplateList contains a list of AccessTemplate
 type PodAccessTemplateList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                    json:",inline"`
+	metav1.ListMeta `                    json:"metadata,omitempty"`
 	Items           []PodAccessTemplate `json:"items"`
 }
 
@@ -146,7 +152,12 @@ func init() {
 
 // GetPodAccessTemplate returns back an AccessTemplate resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetPodAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*PodAccessTemplate, error) {
+func GetPodAccessTemplate(
+	ctx context.Context,
+	cl client.Client,
+	name string,
+	namespace string,
+) (*PodAccessTemplate, error) {
 	tmpl := &PodAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

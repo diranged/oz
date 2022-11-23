@@ -17,6 +17,7 @@ var (
 	// usernamEnv stores the value of the `USER` environment variable. This is
 	// used for naming the Access Requests in somewhat friendly ways - but has
 	// nothing to do with whether or not access is granted via RBAC.
+
 	usernameEnv = os.Getenv("USER")
 
 	// kubeConfigFlags are generated once and stored here for reference by the sub commands.
@@ -28,6 +29,7 @@ var rootCmd = &cobra.Command{
 	Short: "Manages Oz Access Requests and Approvals",
 	Long: `This tool provides access to create (and approve, in the future)
 Access Requests for resources within a Kubernetes cluster running the Oz RBAC Controller.
+
 `,
 }
 

@@ -73,8 +73,17 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 		return statusString, accessString, err
 	}
 
-	statusString = fmt.Sprintf("Success. Pod %s, Role %s, RoleBinding %s created", pod.Name, role.Name, rb.Name)
-	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", pod.GetNamespace(), pod.GetName())
+	statusString = fmt.Sprintf(
+		"Success. Pod %s, Role %s, RoleBinding %s created",
+		pod.Name,
+		role.Name,
+		rb.Name,
+	)
+	accessString = fmt.Sprintf(
+		"kubectl exec -ti -n %s %s -- /bin/sh",
+		pod.GetNamespace(),
+		pod.GetName(),
+	)
 
 	b.Request.Status.PodName = pod.GetName()
 

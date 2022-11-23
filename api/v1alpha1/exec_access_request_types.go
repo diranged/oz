@@ -119,14 +119,21 @@ func (r *ExecAccessRequest) GetPodName() string {
 func (r *ExecAccessRequest) ValidateUpdate(old runtime.Object) error {
 	oldRequest, _ := old.(*ExecAccessRequest)
 	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
-		return fmt.Errorf("error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead")
+		return fmt.Errorf(
+			"error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead",
+		)
 	}
 	return nil
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
 // the reconciler loop, or returns back an error.
-func GetExecAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*ExecAccessRequest, error) {
+func GetExecAccessRequest(
+	ctx context.Context,
+	cl client.Reader,
+	name string,
+	namespace string,
+) (*ExecAccessRequest, error) {
 	tmpl := &ExecAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -136,8 +143,8 @@ func GetExecAccessRequest(ctx context.Context, cl client.Reader, name string, na
 
 // ExecAccessRequestList contains a list of ExecAccessRequest
 type ExecAccessRequestList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                    json:",inline"`
+	metav1.ListMeta `                    json:"metadata,omitempty"`
 	Items           []ExecAccessRequest `json:"items"`
 }
 

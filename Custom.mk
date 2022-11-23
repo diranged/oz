@@ -7,6 +7,9 @@ REVIVE     ?= $(LOCALBIN)/revive
 GOFUMPT_VER ?= v0.4.0
 GOFUMPT     ?= $(LOCALBIN)/gofumpt
 
+GOLINES_VER ?= v0.11.0
+GOLINES     ?= $(LOCALBIN)/golines
+
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
 GEN_CRD_API_DOCS     ?= $(LOCALBIN)/go-crd-api-reference-docs
 
@@ -35,9 +38,15 @@ gofumpt: $(GOFUMPT)
 $(GOFUMPT):
 	GOBIN=$(LOCALBIN) go install mvdan.cc/gofumpt@$(GOFUMPT_VER)
 
+.PHONY: golines
+golines: $(GOLINES)
+$(GOLINES):
+	GOBIN=$(LOCALBIN) go install github.com/segmentio/golines@$(GOLINES_VER)
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	$(GOFUMPT) -l -w .
+	$(GOLINES) -w .
 
 .PHONY: revive
 revive: $(REVIVE) ## Download revive locally if necessary.

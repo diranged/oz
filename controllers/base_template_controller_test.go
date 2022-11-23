@@ -251,7 +251,10 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 				template.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
+			cond := meta.FindStatusCondition(
+				template.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
 			Expect(cond.Message).To(Equal("spec.defaultDuration and spec.maxDuration valid"))
 		})
 
@@ -298,8 +301,13 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 				template.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Error on spec.defaultDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
+			cond := meta.FindStatusCondition(
+				template.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("Error on spec.defaultDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
 		})
 
 		It("Should Update Condition to False if MaxDuration is invalid", func() {
@@ -345,8 +353,13 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 				template.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Error on spec.maxDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
+			cond := meta.FindStatusCondition(
+				template.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("Error on spec.maxDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
 		})
 
 		It("Should Update Condition to False if DefaultDuration > MaxDuration", func() {
@@ -392,8 +405,13 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 				template.Status.Conditions,
 				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
-			Expect(cond.Message).To(Equal("Error: spec.defaultDuration can not be greater than spec.maxDuration"))
+			cond := meta.FindStatusCondition(
+				template.Status.Conditions,
+				string(ConditionDurationsValid),
+			)
+			Expect(
+				cond.Message,
+			).To(Equal("Error: spec.defaultDuration can not be greater than spec.maxDuration"))
 		})
 	})
 })
