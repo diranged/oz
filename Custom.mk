@@ -63,7 +63,7 @@ godocs: $(GEN_CRD_API_DOCS)
 		-config ./gen-crd-api-reference-docs.json \
 		-api-dir ./api/v1alpha1 \
 		-template-dir $$(go env GOMODCACHE)/github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)/template \
-		-out-file docs.md \
+		-out-file API.md \
 		-v 5
 
 ##@ Build CLI
