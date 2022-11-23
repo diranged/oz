@@ -35,24 +35,35 @@ type PodAccessTemplateSpec struct {
 	AccessConfig AccessConfig `json:"accessConfig"`
 
 	// ControllerTargetRef provides a pattern for referencing objects from another API in a generic way.
-	// +kubebuilder:validation:Required
-	ControllerTargetRef CrossVersionObjectReference `json:"controllerTargetRef"`
+	//
+	// +kubebuilder:validation:Optional
+	ControllerTargetRef *CrossVersionObjectReference `json:"controllerTargetRef"`
 
 	// ControllerTargetMutationConfig contains parameters that allow for customizing the copy of a
 	// controller-sourced PodSpec. This setting is only valid if controllerTargetRef is set.
-	ControllerTargetMutationConfig PodSpecMutationConfig `json:"controllerTargetMutationConfig,omitempty"`
+	//
+	// +kubebuilder:validation:Optional
+	ControllerTargetMutationConfig *PodSpecMutationConfig `json:"controllerTargetMutationConfig,omitempty"`
 
 	// PodSpec ...
-	PodSpec corev1.PodSpec `json:"podSpec,omitempty"`
+	//
+	// +kubebuilder:validation:Optional
+	PodSpec *corev1.PodSpec `json:"podSpec,omitempty"`
 
 	// Upper bound of the ephemeral storage that an AccessRequest can make against this template for
 	// the primary container.
+	//
+	// +kubebuilder:validation:Optional
 	MaxStorage resource.Quantity `json:"maxStorage,omitempty"`
 
 	// Upper bound of the CPU that an AccessRequest can make against this tmemplate for the primary container.
+	//
+	// +kubebuilder:validation:Optional
 	MaxCPU resource.Quantity `json:"maxCpu,omitempty"`
 
 	// Upper bound of the memory that an AccessRequest can make against this template for the primary container.
+	//
+	// +kubebuilder:validation:Optional
 	MaxMemory resource.Quantity `json:"maxMemory,omitempty"`
 }
 
@@ -97,7 +108,7 @@ func (t *PodAccessTemplate) GetStatus() ICoreStatus {
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *PodAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
-	return &t.Spec.ControllerTargetRef
+	return t.Spec.ControllerTargetRef
 }
 
 // GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
@@ -107,11 +118,11 @@ func (t *PodAccessTemplate) GetAccessConfig() *AccessConfig {
 
 // Validate the inputs
 func (t *PodAccessTemplate) Validate() error {
-	if (t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
+	if (*t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
 		return errors.New("cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other")
 	}
 
-	if (t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
+	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
 		return errors.New("cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set")
 	}
 

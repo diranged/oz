@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,9 +22,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ = Describe("ExecAccessTemplateController", Ordered, func() {
+var _ = Describe("PodAccessTemplateController", Ordered, func() {
 	Context("Controller Test", func() {
-		const TestName = "execaccesstemplatecontroller"
+		const TestName = "podaccesstemplatecontroller"
 		var namespace *corev1.Namespace
 
 		// Logger for our tests - makes it easier for us to debug sometimes
@@ -66,7 +67,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 					Eventually(func() error {
 						return k8sClient.Get(ctx, key, r)
 					}, time.Minute, time.Second).Should(HaveOccurred())
-					logger.Info("deleted resource", "namespace", key.Namespace, "name", key.Name, "test", CurrentSpecReport().FullText)
+					logger.Info("deleted resource", "namespace", key.Namespace, "name", key.Name, "test", CurrentSpecReport().FullText())
 				}
 			}
 		})
@@ -107,39 +108,53 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Creating the custom resource")
-			template := &api.ExecAccessTemplate{}
+			template := &api.PodAccessTemplate{}
 			err = k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
 				Namespace: namespace.Name,
 			}, template)
 
+			cpuReq, _ := resource.ParseQuantity("1")
 			if err != nil && errors.IsNotFound(err) {
-				template := &api.ExecAccessTemplate{
+				template := &api.PodAccessTemplate{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      TestName,
 						Namespace: namespace.Name,
 					},
-					Spec: api.ExecAccessTemplateSpec{
-						ControllerTargetRef: &api.CrossVersionObjectReference{
-							APIVersion: "apps/v1",
-							Kind:       "Deployment",
-							Name:       deployment.Name,
-						},
+					Spec: api.PodAccessTemplateSpec{
 						AccessConfig: api.AccessConfig{
 							AllowedGroups:   []string{"testGroupA"},
 							DefaultDuration: "1h",
 							MaxDuration:     "2h",
 						},
+						ControllerTargetRef: &api.CrossVersionObjectReference{
+							APIVersion: "apps/v1",
+							Kind:       "Deployment",
+							Name:       deployment.Name,
+						},
+						ControllerTargetMutationConfig: &api.PodSpecMutationConfig{
+							DefaultContainerName: "test",
+							Command:              &[]string{"/bin/sleep"},
+							Args:                 &[]string{"100"},
+							Env: []corev1.EnvVar{
+								{Name: "FOO", Value: "BAR"},
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: map[corev1.ResourceName]resource.Quantity{
+									"cpu": cpuReq,
+								},
+							},
+						},
 					},
 				}
 				err = k8sClient.Create(ctx, template)
-				deleteResourceAfterTest(template)
 				Expect(err).To(Not(HaveOccurred()))
+				deleteResourceAfterTest(template)
 			}
 
 			By("Checking if the custom resource was successfully created")
 			Eventually(func() error {
-				found := &api.ExecAccessTemplate{}
+				found := &api.PodAccessTemplate{}
 				return k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -147,7 +162,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 			}, time.Minute, time.Second).Should(Succeed())
 
 			By("Reconciling the custom resource")
-			reconciler := &ExecAccessTemplateReconciler{
+			reconciler := &PodAccessTemplateReconciler{
 				BaseTemplateReconciler: BaseTemplateReconciler{
 					BaseReconciler: BaseReconciler{
 						Client:    k8sClient,
@@ -166,7 +181,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Verifying the resource became ready")
 			Eventually(func() error {
-				found := &api.ExecAccessTemplate{}
+				found := &api.PodAccessTemplate{}
 				k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -184,19 +199,19 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 		It("Should fail to reconcile a resource with an invalid target", func() {
 			By("Creating the custom resource")
-			template := &api.ExecAccessTemplate{}
+			template := &api.PodAccessTemplate{}
 			err := k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
 				Namespace: namespace.Name,
 			}, template)
 
 			if err != nil && errors.IsNotFound(err) {
-				template := &api.ExecAccessTemplate{
+				template := &api.PodAccessTemplate{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      TestName,
 						Namespace: namespace.Name,
 					},
-					Spec: api.ExecAccessTemplateSpec{
+					Spec: api.PodAccessTemplateSpec{
 						AccessConfig: api.AccessConfig{
 							// VALID
 							AllowedGroups: []string{"testGroupA"},
@@ -221,7 +236,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Checking if the custom resource was successfully created")
 			Eventually(func() error {
-				found := &api.ExecAccessTemplate{}
+				found := &api.PodAccessTemplate{}
 				return k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -229,7 +244,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 			}, time.Minute, time.Second).Should(Succeed())
 
 			By("Reconciling the custom resource")
-			reconciler := &ExecAccessTemplateReconciler{
+			reconciler := &PodAccessTemplateReconciler{
 				BaseTemplateReconciler: BaseTemplateReconciler{
 					BaseReconciler: BaseReconciler{
 						Client:    k8sClient,
@@ -248,7 +263,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Verify that the TargetRefExists condition is False")
 			Eventually(func() error {
-				found := &api.ExecAccessTemplate{}
+				found := &api.PodAccessTemplate{}
 				k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -265,7 +280,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 			By("Verify that the TargetDuration condition is False")
 			Eventually(func() error {
-				found := &api.ExecAccessTemplate{}
+				found := &api.PodAccessTemplate{}
 				k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,

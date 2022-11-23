@@ -20,7 +20,7 @@ type BaseTemplateReconciler struct {
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IPodAccessBuilder) error {
 	var err error
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
@@ -31,13 +31,13 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
 		return r.updateCondition(
-			ctx, tmpl, conditionTargetRefExists, metav1.ConditionFalse,
+			ctx, tmpl, ConditionTargetRefExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
 	return r.updateCondition(
-		ctx, tmpl, conditionTargetRefExists, metav1.ConditionTrue,
+		ctx, tmpl, ConditionTargetRefExists, metav1.ConditionTrue,
 		string(metav1.StatusSuccess), "Success")
 }
 
@@ -46,7 +46,7 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.Builder) error
 //
 // Returns:
 //   - An "error" only if the UpdateCondition function fails
-func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.Builder) error {
+func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) error {
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
 
@@ -54,23 +54,23 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.Builder) er
 	defaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		return r.updateCondition(
-			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.defaultDuration: %s", err))
 	}
 	maxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		return r.updateCondition(
-			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable), fmt.Sprintf("Error on spec.maxDuration: %s", err))
 	}
 	if defaultDuration > maxDuration {
 		return r.updateCondition(
-			ctx, tmpl, conditionDurationsValid, metav1.ConditionFalse,
+			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable),
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
 	}
 	return r.updateCondition(
-		ctx, tmpl, conditionDurationsValid, metav1.ConditionTrue,
+		ctx, tmpl, ConditionDurationsValid, metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"spec.defaultDuration and spec.maxDuration valid")
 }

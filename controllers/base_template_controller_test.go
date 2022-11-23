@@ -94,7 +94,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "targetDeployment",
@@ -122,7 +122,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set as True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionTargetRefExists),
+				string(ConditionTargetRefExists),
 				metav1.ConditionTrue)).To(BeTrue())
 		})
 
@@ -139,7 +139,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -177,7 +177,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionTargetRefExists),
+				string(ConditionTargetRefExists),
 				metav1.ConditionFalse)).To(BeTrue())
 		})
 	})
@@ -222,7 +222,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -250,9 +250,9 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("spec.defaultDuration and spec.maxDuration valid"))
 		})
 
@@ -269,7 +269,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1invalidtimeframe",
 						MaxDuration:     "2h",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -297,9 +297,9 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Error on spec.defaultDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
 		})
 
@@ -316,7 +316,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "1invalidtimeframe",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -344,9 +344,9 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Error on spec.maxDuration: time: unknown unit \"invalidtimeframe\" in duration \"1invalidtimeframe\""))
 		})
 
@@ -363,7 +363,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 						DefaultDuration: "1h",
 						MaxDuration:     "1m",
 					},
-					TargetRef: api.CrossVersionObjectReference{
+					ControllerTargetRef: &api.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -391,9 +391,9 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(conditionDurationsValid),
+				string(ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
-			cond := meta.FindStatusCondition(template.Status.Conditions, string(conditionDurationsValid))
+			cond := meta.FindStatusCondition(template.Status.Conditions, string(ConditionDurationsValid))
 			Expect(cond.Message).To(Equal("Error: spec.defaultDuration can not be greater than spec.maxDuration"))
 		})
 	})

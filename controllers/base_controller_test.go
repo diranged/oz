@@ -18,50 +18,39 @@ import (
 type FakeBuilder struct {
 	builders.BaseBuilder
 
-	// Flags for faking GeneratePodName
-	retPodname string
-
 	// Flags for faking GenerateAccessResources
 	retStatusString string
 	retAccessString string
-
-	// Flags for faking GetTargetRefResource()
-	retTargetRefResource client.Object
-
-	// Flags for faking an error
-	retErr error
-}
-
-func (b *FakeBuilder) GeneratePodName() (podName string, err error) {
-	return b.retPodname, b.retErr
-}
-
-func (b *FakeBuilder) GetTargetRefResource() (client.Object, error) {
-	return b.retTargetRefResource, b.retErr
+	retErr          error
 }
 
 func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
 	return b.retStatusString, b.retAccessString, b.retErr
 }
 
-var _ builders.Builder = &FakeBuilder{}
-var _ builders.Builder = (*FakeBuilder)(nil)
+var _ builders.IBuilder = &FakeBuilder{}
+var _ builders.IBuilder = (*FakeBuilder)(nil)
 
-var _ = Describe("OzReconciler Tests", Ordered, func() {
+var _ = Describe("BaseReconciler", Ordered, func() {
 	Context("Method Tests", func() {
 		const TestName = "base-controller-test"
-		var namespace *corev1.Namespace
+
+		var (
+			namespace *corev1.Namespace
+		)
 
 		// Logger for our tests - makes it easier for us to debug sometimes
 		ctx := context.Background()
 		logger := log.FromContext(ctx)
 
+		// These controller tests use a real Kubernetes backend and therefore they don't have a
+		// significant amount of isolation between each test. We create one namespace at the
+		// beginning of all of the tests for the duration of the tests.
 		BeforeAll(func() {
 			By("Creating the Namespace to perform the tests")
 			namespace = &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      TestName,
-					Namespace: TestName,
+					Name: randomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, namespace)
@@ -73,7 +62,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			cm := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      TestName,
-					Namespace: TestName,
+					Namespace: namespace.Name,
 				},
 				Data: map[string]string{
 					"foo.data": "test data",
@@ -118,7 +107,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			originalReq := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      TestName,
-					Namespace: TestName,
+					Namespace: namespace.Name,
 				},
 				Spec: api.PodAccessRequestSpec{
 					TemplateName: "Junk",
@@ -148,7 +137,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			freshReq := &api.PodAccessRequest{}
 			err = k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
-				Namespace: TestName,
+				Namespace: namespace.Name,
 			}, freshReq)
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(freshReq.Status.PodName).To(Equal("bogus"))
@@ -158,7 +147,7 @@ var _ = Describe("OzReconciler Tests", Ordered, func() {
 			request := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      fmt.Sprintf("%s-fail-test", TestName),
-					Namespace: TestName,
+					Namespace: namespace.Name,
 				},
 				Spec: api.PodAccessRequestSpec{
 					TemplateName: "Junk",

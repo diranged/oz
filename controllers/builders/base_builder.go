@@ -23,35 +23,56 @@ import (
 
 const shortUIDLength = 8
 
-// Builder defines the interface for a particular "access builder". An "access builder" is typically
+// IBuilder defines the interface for a particular "access builder". An "access builder" is typically
 // paired with an "access template" struct in the api.v1alpha1 package. Each unique type of access
 // template will have its own access builder that is used to implement the goals of that particular
 // template.
 //
 // Common interface functions are used to keep the reconiliation loop code in the individual
 // controllers package clean.
-type Builder interface {
+type IBuilder interface {
+	// GetClient returns a Kubernetes client.Client object that can be used for making safe and
+	// cached calls to the API.
 	GetClient() client.Client
+
+	// GetCtx returns the context.Context object that is used to hand off async API calls to the
+	// system.
 	GetCtx() context.Context
+
+	// GetScheme returns the runtime.Scheme that is populated for the API client, ensuring that we
+	// understand the local CRDs from this controller.
 	GetScheme() *runtime.Scheme
 
+	// GetRequest returns an Access Request resource that conforms to the api.IPodRequestResource
+	// interface.
+	//
+	// TODO: Generalize this into just an api.IRequestResource interface, and use a PodRequestResource
+	// more specifically for the PodAccessBuilder.
 	GetRequest() api.IPodRequestResource
-	GetTemplate() api.ITemplateResource
 
-	// Returns back the PodName that the user is being granted direct access to.
-	GeneratePodName() (podName string, err error)
+	// GetTemplate returns an Access Template resouce that conforms to the api.ITemplateResource
+	// interface.
+	GetTemplate() api.ITemplateResource
 
 	// Generates all of the resources required to fulfill the access request.
 	GenerateAccessResources() (statusString string, accessString string, err error)
+}
 
-	// TODO:
+// IPodAccessBuilder is an extended interface from the IBuilder that provides a few additional
+// common methods that are specific to validating Access Templates that provide Pod-level access
+// for developers.
+type IPodAccessBuilder interface {
+	IBuilder
+
+	// GetTargetRefResource returns a generic but populated client.Object resource from an Access
+	// Template. Typically this is a Deployment, DaemonSet, etc.
 	GetTargetRefResource() (client.Object, error)
 }
 
 // BaseBuilder provides a starting point struct with a set of common methods. These methods are used
 // by template specific builders to reduce the amount of code we re-write.
 type BaseBuilder struct {
-	Builder
+	IBuilder
 
 	Client client.Client
 	Ctx    context.Context

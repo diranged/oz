@@ -30,9 +30,10 @@ type ExecAccessTemplateSpec struct {
 	// template controls, how long they have access, etc.
 	AccessConfig AccessConfig `json:"accessConfig"`
 
-	// TargetRef provides a pattern for referencing objects from another API in a generic way.
+	// ControllerTargetRef provides a pattern for referencing objects from another API in a generic way.
+	//
 	// +kubebuilder:validation:Required
-	TargetRef CrossVersionObjectReference `json:"targetRef"`
+	ControllerTargetRef *CrossVersionObjectReference `json:"controllerTargetRef"`
 }
 
 // ExecAccessTemplateStatus is the core set of status fields that we expect to be in each and every one of
@@ -73,7 +74,7 @@ func (t *ExecAccessTemplate) GetAccessConfig() *AccessConfig {
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.
 func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
-	return &t.Spec.TargetRef
+	return t.Spec.ControllerTargetRef
 }
 
 // GetExecAccessTemplate returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or returns back an error.
