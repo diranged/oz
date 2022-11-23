@@ -16,10 +16,6 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Is request ready?
-      jsonPath: .status.ready
-      name: Ready
-      type: boolean
     - description: Access Template
       jsonPath: .spec.templateName
       name: Template
@@ -28,6 +24,10 @@ spec:
       jsonPath: .status.podName
       name: Pod
       type: string
+    - description: Is request ready?
+      jsonPath: .status.ready
+      name: Ready
+      type: boolean
     name: v1alpha1
     schema:
       openAPIV3Schema:

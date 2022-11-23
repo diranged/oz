@@ -44,7 +44,7 @@ $(GOLINES):
 	GOBIN=$(LOCALBIN) go install github.com/segmentio/golines@$(GOLINES_VER)
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
+fmt: $(GOFUMPT) $(GOLINES) ## Run go fmt against code.
 	$(GOFUMPT) -l -w .
 	$(GOLINES) -w .
 

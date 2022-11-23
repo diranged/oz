@@ -62,9 +62,9 @@ type PodAccessRequestStatus struct {
 
 // PodAccessRequest is the Schema for the accessrequests API
 //
-// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
 // +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
 // +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
 type PodAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

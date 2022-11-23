@@ -60,6 +60,10 @@ type ExecAccessRequestStatus struct {
 //+kubebuilder:subresource:status
 
 // ExecAccessRequest is the Schema for the execaccessrequests API
+//
+// +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
+// +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
 type ExecAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
