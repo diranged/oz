@@ -83,6 +83,19 @@ func (r *ExecAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
 }
 
+// GetTemplate returns a populated ExecAccessTemplate that this ExecAccessRequest is referencing.
+func (r *ExecAccessRequest) GetTemplate(
+	ctx context.Context,
+	cl client.Client,
+) (ITemplateResource, error) {
+	return GetExecAccessTemplate(ctx, cl, r.Spec.TemplateName, r.Namespace)
+}
+
+// GetTemplateName returns the user supplied Spec.templateName field
+func (r *ExecAccessRequest) GetTemplateName() string {
+	return r.Spec.TemplateName
+}
+
 // GetDuration conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) GetDuration() (time.Duration, error) {
 	if r.Spec.Duration != "" {

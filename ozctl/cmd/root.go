@@ -6,7 +6,9 @@ import (
 	"os"
 
 	api "github.com/diranged/oz/api/v1alpha1"
+	cc "github.com/ivanpirog/coloredcobra"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -22,6 +24,11 @@ var (
 
 	// kubeConfigFlags are generated once and stored here for reference by the sub commands.
 	kubeConfigFlags = genericclioptions.NewConfigFlags(true)
+
+	// scopedScheme provides a runtime.Scheme that is scoped specifically to
+	// our api/v1alpha1 API only, so it does not include any other native
+	// Kubernetes resource types.
+	scopedScheme *runtime.Scheme
 )
 
 var rootCmd = &cobra.Command{
@@ -42,7 +49,21 @@ temporary development Pod).
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	// https://github.com/ivanpirog/coloredcobra
+	cc.Init(&cc.Config{
+		RootCmd:  rootCmd,
+		Headings: cc.HiCyan + cc.Bold + cc.Underline,
+		Commands: cc.HiYellow + cc.Bold,
+		Example:  cc.Italic,
+		ExecName: cc.Bold,
+		Flags:    cc.Bold,
+	})
+
+	// Sanity check
 	verifyUsernameSet()
+
+	// Populate our scopedScheme
+	scopedScheme, _ = api.SchemeBuilder.Build()
 
 	// Make sure to add in our api schemes with the custom resources
 	api.AddToScheme(scheme.Scheme)

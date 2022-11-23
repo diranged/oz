@@ -15,7 +15,12 @@ spec:
     singular: execaccesstemplate
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Is template ready?
+      jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: ExecAccessTemplate is the Schema for the execaccesstemplates

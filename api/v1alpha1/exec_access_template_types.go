@@ -46,6 +46,8 @@ type ExecAccessTemplateStatus struct {
 //+kubebuilder:subresource:status
 
 // ExecAccessTemplate is the Schema for the execaccesstemplates API
+//
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is template ready?"
 type ExecAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -67,24 +67,18 @@ type PodAccessTemplateSpec struct {
 	MaxMemory resource.Quantity `json:"maxMemory,omitempty"`
 }
 
-// PodAccessTemplateStatus defines the observed state of AccessRequest
+// PodAccessTemplateStatus defines the observed state of PodAccessTemplate
 type PodAccessTemplateStatus struct {
 	CoreStatus `json:",inline"`
-
-	// The Target Pod Name where access has been granted
-	PodName string `json:"podName,omitempty"`
-
-	// The name of the Role created for this temporary access request
-	RoleName string `json:"roleName,omitempty"`
-
-	// The name of th RoleBinding created for this temporary access request
-	RoleBindingName string `json:"roleBindingName,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
 // PodAccessTemplate is the Schema for the accesstemplates API
+//
+// +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is template ready?"
 type PodAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

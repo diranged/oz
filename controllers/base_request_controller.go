@@ -112,7 +112,7 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 
 	// Update the resource, and let the user know how much time is remaining
 	return r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
-		metav1.ConditionTrue, string(metav1.StatusReasonTimeout),
+		metav1.ConditionTrue, string(metav1.StatusSuccess),
 		"Access still valid")
 }
 

@@ -61,6 +61,10 @@ type PodAccessRequestStatus struct {
 //+kubebuilder:subresource:status
 
 // PodAccessRequest is the Schema for the accessrequests API
+//
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
+// +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
+// +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
 type PodAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -82,6 +86,19 @@ var (
 //	AccessRequestStatus
 func (r *PodAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
+}
+
+// GetTemplate returns a populated PodAccessTemplate that this PodAccessRequest is referencing.
+func (r *PodAccessRequest) GetTemplate(
+	ctx context.Context,
+	cl client.Client,
+) (ITemplateResource, error) {
+	return GetPodAccessTemplate(ctx, cl, r.Spec.TemplateName, r.Namespace)
+}
+
+// GetTemplateName returns the user supplied Spec.templateName field
+func (r *PodAccessRequest) GetTemplateName() string {
+	return r.Spec.TemplateName
 }
 
 // GetDuration conform to the interfaces.OzRequestResource interface

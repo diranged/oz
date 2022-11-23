@@ -6,20 +6,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var createExample = `
+# Create an ExecAccessRequest with ExecAccessTemplate "some-template"
+ozctl create ExecAccessRequest --target some-template
+
+# Create a PodAccessRequest with PodAccessTemplate "some-template"
+ozctl create PodAccessRequest --target some-template
+`
+
 var createCmd = &cobra.Command{
-	Use:   "create <resource> ...options",
-	Short: "Command used to create an Access Request",
-	Long: `This command creates the Access Request objects for you and waits until they are
-	available.
-
-	Eg:
-	  $ ozctl create ExecAccessRequest --target some-template
-	  ...
-
-	  $ ozctl create AccessRequest --target some-template
-	  ...
-	`,
-	Args: cobra.NoArgs,
+	Use:     "create <resource> ...options",
+	Short:   "Command used to create an Access Request",
+	Long:    `This command creates the Access Request objects for you and waits until they are available.`,
+	Example: createExample,
+	Args:    cobra.NoArgs,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			cmd.Help()
