@@ -4,6 +4,12 @@ SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 REVIVE_VER ?= v1.2.4
 REVIVE     ?= $(LOCALBIN)/revive
 
+GOFUMPT_VER ?= v0.4.0
+GOFUMPT     ?= $(LOCALBIN)/gofumpt
+
+GOLINES_VER ?= v0.11.0
+GOLINES     ?= $(LOCALBIN)/golines
+
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
 GEN_CRD_API_DOCS     ?= $(LOCALBIN)/go-crd-api-reference-docs
 
@@ -27,6 +33,21 @@ lint: revive
 test-e2e:
 	go test ./test/e2e/ -v -ginkgo.v
 
+.PHONY: gofumpt
+gofumpt: $(GOFUMPT)
+$(GOFUMPT):
+	GOBIN=$(LOCALBIN) go install mvdan.cc/gofumpt@$(GOFUMPT_VER)
+
+.PHONY: golines
+golines: $(GOLINES)
+$(GOLINES):
+	GOBIN=$(LOCALBIN) go install github.com/segmentio/golines@$(GOLINES_VER)
+
+.PHONY: fmt
+fmt: $(GOFUMPT) $(GOLINES) ## Run go fmt against code.
+	$(GOFUMPT) -l -w .
+	$(GOLINES) -w .
+
 .PHONY: revive
 revive: $(REVIVE) ## Download revive locally if necessary.
 $(REVIVE): $(LOCALBIN) Custom.mk
@@ -42,7 +63,7 @@ godocs: $(GEN_CRD_API_DOCS)
 		-config ./gen-crd-api-reference-docs.json \
 		-api-dir ./api/v1alpha1 \
 		-template-dir $$(go env GOMODCACHE)/github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)/template \
-		-out-file docs.md \
+		-out-file API.md \
 		-v 5
 
 ##@ Build CLI

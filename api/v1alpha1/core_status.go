@@ -33,8 +33,10 @@ type CoreStatus struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ICoreStatus = &CoreStatus{}
-var _ ICoreStatus = (*CoreStatus)(nil)
+var (
+	_ ICoreStatus = &CoreStatus{}
+	_ ICoreStatus = (*CoreStatus)(nil)
+)
 
 // GetConditions returns a pointer to the list of Conditions in the Status.
 func (in *CoreStatus) GetConditions() *[]metav1.Condition {

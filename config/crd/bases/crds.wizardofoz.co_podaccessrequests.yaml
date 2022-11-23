@@ -15,7 +15,20 @@ spec:
     singular: podaccessrequest
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Access Template
+      jsonPath: .spec.templateName
+      name: Template
+      type: string
+    - description: Target Pod Name
+      jsonPath: .status.podName
+      name: Pod
+      type: string
+    - description: Is request ready?
+      jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: PodAccessRequest is the Schema for the accessrequests API

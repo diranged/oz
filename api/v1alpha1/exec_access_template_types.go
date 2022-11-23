@@ -46,6 +46,8 @@ type ExecAccessTemplateStatus struct {
 //+kubebuilder:subresource:status
 
 // ExecAccessTemplate is the Schema for the execaccesstemplates API
+//
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is template ready?"
 type ExecAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -55,8 +57,10 @@ type ExecAccessTemplate struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ITemplateResource = &ExecAccessTemplate{}
-var _ ITemplateResource = (*ExecAccessTemplate)(nil)
+var (
+	_ ITemplateResource = &ExecAccessTemplate{}
+	_ ITemplateResource = (*ExecAccessTemplate)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //
@@ -78,7 +82,12 @@ func (t *ExecAccessTemplate) GetTargetRef() *CrossVersionObjectReference {
 }
 
 // GetExecAccessTemplate returns back an ExecAccessTemplate resource matching the request supplied to the reconciler loop, or returns back an error.
-func GetExecAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*ExecAccessTemplate, error) {
+func GetExecAccessTemplate(
+	ctx context.Context,
+	cl client.Client,
+	name string,
+	namespace string,
+) (*ExecAccessTemplate, error) {
 	tmpl := &ExecAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -88,8 +97,8 @@ func GetExecAccessTemplate(ctx context.Context, cl client.Client, name string, n
 
 // ExecAccessTemplateList contains a list of ExecAccessTemplate
 type ExecAccessTemplateList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                     json:",inline"`
+	metav1.ListMeta `                     json:"metadata,omitempty"`
 	Items           []ExecAccessTemplate `json:"items"`
 }
 

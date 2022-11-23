@@ -60,6 +60,10 @@ type ExecAccessRequestStatus struct {
 //+kubebuilder:subresource:status
 
 // ExecAccessRequest is the Schema for the execaccessrequests API
+//
+// +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
+// +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
 type ExecAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -69,8 +73,10 @@ type ExecAccessRequest struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ IPodRequestResource = &ExecAccessRequest{}
-var _ IPodRequestResource = (*ExecAccessRequest)(nil)
+var (
+	_ IPodRequestResource = &ExecAccessRequest{}
+	_ IPodRequestResource = (*ExecAccessRequest)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //
@@ -79,6 +85,19 @@ var _ IPodRequestResource = (*ExecAccessRequest)(nil)
 //	AccessRequestStatus
 func (r *ExecAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
+}
+
+// GetTemplate returns a populated ExecAccessTemplate that this ExecAccessRequest is referencing.
+func (r *ExecAccessRequest) GetTemplate(
+	ctx context.Context,
+	cl client.Client,
+) (ITemplateResource, error) {
+	return GetExecAccessTemplate(ctx, cl, r.Spec.TemplateName, r.Namespace)
+}
+
+// GetTemplateName returns the user supplied Spec.templateName field
+func (r *ExecAccessRequest) GetTemplateName() string {
+	return r.Spec.TemplateName
 }
 
 // GetDuration conforms to the interfaces.OzRequestResource interface
@@ -117,14 +136,21 @@ func (r *ExecAccessRequest) GetPodName() string {
 func (r *ExecAccessRequest) ValidateUpdate(old runtime.Object) error {
 	oldRequest, _ := old.(*ExecAccessRequest)
 	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
-		return fmt.Errorf("error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead")
+		return fmt.Errorf(
+			"error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead",
+		)
 	}
 	return nil
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to
 // the reconciler loop, or returns back an error.
-func GetExecAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*ExecAccessRequest, error) {
+func GetExecAccessRequest(
+	ctx context.Context,
+	cl client.Reader,
+	name string,
+	namespace string,
+) (*ExecAccessRequest, error) {
 	tmpl := &ExecAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -134,8 +160,8 @@ func GetExecAccessRequest(ctx context.Context, cl client.Reader, name string, na
 
 // ExecAccessRequestList contains a list of ExecAccessRequest
 type ExecAccessRequestList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                    json:",inline"`
+	metav1.ListMeta `                    json:"metadata,omitempty"`
 	Items           []ExecAccessRequest `json:"items"`
 }
 

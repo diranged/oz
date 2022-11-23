@@ -62,8 +62,8 @@ var _ = Describe("oz-controller", Ordered, func() {
 	})
 
 	Context("ExecAccessTemplate / ExecAccessRequest", func() {
-		var template = filepath.Join(projectDir, "examples/exec_access_template.yaml")
-		var request = filepath.Join(projectDir, "examples/exec_access_request.yaml")
+		template := filepath.Join(projectDir, "examples/exec_access_template.yaml")
+		request := filepath.Join(projectDir, "examples/exec_access_request.yaml")
 
 		//
 		// Initial tests - create the ExecAccessTemplate and PodAccessTemplates.
@@ -120,8 +120,8 @@ var _ = Describe("oz-controller", Ordered, func() {
 		})
 
 		Context("PodAccessTemplate / PodAccessRequest", func() {
-			var template = filepath.Join(projectDir, "examples/pod_access_template.yaml")
-			var request = filepath.Join(projectDir, "examples/pod_access_request.yaml")
+			template := filepath.Join(projectDir, "examples/pod_access_template.yaml")
+			request := filepath.Join(projectDir, "examples/pod_access_request.yaml")
 
 			//
 			// Initial tests - create the PodAccessTemplate and PodAccessTemplates.
@@ -177,6 +177,5 @@ var _ = Describe("oz-controller", Ordered, func() {
 				}
 			})
 		})
-
 	})
 })

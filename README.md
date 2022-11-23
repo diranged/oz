@@ -1,8 +1,8 @@
-[access_config]: https://github.com/diranged/oz/blob/main/docs.md#accessconfig
-[exec_access_request]: docs.md#execaccessrequest
-[exec_access_template]: docs.md#execaccesstemplate
-[pod_access_request]: docs.md#podaccessrequest
-[pod_access_template]: docs.md#podaccesstemplate
+[access_config]: https://github.com/diranged/oz/blob/main/API.md#accessconfig
+[exec_access_request]: API.md#execaccessrequest
+[exec_access_template]: API.md#execaccesstemplate
+[pod_access_request]: API.md#podaccessrequest
+[pod_access_template]: API.md#podaccesstemplate
 [kube_crd]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
 [kube_rbac]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [kube_subjects]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
@@ -171,14 +171,14 @@ Because *Oz* is not mutating the pods themselves (or launching dedicated pods),
 there are not many other options for this simple template.
 
 ```yaml
-# https://github.com/diranged/oz/blob/main/docs.md#execaccesstemplatespec
+# https://github.com/diranged/oz/blob/main/API.md#execaccesstemplatespec
 apiVersion: wizardofoz.io/v1alpha
 kind: ExecAccessTemplate
 metadata:
   name: myAccessTemplate
-# https://github.com/diranged/oz/blob/main/docs.md#crds.wizardofoz.co/v1alpha1.ExecAccessTemplateSpec
+# https://github.com/diranged/oz/blob/main/API.md#crds.wizardofoz.co/v1alpha1.ExecAccessTemplateSpec
 spec:
-  # https://github.com/diranged/oz/blob/main/docs.md#accessconfig
+  # https://github.com/diranged/oz/blob/main/API.md#accessconfig
   accessConfig:
     # A list of Kubernetes Groups that are allowed to request access through
     # this template. These should be Kubernetes "Groups" - read the docs at
@@ -190,7 +190,7 @@ spec:
 
   # Identifies the target workload that is having access granted.
   #
-  # https://github.com/diranged/oz/blob/main/docs.md#crds.wizardofoz.co/v1alpha1.CrossVersionObjectReference
+  # https://github.com/diranged/oz/blob/main/API.md#crds.wizardofoz.co/v1alpha1.CrossVersionObjectReference
   targetRef:
     apiVersion: apps/v1
     kind: DaemonSet
@@ -203,12 +203,12 @@ _For the full spec, please see the [`ExecAccessRequest`][exec_accesss_request]
 CRD API docs. The documentation here only discusses the most common options._
 
 ```yaml
-# https://github.com/diranged/oz/blob/main/docs.md#execaccessrequest
+# https://github.com/diranged/oz/blob/main/API.md#execaccessrequest
 apiVersion: wizardofoz.io/v1alpha
 kind: ExecAccessRequest
 metadata:
   generateName: accessRequest-
-# https://github.com/diranged/oz/blob/main/docs.md#crds.wizardofoz.co/v1alpha1.ExecAccessRequestSpec
+# https://github.com/diranged/oz/blob/main/API.md#crds.wizardofoz.co/v1alpha1.ExecAccessRequestSpec
 spec:
   # The `templateName` property refers to an ExecAccessTemplate within the same
   # namespace as the ExecAccessRequest.

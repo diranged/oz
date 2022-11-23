@@ -67,24 +67,18 @@ type PodAccessTemplateSpec struct {
 	MaxMemory resource.Quantity `json:"maxMemory,omitempty"`
 }
 
-// PodAccessTemplateStatus defines the observed state of AccessRequest
+// PodAccessTemplateStatus defines the observed state of PodAccessTemplate
 type PodAccessTemplateStatus struct {
 	CoreStatus `json:",inline"`
-
-	// The Target Pod Name where access has been granted
-	PodName string `json:"podName,omitempty"`
-
-	// The name of the Role created for this temporary access request
-	RoleName string `json:"roleName,omitempty"`
-
-	// The name of th RoleBinding created for this temporary access request
-	RoleBindingName string `json:"roleBindingName,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
 // PodAccessTemplate is the Schema for the accesstemplates API
+//
+// +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is template ready?"
 type PodAccessTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -94,8 +88,10 @@ type PodAccessTemplate struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ITemplateResource = &PodAccessTemplate{}
-var _ ITemplateResource = (*PodAccessTemplate)(nil)
+var (
+	_ ITemplateResource = &PodAccessTemplate{}
+	_ ITemplateResource = (*PodAccessTemplate)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //
@@ -118,12 +114,18 @@ func (t *PodAccessTemplate) GetAccessConfig() *AccessConfig {
 
 // Validate the inputs
 func (t *PodAccessTemplate) Validate() error {
-	if (*t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
-		return errors.New("cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other")
+	if (*t.Spec.ControllerTargetRef != CrossVersionObjectReference{}) &&
+		reflect.DeepEqual(t.Spec.PodSpec, corev1.PodSpec{}) {
+		return errors.New(
+			"cannot set both Spec.controllerTargetRef and spec.podSpec - use one or the other",
+		)
 	}
 
-	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) && reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
-		return errors.New("cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set")
+	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) &&
+		reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
+		return errors.New(
+			"cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set",
+		)
 	}
 
 	return nil
@@ -133,8 +135,8 @@ func (t *PodAccessTemplate) Validate() error {
 
 // PodAccessTemplateList contains a list of AccessTemplate
 type PodAccessTemplateList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                    json:",inline"`
+	metav1.ListMeta `                    json:"metadata,omitempty"`
 	Items           []PodAccessTemplate `json:"items"`
 }
 
@@ -144,7 +146,12 @@ func init() {
 
 // GetPodAccessTemplate returns back an AccessTemplate resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetPodAccessTemplate(ctx context.Context, cl client.Client, name string, namespace string) (*PodAccessTemplate, error) {
+func GetPodAccessTemplate(
+	ctx context.Context,
+	cl client.Client,
+	name string,
+	namespace string,
+) (*PodAccessTemplate, error) {
 	tmpl := &PodAccessTemplate{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err

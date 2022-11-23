@@ -587,13 +587,13 @@ for storing references to specific Pods that the requestor is being granted acce
 <h3 id="crds.wizardofoz.co/v1alpha1.IRequestResource">IRequestResource
 </h3>
 <div>
-<p>IRequestResource represents a common &ldquo;AccesRequest&rdquo; resource for the Oz operator. These requests
+<p>IRequestResource represents a common &ldquo;AccesRequest&rdquo; resource for the Oz Controller. These requests
 have a common set of required methods that are used by the OzRequestReconciler.</p>
 </div>
 <h3 id="crds.wizardofoz.co/v1alpha1.ITemplateResource">ITemplateResource
 </h3>
 <div>
-<p>ITemplateResource represents a common &ldquo;AccessTemplate&rdquo; resource for the Oz operator. These
+<p>ITemplateResource represents a common &ldquo;AccessTemplate&rdquo; resource for the Oz Controller. These
 templates provide different types of access into resources (eg, &ldquo;Exec&rdquo; vs &ldquo;Debug&rdquo; vs &ldquo;launch me a
 dedicated pod&rdquo;). A set of common methods are required though that are used by the
 OzTemplateReconciler.</p>
@@ -1026,7 +1026,7 @@ k8s.io/apimachinery/pkg/api/resource.Quantity
 (<em>Appears on:</em><a href="#crds.wizardofoz.co/v1alpha1.PodAccessTemplate">PodAccessTemplate</a>)
 </p>
 <div>
-<p>PodAccessTemplateStatus defines the observed state of AccessRequest</p>
+<p>PodAccessTemplateStatus defines the observed state of PodAccessTemplate</p>
 </div>
 <table>
 <thead>
@@ -1049,39 +1049,6 @@ CoreStatus
 <p>
 (Members of <code>CoreStatus</code> are embedded into this type.)
 </p>
-</td>
-</tr>
-<tr>
-<td>
-<code>podName</code><br/>
-<em>
-string
-</em>
-</td>
-<td>
-<p>The Target Pod Name where access has been granted</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>roleName</code><br/>
-<em>
-string
-</em>
-</td>
-<td>
-<p>The name of the Role created for this temporary access request</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>roleBindingName</code><br/>
-<em>
-string
-</em>
-</td>
-<td>
-<p>The name of th RoleBinding created for this temporary access request</p>
 </td>
 </tr>
 </tbody>

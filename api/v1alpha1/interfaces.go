@@ -1,10 +1,12 @@
 package v1alpha1
 
 import (
+	"context"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // The ICoreResource interface wraps a standard client.Object resource (metav1.Object + runtime.Object)
@@ -20,7 +22,7 @@ type ICoreResource interface {
 	GetStatus() ICoreStatus
 }
 
-// ITemplateResource represents a common "AccessTemplate" resource for the Oz operator. These
+// ITemplateResource represents a common "AccessTemplate" resource for the Oz Controller. These
 // templates provide different types of access into resources (eg, "Exec" vs "Debug" vs "launch me a
 // dedicated pod"). A set of common methods are required though that are used by the
 // OzTemplateReconciler.
@@ -36,12 +38,18 @@ type ITemplateResource interface {
 	GetAccessConfig() *AccessConfig
 }
 
-// IRequestResource represents a common "AccesRequest" resource for the Oz operator. These requests
+// IRequestResource represents a common "AccesRequest" resource for the Oz Controller. These requests
 // have a common set of required methods that are used by the OzRequestReconciler.
 //
 // +kubebuilder:object:generate=false
 type IRequestResource interface {
 	ICoreResource
+
+	// Returns an unpopulated ITemplateResource that this IRequestResource points to
+	GetTemplate(context.Context, client.Client) (ITemplateResource, error)
+
+	// Returns the user-supplied Spec.templateName field
+	GetTemplateName() string
 
 	// Returns the Spec.duration in time.Duration() format, or nil.
 	GetDuration() (time.Duration, error)

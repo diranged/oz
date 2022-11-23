@@ -61,6 +61,10 @@ type PodAccessRequestStatus struct {
 //+kubebuilder:subresource:status
 
 // PodAccessRequest is the Schema for the accessrequests API
+//
+// +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
+// +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
 type PodAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -70,8 +74,10 @@ type PodAccessRequest struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ IPodRequestResource = &PodAccessRequest{}
-var _ IPodRequestResource = (*PodAccessRequest)(nil)
+var (
+	_ IPodRequestResource = &PodAccessRequest{}
+	_ IPodRequestResource = (*PodAccessRequest)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //
@@ -80,6 +86,19 @@ var _ IPodRequestResource = (*PodAccessRequest)(nil)
 //	AccessRequestStatus
 func (r *PodAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
+}
+
+// GetTemplate returns a populated PodAccessTemplate that this PodAccessRequest is referencing.
+func (r *PodAccessRequest) GetTemplate(
+	ctx context.Context,
+	cl client.Client,
+) (ITemplateResource, error) {
+	return GetPodAccessTemplate(ctx, cl, r.Spec.TemplateName, r.Namespace)
+}
+
+// GetTemplateName returns the user supplied Spec.templateName field
+func (r *PodAccessRequest) GetTemplateName() string {
+	return r.Spec.TemplateName
 }
 
 // GetDuration conform to the interfaces.OzRequestResource interface
@@ -100,7 +119,11 @@ func (r *PodAccessRequest) GetUptime() time.Duration {
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *PodAccessRequest) SetPodName(name string) error {
 	if r.Status.PodName != "" {
-		return fmt.Errorf("immutable field Status.PodName already set (%s), cannot update to %s", r.Status.PodName, name)
+		return fmt.Errorf(
+			"immutable field Status.PodName already set (%s), cannot update to %s",
+			r.Status.PodName,
+			name,
+		)
 	}
 	r.Status.PodName = name
 	return nil
@@ -113,7 +136,12 @@ func (r *PodAccessRequest) GetPodName() string {
 
 // GetPodAccessRequest returns back an ExecAccessRequest resource matching the request supplied to the
 // reconciler loop, or returns back an error.
-func GetPodAccessRequest(ctx context.Context, cl client.Reader, name string, namespace string) (*PodAccessRequest, error) {
+func GetPodAccessRequest(
+	ctx context.Context,
+	cl client.Reader,
+	name string,
+	namespace string,
+) (*PodAccessRequest, error) {
 	tmpl := &PodAccessRequest{}
 	err := cl.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, tmpl)
 	return tmpl, err
@@ -123,8 +151,8 @@ func GetPodAccessRequest(ctx context.Context, cl client.Reader, name string, nam
 
 // PodAccessRequestList contains a list of AccessRequest
 type PodAccessRequestList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                   json:",inline"`
+	metav1.ListMeta `                   json:"metadata,omitempty"`
 	Items           []PodAccessRequest `json:"items"`
 }
 

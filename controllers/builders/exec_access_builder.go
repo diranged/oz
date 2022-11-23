@@ -57,7 +57,11 @@ func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, acce
 	}
 
 	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
-	accessString = fmt.Sprintf("kubectl exec -ti -n %s %s -- /bin/sh", b.Template.Namespace, targetPodName)
+	accessString = fmt.Sprintf(
+		"kubectl exec -ti -n %s %s -- /bin/sh",
+		b.Template.Namespace,
+		targetPodName,
+	)
 
 	b.Request.SetPodName(targetPodName)
 
@@ -193,9 +197,9 @@ func (b *ExecAccessBuilder) getSpecificPod() (*corev1.Pod, error) {
 		},
 		client.MatchingFields{"metadata.name": podName, "status.phase": "Running"},
 		// TODO: Figure this out...
-		//client.MatchingFields{"status.phase": "Running"},
+		// client.MatchingFields{"status.phase": "Running"},
 	}
-	//if err := b.Client.List(b.Ctx, podList, opts...); err != nil {
+	// if err := b.Client.List(b.Ctx, podList, opts...); err != nil {
 	if err := b.APIReader.List(b.Ctx, podList, opts...); err != nil {
 		logger.Error(err, "Failed to retrieve Pod list")
 		return nil, err

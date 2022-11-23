@@ -18,7 +18,7 @@ spec:
       - image: ubuntu:latest
         imagePullPolicy: IfNotPresent
         name: ubuntu
-        command: [/bin/sleep, '999']
+        command: [/bin/sleep, '999999']
         resources:
           limits:
             cpu: 1

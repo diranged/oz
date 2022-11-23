@@ -15,7 +15,12 @@ spec:
     singular: podaccesstemplate
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Is template ready?
+      jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: PodAccessTemplate is the Schema for the accesstemplates API
@@ -7181,7 +7186,7 @@ spec:
             - accessConfig
             type: object
           status:
-            description: PodAccessTemplateStatus defines the observed state of AccessRequest
+            description: PodAccessTemplateStatus defines the observed state of PodAccessTemplate
             properties:
               accessMessage:
                 description: "AccessMessage is used to describe to the user how they
@@ -7259,21 +7264,10 @@ spec:
                   - type
                   type: object
                 type: array
-              podName:
-                description: The Target Pod Name where access has been granted
-                type: string
               ready:
                 description: Simple boolean to let us know if the resource is ready
                   for use or not
                 type: boolean
-              roleBindingName:
-                description: The name of th RoleBinding created for this temporary
-                  access request
-                type: string
-              roleName:
-                description: The name of the Role created for this temporary access
-                  request
-                type: string
             type: object
         type: object
     served: true

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-
 	"fmt"
 	"strconv"
 
@@ -97,7 +96,8 @@ func (r *BaseReconciler) updateCondition(
 	message string,
 ) error {
 	logger := r.getLogger(ctx)
-	logger.V(1).Info(fmt.Sprintf("Updating condition \"%s\" to \"%s\"", conditionType, conditionStatus))
+	logger.V(1).
+		Info(fmt.Sprintf("Updating condition \"%s\" to \"%s\"", conditionType, conditionStatus))
 
 	meta.SetStatusCondition(res.GetStatus().GetConditions(), metav1.Condition{
 		Type:               string(conditionType),

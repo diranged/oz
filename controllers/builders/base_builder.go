@@ -172,7 +172,6 @@ func (b *BaseBuilder) VerifyPodExists(name string, namespace string) error {
 		Name:      name,
 		Namespace: namespace,
 	}, pod)
-
 	// On any failure, update the pod status with the failure...
 	if err != nil {
 		return fmt.Errorf("pod %s (ns: %s) is not found: %s", name, namespace, err)
@@ -347,7 +346,9 @@ func (b *BaseBuilder) createAccessRole(podName string) (*rbacv1.Role, error) {
 	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
 	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
 	// values from the desired role object above.
-	emptyRole := &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace}}
+	emptyRole := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{Name: role.Name, Namespace: role.Namespace},
+	}
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
 	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRole, func() error {
@@ -391,7 +392,9 @@ func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	// Generate an empty role resource. This role resource will be filled-in by the CreateOrUpdate() call when
 	// it checks the Kubernetes API for the existing role. Our update function will then update the appropriate
 	// values from the desired role object above.
-	emptyRb := &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace}}
+	emptyRb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{Name: rb.Name, Namespace: rb.Namespace},
+	}
 
 	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil#CreateOrUpdate
 	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyRb, func() error {

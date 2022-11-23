@@ -59,7 +59,10 @@ type PodAccessRequestReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *PodAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PodAccessRequestReconciler) Reconcile(
+	ctx context.Context,
+	req ctrl.Request,
+) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("PodAccessRequestReconciler")
 	logger.Info("Starting reconcile loop")
 
@@ -125,7 +128,9 @@ func (r *PodAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	// set up a 30 second delay before the next reconciliation attempt.
 	_, err = r.verifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second)}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 
 	// FINAL: Set Status.Ready state
@@ -138,7 +143,9 @@ func (r *PodAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.Info("Ending reconcile loop")
 
 	// Finally, requeue to re-reconcile again in the future
-	return ctrl.Result{RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute))}, nil
+	return ctrl.Result{
+		RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute)),
+	}, nil
 }
 
 // getTargetTemplate is used to both verify that the desired Spec.TemplateName field actually exists in the cluster,
@@ -148,9 +155,14 @@ func (r *PodAccessRequestReconciler) Reconcile(ctx context.Context, req ctrl.Req
 // Returns:
 //   - Pointer to the api.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
-func (r *PodAccessRequestReconciler) getTargetTemplate(ctx context.Context, req *api.PodAccessRequest) (*api.PodAccessTemplate, error) {
+func (r *PodAccessRequestReconciler) getTargetTemplate(
+	ctx context.Context,
+	req *api.PodAccessRequest,
+) (*api.PodAccessTemplate, error) {
 	logger := r.getLogger(ctx)
-	logger.Info(fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName))
+	logger.Info(
+		fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName),
+	)
 
 	var tmpl *api.PodAccessTemplate
 	var err error
@@ -159,7 +171,6 @@ func (r *PodAccessRequestReconciler) getTargetTemplate(ctx context.Context, req 
 		return nil, r.updateCondition(
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
-
 	}
 	return tmpl, r.updateCondition(
 		ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
