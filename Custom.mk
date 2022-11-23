@@ -4,6 +4,9 @@ SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 REVIVE_VER ?= v1.2.4
 REVIVE     ?= $(LOCALBIN)/revive
 
+GOFUMPT_VER ?= v0.4.0
+GOFUMPT     ?= $(LOCALBIN)/gofumpt
+
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
 GEN_CRD_API_DOCS     ?= $(LOCALBIN)/go-crd-api-reference-docs
 
@@ -26,6 +29,15 @@ lint: revive
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e:
 	go test ./test/e2e/ -v -ginkgo.v
+
+.PHONY: gofumpt
+gofumpt: $(GOFUMPT)
+$(GOFUMPT):
+	GOBIN=$(LOCALBIN) go install mvdan.cc/gofumpt@$(GOFUMPT_VER)
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	$(GOFUMPT) -l -w .
 
 .PHONY: revive
 revive: $(REVIVE) ## Download revive locally if necessary.

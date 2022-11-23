@@ -153,7 +153,6 @@ var createExecAccessRequestCmd = &cobra.Command{
 			cmd.Print(".")
 			time.Sleep(time.Duration(1 * time.Second))
 		}
-
 	},
 }
 
@@ -162,7 +161,7 @@ func init() {
 	createExecAccessRequestCmd.MarkFlagRequired("template")
 	createExecAccessRequestCmd.Flags().StringVarP(&targetPod, "target-pod", "p", "", "Optional name of a specific target pod to request access for")
 	createExecAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
-	createExecAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", Username, "Prefix name to use when creating the `ExecAccessRequest` objects.")
+	createExecAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `ExecAccessRequest` objects.")
 
 	kubeConfigFlags.AddFlags(createExecAccessRequestCmd.Flags())
 

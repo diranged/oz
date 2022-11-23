@@ -70,8 +70,10 @@ type PodAccessRequest struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ IPodRequestResource = &PodAccessRequest{}
-var _ IPodRequestResource = (*PodAccessRequest)(nil)
+var (
+	_ IPodRequestResource = &PodAccessRequest{}
+	_ IPodRequestResource = (*PodAccessRequest)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //

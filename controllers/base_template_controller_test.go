@@ -19,7 +19,6 @@ import (
 )
 
 var _ = Describe("BaseTemplateReconciler", Ordered, func() {
-
 	Context("VerifyTargetRef", func() {
 		var (
 			deployment *appsv1.Deployment

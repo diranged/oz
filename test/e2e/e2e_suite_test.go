@@ -24,7 +24,6 @@ func TestE2E(t *testing.T) {
 // Before we start the suite, pre-build the docker image, create the test namespace and get
 // everything spun up.
 var _ = BeforeSuite(func() {
-
 	cmd := exec.Command("kubectl", "create", "ns", namespace)
 
 	cmd = exec.Command("make", "docker-build")

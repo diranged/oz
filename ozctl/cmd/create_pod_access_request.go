@@ -135,7 +135,6 @@ var createPodAccessRequestCmd = &cobra.Command{
 			cmd.Print(".")
 			time.Sleep(time.Duration(1 * time.Second))
 		}
-
 	},
 }
 
@@ -143,7 +142,7 @@ func init() {
 	createPodAccessRequestCmd.Flags().StringVarP(&template, "template", "t", "", "Name of the AccessTemplate to request access from")
 	createPodAccessRequestCmd.MarkFlagRequired("template")
 	createPodAccessRequestCmd.Flags().StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
-	createPodAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", Username, "Prefix name to use when creating the `AccessRequest` objects.")
+	createPodAccessRequestCmd.Flags().StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
 
 	kubeConfigFlags.AddFlags(createPodAccessRequestCmd.Flags())
 

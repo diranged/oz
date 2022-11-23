@@ -194,7 +194,6 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				}
 				return fmt.Errorf(fmt.Sprintf("Failed to reconcile resource: %s", strconv.FormatBool(found.GetStatus().IsReady())))
 			}, 10*time.Second, time.Second).Should(Succeed())
-
 		})
 
 		It("Should fail to reconcile a resource with an invalid target", func() {
@@ -295,7 +294,6 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				// Return a failure. We'll loop over this a few times before giving up.
 				return fmt.Errorf("Expected %s to be %s", ConditionTargetRefExists, metav1.ConditionFalse)
 			}, 10*time.Second, time.Second).Should(Succeed())
-
 		})
 	})
 })

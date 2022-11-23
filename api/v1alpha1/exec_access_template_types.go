@@ -55,8 +55,10 @@ type ExecAccessTemplate struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ITemplateResource = &ExecAccessTemplate{}
-var _ ITemplateResource = (*ExecAccessTemplate)(nil)
+var (
+	_ ITemplateResource = &ExecAccessTemplate{}
+	_ ITemplateResource = (*ExecAccessTemplate)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //

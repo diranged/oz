@@ -172,7 +172,6 @@ func (b *BaseBuilder) VerifyPodExists(name string, namespace string) error {
 		Name:      name,
 		Namespace: namespace,
 	}, pod)
-
 	// On any failure, update the pod status with the failure...
 	if err != nil {
 		return fmt.Errorf("pod %s (ns: %s) is not found: %s", name, namespace, err)

@@ -28,16 +28,16 @@ func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessStri
 	return b.retStatusString, b.retAccessString, b.retErr
 }
 
-var _ builders.IBuilder = &FakeBuilder{}
-var _ builders.IBuilder = (*FakeBuilder)(nil)
+var (
+	_ builders.IBuilder = &FakeBuilder{}
+	_ builders.IBuilder = (*FakeBuilder)(nil)
+)
 
 var _ = Describe("BaseReconciler", Ordered, func() {
 	Context("Method Tests", func() {
 		const TestName = "base-controller-test"
 
-		var (
-			namespace *corev1.Namespace
-		)
+		var namespace *corev1.Namespace
 
 		// Logger for our tests - makes it easier for us to debug sometimes
 		ctx := context.Background()
@@ -100,7 +100,6 @@ var _ = Describe("BaseReconciler", Ordered, func() {
 
 			// Verify that the new object has the new resource version
 			Expect(newResourceVer).To(Equal(cm.ResourceVersion))
-
 		})
 
 		It("UpdateStatus() should work", func() {
@@ -170,5 +169,4 @@ var _ = Describe("BaseReconciler", Ordered, func() {
 			Expect(err).To(HaveOccurred())
 		})
 	})
-
 })

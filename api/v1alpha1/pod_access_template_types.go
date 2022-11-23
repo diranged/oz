@@ -94,8 +94,10 @@ type PodAccessTemplate struct {
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
-var _ ITemplateResource = &PodAccessTemplate{}
-var _ ITemplateResource = (*PodAccessTemplate)(nil)
+var (
+	_ ITemplateResource = &PodAccessTemplate{}
+	_ ITemplateResource = (*PodAccessTemplate)(nil)
+)
 
 // GetStatus returns the core Status field for this resource.
 //

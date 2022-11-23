@@ -20,7 +20,7 @@ type ICoreResource interface {
 	GetStatus() ICoreStatus
 }
 
-// ITemplateResource represents a common "AccessTemplate" resource for the Oz operator. These
+// ITemplateResource represents a common "AccessTemplate" resource for the Oz Controller. These
 // templates provide different types of access into resources (eg, "Exec" vs "Debug" vs "launch me a
 // dedicated pod"). A set of common methods are required though that are used by the
 // OzTemplateReconciler.
@@ -36,7 +36,7 @@ type ITemplateResource interface {
 	GetAccessConfig() *AccessConfig
 }
 
-// IRequestResource represents a common "AccesRequest" resource for the Oz operator. These requests
+// IRequestResource represents a common "AccesRequest" resource for the Oz Controller. These requests
 // have a common set of required methods that are used by the OzRequestReconciler.
 //
 // +kubebuilder:object:generate=false

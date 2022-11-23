@@ -159,7 +159,6 @@ func (r *PodAccessRequestReconciler) getTargetTemplate(ctx context.Context, req 
 		return nil, r.updateCondition(
 			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
-
 	}
 	return tmpl, r.updateCondition(
 		ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),

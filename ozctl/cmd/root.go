@@ -14,14 +14,21 @@ import (
 // Variables filled out during the initial `Execute()` step. These are used throughout the various
 // commands create within this CLI tool.
 var (
-	Username        = os.Getenv("USER")
+	// usernamEnv stores the value of the `USER` environment variable. This is
+	// used for naming the Access Requests in somewhat friendly ways - but has
+	// nothing to do with whether or not access is granted via RBAC.
+	usernameEnv = os.Getenv("USER")
+
+	// kubeConfigFlags are generated once and stored here for reference by the sub commands.
 	kubeConfigFlags = genericclioptions.NewConfigFlags(true)
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "ozctl",
-	Short: "Manage Oz Access Requests and Approvals",
-	Long:  ``,
+	Short: "Manages Oz Access Requests and Approvals",
+	Long: `This tool provides access to create (and approve, in the future)
+Access Requests for resources within a Kubernetes cluster running the Oz RBAC Controller.
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -40,7 +47,7 @@ func Execute() {
 }
 
 func verifyUsernameSet() error {
-	if Username == "" {
+	if usernameEnv == "" {
 		fmt.Println("ERROR: This CLI tool requires that the $USER environment be set to something")
 		os.Exit(1)
 	}

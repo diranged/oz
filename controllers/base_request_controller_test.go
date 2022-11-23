@@ -144,7 +144,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 			// VERIFY: accessStr is valid
 			Expect(accessStr).To(Equal("here you go"))
-
 		})
 	})
 
