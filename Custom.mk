@@ -13,6 +13,9 @@ GOLINES     ?= $(LOCALBIN)/golines
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
 GEN_CRD_API_DOCS     ?= $(LOCALBIN)/go-crd-api-reference-docs
 
+ISTIO_VER ?= 1.16.0
+ISTIOCTL  ?= $(LOCALBIN)/istioctl
+
 .PHONY: docker-load
 docker-load:
 	kind load docker-image $(IMG) -n $(KIND_CLUSTER_NAME)
@@ -75,3 +78,14 @@ outputs/ozctl-osx: ozctl controllers api $(SOURCE)
 
 outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
 	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
+
+##@ Install Istio - used for end-to-end integration tests
+.PHONY: istioctl
+istioctl: $(ISTIOCTL)
+$(ISTIOCTL): bin
+	pushd bin && curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VER) sh - && popd
+	cp bin/istio-$(ISTIO_VER)/bin/istioctl bin/istioctl
+
+.PHONY: install-istio
+install-istio: $(ISTIOCTL)
+	$(ISTIOCTL) install --set profile=demo -y
