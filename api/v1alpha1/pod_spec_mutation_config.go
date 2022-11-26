@@ -8,6 +8,11 @@ import (
 )
 
 const (
+	// DefaultContainerAnnotationKey is the name of the Key in the Pod
+	// Annotations that notates which container in the PodSpec is considered
+	// the "default" container for kubectl. This annotation is also used to
+	// determine which container is mutated by the
+	// PodTemplateSpecMutationConfig struct.
 	DefaultContainerAnnotationKey = "kubectl.kubernetes.io/default-container"
 )
 
