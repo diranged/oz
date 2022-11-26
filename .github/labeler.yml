@@ -1,0 +1,20 @@
+# Add 'repo' label to any root file changes
+repo:
+- '*'
+
+github_actions:
+- '.github/**/*'
+
+build:
+- '.github/*'
+- Makefile
+- Common.mk
+- go.mod
+- go.sum
+
+documentation:
+- '*.md'
+- '**/*.md'
+
+go:
+- '*.go'
