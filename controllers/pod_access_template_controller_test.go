@@ -157,7 +157,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 							Kind:       "Deployment",
 							Name:       deployment.Name,
 						},
-						ControllerTargetMutationConfig: &api.PodSpecMutationConfig{
+						ControllerTargetMutationConfig: &api.PodTemplateSpecMutationConfig{
 							DefaultContainerName: "test",
 							Command:              &[]string{"/bin/sleep"},
 							Args:                 &[]string{"100"},

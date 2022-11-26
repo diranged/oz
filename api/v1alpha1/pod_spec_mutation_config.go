@@ -7,7 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// PodSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
+// PodTemplateSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
 // that should be applied. The primary use case is in the PodAccessTemplate, where an existing
 // controller (Deployment, DaemonSet, StatefulSet) can be used as the reference for the PodSpec
 // that is launched for the user. However, the operator may want to make modifications to the
@@ -17,7 +17,7 @@ import (
 // TODO: Add podLabels
 // TODO: Add nodeSelector
 // TODO: Add affinity
-type PodSpecMutationConfig struct {
+type PodTemplateSpecMutationConfig struct {
 	// DefaultContainerName allows the operator to define which container is considered the default
 	// container, and that is the container that this mutation configuration applies to. If not set,
 	// then the first container defined in the spec.containers[] list is patched.
@@ -47,14 +47,16 @@ type PodSpecMutationConfig struct {
 // Returns:
 //
 //	int: The identifier in the PodSpec.Containers[] list of the "default" container to mutate.
-func (c *PodSpecMutationConfig) getDefaultContainerID(pod corev1.PodSpec) (int, error) {
+func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
+	pod corev1.PodTemplateSpec,
+) (int, error) {
 	// By default, return 0.
 	if c.DefaultContainerName == "" {
 		return 0, nil
 	}
 
 	// Iterate through the containers
-	for i, container := range pod.Containers {
+	for i, container := range pod.Spec.Containers {
 		if container.Name == c.DefaultContainerName {
 			return i, nil
 		}
@@ -64,13 +66,15 @@ func (c *PodSpecMutationConfig) getDefaultContainerID(pod corev1.PodSpec) (int, 
 	return -1, fmt.Errorf("could not find container named %s in PodSpec", c.DefaultContainerName)
 }
 
-// PatchPodSpec returns a mutated new PodSpec object based on the supplied spec, and the parameters
-// in the PodSpecMutationConfig struct.
+// PatchPodTemplateSpec returns a mutated new PodSpec object based on the
+// supplied spec, and the parameters in the PodSpecMutationConfig struct.
 //
 // Returns:
 //
 //	corev1.PodSpec: A new PodSpec object with the mutated configuration.
-func (c *PodSpecMutationConfig) PatchPodSpec(orig corev1.PodSpec) (corev1.PodSpec, error) {
+func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
+	orig corev1.PodTemplateSpec,
+) (corev1.PodTemplateSpec, error) {
 	n := *orig.DeepCopy()
 
 	defContainerID, err := c.getDefaultContainerID(orig)
@@ -79,20 +83,22 @@ func (c *PodSpecMutationConfig) PatchPodSpec(orig corev1.PodSpec) (corev1.PodSpe
 	}
 
 	if c.Command != nil {
-		n.Containers[defContainerID].Command = *c.Command
-		n.Containers[defContainerID].Args = []string{}
+		n.Spec.Containers[defContainerID].Command = *c.Command
+		n.Spec.Containers[defContainerID].Args = []string{}
 	}
 
 	if c.Args != nil {
-		n.Containers[defContainerID].Args = *c.Args
+		n.Spec.Containers[defContainerID].Args = *c.Args
 	}
 
 	if !reflect.DeepEqual(c.Resources, corev1.ResourceRequirements{}) {
-		n.Containers[defContainerID].Resources = c.Resources
+		n.Spec.Containers[defContainerID].Resources = c.Resources
 	}
 
 	if len(c.Env) > 0 {
-		n.Containers[defContainerID].Env = append(n.Containers[defContainerID].Env, c.Env...)
+		n.Spec.Containers[defContainerID].Env = append(
+			n.Spec.Containers[defContainerID].Env,
+			c.Env...)
 	}
 
 	return n, nil
