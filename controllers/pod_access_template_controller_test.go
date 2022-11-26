@@ -330,7 +330,6 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				) {
 					// If the condition is set, and its set to False, then we can return success. We
 					// failed appropriately.
-					logger.V(1).Info("shit")
 					return nil
 				}
 				// Return a failure. We'll loop over this a few times before giving up.
