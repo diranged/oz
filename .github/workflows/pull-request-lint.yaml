@@ -1,4 +1,4 @@
-name: pull-request-lint
+name: Pull Request Lint
 on:
   pull_request_target:
     types:
