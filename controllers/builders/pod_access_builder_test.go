@@ -131,7 +131,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 
 			// Run the PodSpec through the optional mutation config
 			mutator := template.Spec.ControllerTargetMutationConfig
-			mutatedSpec, err := mutator.PatchPodTemplateSpec(podTemplateSpec)
+			mutatedSpec, err := mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// VERIFY: The original spec and new spec are identical
@@ -151,7 +151,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 
 				// Run the PodSpec through the optional mutation config
 				mutator := template.Spec.ControllerTargetMutationConfig
-				podTemplateSpec, err = mutator.PatchPodTemplateSpec(podTemplateSpec)
+				podTemplateSpec, err = mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
 				Expect(err).To(Not(HaveOccurred()))
 
 				// VERIFY: contB (container 0) had some mutations
@@ -186,7 +186,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 
 				// Run the PodSpec through the optional mutation config
 				mutator := template.Spec.ControllerTargetMutationConfig
-				podTemplateSpec, err = mutator.PatchPodTemplateSpec(podTemplateSpec)
+				podTemplateSpec, err = mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
 				Expect(err).To(Not(HaveOccurred()))
 
 				// VERIFY: contA (container 0) had some mutations
