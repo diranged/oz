@@ -102,7 +102,6 @@ func (r *PodAccessRequestReconciler) Reconcile(
 		BaseBuilder: builders.BaseBuilder{
 			Client:    r.Client,
 			Ctx:       ctx,
-			Scheme:    r.Scheme,
 			APIReader: r.APIReader,
 			Request:   resource,
 			Template:  tmpl,
