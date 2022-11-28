@@ -127,5 +127,17 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// VERIFY: EnvVar is set
 			Expect(len(ret.Spec.Containers[0].Env)).To(Equal(1))
 		})
+
+		It("PatchPodTemplateSpec should fail if invalid container name supplied", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{DefaultContainerName: "bogus"}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(HaveOccurred())
+
+			// VERIFY: Unmutated
+			Expect(ret).To(Equal(podTemplateSpec))
+		})
 	})
 })
