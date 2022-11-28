@@ -11,7 +11,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -72,7 +71,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			r = &BaseTemplateReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
 					APIReader:               fakeClient,
 					logger:                  logger,
 					ReconcililationInterval: 0,
@@ -109,7 +107,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}
@@ -153,7 +150,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			r = &BaseTemplateReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
 					APIReader:               fakeClient,
 					logger:                  logger,
 					ReconcililationInterval: 0,
@@ -164,7 +160,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}
@@ -201,7 +196,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			r = &BaseTemplateReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
+					Scheme:                  fakeClient.Scheme(),
 					APIReader:               fakeClient,
 					logger:                  logger,
 					ReconcililationInterval: 0,
@@ -237,7 +232,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}
@@ -287,7 +281,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}
@@ -339,7 +332,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}
@@ -391,7 +383,6 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 			}

@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,7 +36,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			r = &BaseRequestReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
+					Scheme:                  fakeClient.Scheme(),
 					APIReader:               fakeClient,
 					ReconcililationInterval: 0,
 				},
@@ -66,7 +65,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				BaseBuilder: builders.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
-					Scheme:    &runtime.Scheme{},
 					APIReader: fakeClient,
 					Request:   request,
 				},
@@ -175,7 +173,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			r = &BaseRequestReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
+					Scheme:                  fakeClient.Scheme(),
 					APIReader:               fakeClient,
 					ReconcililationInterval: 0,
 				},
@@ -216,7 +214,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Request:   request,
 			}
@@ -261,7 +258,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Request:   request,
 			}
@@ -309,7 +305,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Request:   request,
 			}
@@ -365,7 +360,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			r = &BaseRequestReconciler{
 				BaseReconciler: BaseReconciler{
 					Client:                  fakeClient,
-					Scheme:                  &runtime.Scheme{},
+					Scheme:                  fakeClient.Scheme(),
 					APIReader:               fakeClient,
 					logger:                  logger,
 					ReconcililationInterval: 0,
@@ -396,7 +391,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 				Request:   request,
@@ -448,7 +442,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 				Request:   request,
@@ -502,7 +495,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 				Request:   request,
@@ -556,7 +548,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 				Request:   request,
@@ -622,7 +613,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				builder = &builders.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
-					Scheme:    &runtime.Scheme{},
 					APIReader: fakeClient,
 					Template:  template,
 					Request:   request,
@@ -687,7 +677,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				builder = &builders.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
-					Scheme:    &runtime.Scheme{},
 					APIReader: fakeClient,
 					Template:  template,
 					Request:   request,
@@ -740,7 +729,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder = &builders.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
-				Scheme:    &runtime.Scheme{},
 				APIReader: fakeClient,
 				Template:  template,
 				Request:   request,

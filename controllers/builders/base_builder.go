@@ -76,7 +76,6 @@ type BaseBuilder struct {
 
 	Client client.Client
 	Ctx    context.Context
-	Scheme *runtime.Scheme
 
 	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object. This is used
 	// for certain Get() calls where we need to ensure we are getting the latest version from the API, and not a cached
@@ -120,7 +119,7 @@ func (b *BaseBuilder) GetCtx() context.Context {
 //
 //	*runtime.Scheme: A pointer back to the runtime.Scheme from the controller-runtime struct.
 func (b *BaseBuilder) GetScheme() *runtime.Scheme {
-	return b.Scheme
+	return b.Client.Scheme()
 }
 
 // GetTemplate provides an access method to the generic api.OzTemplateResource interface
@@ -339,7 +338,7 @@ func (b *BaseBuilder) createAccessRole(podName string) (*rbacv1.Role, error) {
 
 	// Set the ownerRef for the Deployment
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	if err := ctrlutil.SetControllerReference(b.Request, role, b.Scheme); err != nil {
+	if err := ctrlutil.SetControllerReference(b.Request, role, b.GetScheme()); err != nil {
 		return nil, err
 	}
 
@@ -385,7 +384,7 @@ func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 
 	// Set the ownerRef for the Deployment
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	if err := ctrlutil.SetControllerReference(b.Request, rb, b.Scheme); err != nil {
+	if err := ctrlutil.SetControllerReference(b.Request, rb, b.GetScheme()); err != nil {
 		return nil, err
 	}
 
@@ -413,10 +412,29 @@ func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1.Pod, error) {
 	logger := log.FromContext(b.Ctx)
 
-	// Desired pod
+	// We'll populate this pod object
 	pod := &corev1.Pod{}
 	pod.Name = generateResourceName(b.Request)
 	pod.Namespace = b.Template.GetNamespace()
+
+	// Verify first whether or not a pod already exists with this name. If it
+	// does, we just return it back. The issue here is that updating a Pod is
+	// an unusual thing to do once it's alive, and can cause race condition
+	// issues if you do not do the updates properly.
+	//
+	// https://github.com/diranged/oz/issues/27
+	err := b.Client.Get(b.Ctx, types.NamespacedName{
+		Name:      pod.Name,
+		Namespace: pod.Namespace,
+	}, pod)
+
+	// If there was no error on this get, then the object already exists in K8S
+	// and we need to just return that.
+	if err == nil {
+		return pod, err
+	}
+
+	// Finish filling out the desired PodSpec at this point.
 	pod.Spec = *podTemplateSpec.Spec.DeepCopy()
 	pod.ObjectMeta.Annotations = podTemplateSpec.ObjectMeta.Annotations
 
@@ -424,13 +442,9 @@ func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1
 	//
 	// pod.ObjectMeta.Labels = podTemplateSpec.Labels
 
-	// Generate an emptyPod resource. We use this to define the type, name and namespace of the resource, which
-	// will be passed into the CreateOrUpdate function.
-	emptyPod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: pod.Namespace}}
-
 	// Set the ownerRef for the Deployment
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	if err := ctrlutil.SetControllerReference(b.Request, pod, b.Scheme); err != nil {
+	if err := ctrlutil.SetControllerReference(b.Request, pod, b.GetScheme()); err != nil {
 		return nil, err
 	}
 
@@ -439,19 +453,7 @@ func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1
 	// In an update event, wec an only update the Annotations and the OwnerReference. Nothing else.
 	logger.V(1).Info(fmt.Sprintf("Creating or Updating Pod %s (ns: %s)", pod.Name, pod.Namespace))
 	logger.V(1).Info("Pod Json", "json", ObjectToJSON(pod))
-	if _, err := ctrlutil.CreateOrUpdate(b.Ctx, b.Client, emptyPod, func() error {
-		// Mutable fields that we can update on each iteration.
-		emptyPod.ObjectMeta.Annotations = pod.GetObjectMeta().GetAnnotations()
-		emptyPod.OwnerReferences = pod.OwnerReferences
-
-		// We can only set the PodSpec once. If the PodSpec is empty, then we pass in the desired
-		// PodSpec. After that, we ignore all future updates to it.
-		if len(emptyPod.Spec.Containers) < 1 {
-			emptyPod.Spec = pod.Spec
-		}
-
-		return nil
-	}); err != nil {
+	if err := b.Client.Create(b.Ctx, pod); err != nil {
 		return nil, err
 	}
 
@@ -466,6 +468,7 @@ func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1
 //
 //	shortUID: A 10-digit long shortened UID
 func getShortUID(obj client.Object) string {
+	// TODO: If the UID isn't there, we should generate something random OR throw an error.
 	return string(obj.GetUID())[0:shortUIDLength]
 }
 
