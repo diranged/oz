@@ -1,10 +1,12 @@
 package builders
 
 import (
+	"errors"
 	"fmt"
 
 	api "github.com/diranged/oz/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -88,6 +90,37 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 	b.Request.Status.PodName = pod.GetName()
 
 	return statusString, accessString, err
+}
+
+// VerifyAccessResources verifies that the Pod created in the
+// GenerateAccessResources() function is up and in the "Running" phase.
+func (b *PodAccessBuilder) VerifyAccessResources() (statusString string, err error) {
+	// logger := log.FromContext(b.Ctx)
+
+	// First, verify whether or not the PodName field has been set. If not,
+	// then some part of the reconciliation has previously failed.
+	if b.Request.Status.PodName == "" {
+		return "No Pod Assigned Yet", errors.New("status.podName not yet set")
+	}
+
+	// Next, get the Pod. If the pod-get fails, then we need to return that failure.
+	pod := &corev1.Pod{}
+	err = b.Client.Get(b.Ctx, types.NamespacedName{
+		Name:      b.Request.Status.PodName,
+		Namespace: b.Request.Namespace,
+	}, pod)
+	if err != nil {
+		return "Error Fetching Pod", err
+	}
+
+	// Now, check the Pod ready status
+	if pod.Status.Phase != corev1.PodRunning {
+		statusMsg := fmt.Sprintf("Pod in %s Phase", pod.Status.Phase)
+		return statusMsg, errors.New(statusMsg)
+	}
+
+	// Finally, return the pod phase
+	return fmt.Sprintf("Pod is %s", pod.Status.Phase), nil
 }
 
 func (b *PodAccessBuilder) generatePodTemplateSpec() (corev1.PodTemplateSpec, error) {

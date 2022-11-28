@@ -132,6 +132,14 @@ func (r *PodAccessRequestReconciler) Reconcile(
 		}, err
 	}
 
+	// VERIFICATION: Make sure the access resources (pod) are actually up and ready
+	_, err = r.verifyAccessResourcesReady(builder)
+	if err != nil {
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(PodWaitReconciliationInterval) * time.Second),
+		}, err
+	}
+
 	// FINAL: Set Status.Ready state
 	err = r.setReadyStatus(ctx, resource)
 	if err != nil {

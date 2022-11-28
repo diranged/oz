@@ -193,6 +193,40 @@ func (r *BaseRequestReconciler) verifyAccessResources(
 	return accessString, nil
 }
 
+// verifyAccessResourcesReady is a followup to the verifyAccessResources()
+// function - where we make sure that the .Status.PodName resource has come all
+// the way up and reached the "Running" phase.
+func (r *BaseRequestReconciler) verifyAccessResourcesReady(
+	builder builders.IPodAccessBuilder,
+) (accessString string, err error) {
+	logger := log.FromContext(builder.GetCtx())
+	logger.Info("Verifying that access resources are ready")
+
+	statusString, err := builder.VerifyAccessResources()
+	if err != nil {
+		builder.GetRequest().GetStatus().SetAccessMessage("")
+		r.updateCondition(
+			builder.GetCtx(), builder.GetRequest(),
+			ConditionAccessResourcesReady,
+			metav1.ConditionFalse,
+			"NotYetReady",
+			fmt.Sprintf("%s", err))
+		return accessString, err
+	}
+
+	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
+	if err := r.updateCondition(
+		builder.GetCtx(), builder.GetRequest(),
+		ConditionAccessResourcesReady,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		statusString); err != nil {
+		return accessString, err
+	}
+
+	return accessString, nil
+}
+
 // DeleteResource just deletes the resource immediately
 //
 // Returns:
