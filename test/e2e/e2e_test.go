@@ -28,11 +28,18 @@ var _ = Describe("oz-controller", Ordered, func() {
 			controllers.ConditionDurationsValid,
 			controllers.ConditionTargetRefExists,
 		}
-		requestSuccessConditions = []controllers.OzResourceConditionTypes{
+		execRequestSuccessConditions = []controllers.OzResourceConditionTypes{
 			controllers.ConditionDurationsValid,
 			controllers.ConditionTargetTemplateExists,
 			controllers.ConditionAccessStillValid,
 			controllers.ConditionAccessResourcesCreated,
+		}
+		podRequestSuccessConditions = []controllers.OzResourceConditionTypes{
+			controllers.ConditionDurationsValid,
+			controllers.ConditionTargetTemplateExists,
+			controllers.ConditionAccessStillValid,
+			controllers.ConditionAccessResourcesCreated,
+			controllers.ConditionAccessResourcesReady,
 		}
 
 		deploymentTemplate = filepath.Join(projectDir, "examples/deployment.yaml")
@@ -107,7 +114,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			}, time.Minute, time.Second).Should(Succeed())
 
 			// Verify it is Ready
-			for _, cond := range requestSuccessConditions {
+			for _, cond := range execRequestSuccessConditions {
 				EventuallyWithOffset(1, func() error {
 					cmd := exec.Command(
 						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
@@ -156,7 +163,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// them properly.
 			//
 			It("Should allow creating the Access Request", func() {
-				By("Creating ExecAccessRequest")
+				By("Creating PodAccessRequest")
 				// Create the Resource
 				EventuallyWithOffset(1, func() error {
 					cmd := exec.Command("kubectl", "apply", "-f", request, "-n", namespace)
@@ -165,7 +172,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				}, time.Minute, time.Second).Should(Succeed())
 
 				// Verify it is Ready
-				for _, cond := range requestSuccessConditions {
+				for _, cond := range podRequestSuccessConditions {
 					EventuallyWithOffset(1, func() error {
 						cmd := exec.Command(
 							"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
