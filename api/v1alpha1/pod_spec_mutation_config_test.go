@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -84,5 +85,47 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 				Expect(ret).To(Equal(1))
 			},
 		)
+
+		It("PatchPodTemplateSpec should return unmutated by default", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: Unmutated by default
+			Expect(ret).To(Equal(podTemplateSpec))
+		})
+
+		It("PatchPodTemplateSpec should mutate command", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{
+				Command: &[]string{"/bin/sleep"},
+				Args:    &[]string{"100"},
+				Resources: corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU: *resource.NewQuantity(1, resource.Format("DecimalExponent")),
+					},
+				},
+				Env: []corev1.EnvVar{
+					{Name: "FOO", Value: "BAR"},
+				},
+			}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: Command/Args is set
+			Expect(ret.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
+			Expect(ret.Spec.Containers[0].Args[0]).To(Equal("100"))
+
+			// VERIFY: Resources are set
+			Expect(ret.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("1"))
+
+			// VERIFY: EnvVar is set
+			Expect(len(ret.Spec.Containers[0].Env)).To(Equal(1))
+		})
 	})
 })

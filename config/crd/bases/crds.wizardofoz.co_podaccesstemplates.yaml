@@ -97,8 +97,9 @@ spec:
                       list is patched.
                     type: string
                   env:
-                    description: Env allows overriding specific  variables (or adding
-                      new ones). Note, we do not purge the original environmnt variables.
+                    description: Env allows overriding specific environment variables
+                      (or adding new ones). Note, we do not purge the original environmnt
+                      variables.
                     items:
                       description: EnvVar represents an environment variable present
                         in a Container.
