@@ -48,7 +48,7 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 
 	// Run the PodSpec through the optional mutation config
 	mutator := b.Template.Spec.ControllerTargetMutationConfig
-	podTemplateSpec, err = mutator.PatchPodTemplateSpec(podTemplateSpec)
+	podTemplateSpec, err = mutator.PatchPodTemplateSpec(b.Ctx, podTemplateSpec)
 	if err != nil {
 		logger.Error(err, "Failed to mutate PodSpec for PodAccessRequest")
 		return statusString, accessString, err

@@ -1,10 +1,12 @@
 package v1alpha1
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
@@ -57,24 +59,27 @@ type PodTemplateSpecMutationConfig struct {
 //
 //	int: The identifier in the PodSpec.Containers[] list of the "default" container to mutate.
 func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
+	ctx context.Context,
 	pod corev1.PodTemplateSpec,
 ) (int, error) {
+	logger := log.FromContext(ctx)
+	logger.V(1).Info("Determining \"default\" container ID from PodTemplateSpec...")
+
 	// Temporary placeholder for the default container name we're going to look for.
 	var defContName string
 
 	// If the user did not supply a DefaultContainerName spec, then try to find
 	// the well known annotation.
 	if c.DefaultContainerName == "" {
-		fmt.Printf("got here")
 		if val, ok := pod.ObjectMeta.Annotations[DefaultContainerAnnotationKey]; ok {
 			if ok {
-				fmt.Printf("setting cont name to %s", val)
+				logger.V(1).
+					Info(fmt.Sprintf("%s annotation detected, using %s", DefaultContainerAnnotationKey, val))
 				defContName = val
-			} else {
-				fmt.Printf("npe, not doing it")
 			}
 		}
 	} else {
+		logger.V(1).Info(fmt.Sprintf("Using template-supplied value %s", c.DefaultContainerName))
 		defContName = c.DefaultContainerName
 	}
 
@@ -82,12 +87,15 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 	// annotation field, we return 0.
 	if defContName == "" {
 		// Return 0 if no annotation was found either
+		logger.V(1).Info("No configuration detected, returning container ID 0")
 		return 0, nil
 	}
 
 	// Iterate through the containers
 	for i, container := range pod.Spec.Containers {
 		if container.Name == defContName {
+			logger.V(1).
+				Info(fmt.Sprintf("Discovered default container, returning container ID %d", i))
 			return i, nil
 		}
 	}
@@ -103,29 +111,35 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 //
 //	corev1.PodSpec: A new PodSpec object with the mutated configuration.
 func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
+	ctx context.Context,
 	orig corev1.PodTemplateSpec,
 ) (corev1.PodTemplateSpec, error) {
+	logger := log.FromContext(ctx)
 	n := *orig.DeepCopy()
 
-	defContainerID, err := c.getDefaultContainerID(orig)
+	defContainerID, err := c.getDefaultContainerID(ctx, orig)
 	if err != nil {
 		return orig, err
 	}
 
 	if c.Command != nil {
+		logger.V(1).Info(fmt.Sprintf("Overriding spec.containers[%d].command...", defContainerID))
 		n.Spec.Containers[defContainerID].Command = *c.Command
 		n.Spec.Containers[defContainerID].Args = []string{}
 	}
 
 	if c.Args != nil {
+		logger.V(1).Info(fmt.Sprintf("Overriding spec.containers[%d].args...", defContainerID))
 		n.Spec.Containers[defContainerID].Args = *c.Args
 	}
 
 	if !reflect.DeepEqual(c.Resources, corev1.ResourceRequirements{}) {
+		logger.V(1).Info(fmt.Sprintf("Overriding spec.containers[%d].resources...", defContainerID))
 		n.Spec.Containers[defContainerID].Resources = c.Resources
 	}
 
 	if len(c.Env) > 0 {
+		logger.V(1).Info(fmt.Sprintf("Adding spec.containers[%d].env...", defContainerID))
 		n.Spec.Containers[defContainerID].Env = append(
 			n.Spec.Containers[defContainerID].Env,
 			c.Env...)
