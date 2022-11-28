@@ -7,7 +7,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// PodSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
+const (
+	// DefaultContainerAnnotationKey is the name of the Key in the Pod
+	// Annotations that notates which container in the PodSpec is considered
+	// the "default" container for kubectl. This annotation is also used to
+	// determine which container is mutated by the
+	// PodTemplateSpecMutationConfig struct.
+	DefaultContainerAnnotationKey = "kubectl.kubernetes.io/default-container"
+)
+
+// PodTemplateSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
 // that should be applied. The primary use case is in the PodAccessTemplate, where an existing
 // controller (Deployment, DaemonSet, StatefulSet) can be used as the reference for the PodSpec
 // that is launched for the user. However, the operator may want to make modifications to the
@@ -17,7 +26,7 @@ import (
 // TODO: Add podLabels
 // TODO: Add nodeSelector
 // TODO: Add affinity
-type PodSpecMutationConfig struct {
+type PodTemplateSpecMutationConfig struct {
 	// DefaultContainerName allows the operator to define which container is considered the default
 	// container, and that is the container that this mutation configuration applies to. If not set,
 	// then the first container defined in the spec.containers[] list is patched.
@@ -47,30 +56,55 @@ type PodSpecMutationConfig struct {
 // Returns:
 //
 //	int: The identifier in the PodSpec.Containers[] list of the "default" container to mutate.
-func (c *PodSpecMutationConfig) getDefaultContainerID(pod corev1.PodSpec) (int, error) {
-	// By default, return 0.
+func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
+	pod corev1.PodTemplateSpec,
+) (int, error) {
+	// Temporary placeholder for the default container name we're going to look for.
+	var defContName string
+
+	// If the user did not supply a DefaultContainerName spec, then try to find
+	// the well known annotation.
 	if c.DefaultContainerName == "" {
+		fmt.Printf("got here")
+		if val, ok := pod.ObjectMeta.Annotations[DefaultContainerAnnotationKey]; ok {
+			if ok {
+				fmt.Printf("setting cont name to %s", val)
+				defContName = val
+			} else {
+				fmt.Printf("npe, not doing it")
+			}
+		}
+	} else {
+		defContName = c.DefaultContainerName
+	}
+
+	// At this point, if we didn't find the user supplied value OR the default
+	// annotation field, we return 0.
+	if defContName == "" {
+		// Return 0 if no annotation was found either
 		return 0, nil
 	}
 
 	// Iterate through the containers
-	for i, container := range pod.Containers {
-		if container.Name == c.DefaultContainerName {
+	for i, container := range pod.Spec.Containers {
+		if container.Name == defContName {
 			return i, nil
 		}
 	}
 
 	// Finally, return 0 if no match found
-	return -1, fmt.Errorf("could not find container named %s in PodSpec", c.DefaultContainerName)
+	return -1, fmt.Errorf("could not find container named %s in PodSpec", defContName)
 }
 
-// PatchPodSpec returns a mutated new PodSpec object based on the supplied spec, and the parameters
-// in the PodSpecMutationConfig struct.
+// PatchPodTemplateSpec returns a mutated new PodSpec object based on the
+// supplied spec, and the parameters in the PodSpecMutationConfig struct.
 //
 // Returns:
 //
 //	corev1.PodSpec: A new PodSpec object with the mutated configuration.
-func (c *PodSpecMutationConfig) PatchPodSpec(orig corev1.PodSpec) (corev1.PodSpec, error) {
+func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
+	orig corev1.PodTemplateSpec,
+) (corev1.PodTemplateSpec, error) {
 	n := *orig.DeepCopy()
 
 	defContainerID, err := c.getDefaultContainerID(orig)
@@ -79,20 +113,22 @@ func (c *PodSpecMutationConfig) PatchPodSpec(orig corev1.PodSpec) (corev1.PodSpe
 	}
 
 	if c.Command != nil {
-		n.Containers[defContainerID].Command = *c.Command
-		n.Containers[defContainerID].Args = []string{}
+		n.Spec.Containers[defContainerID].Command = *c.Command
+		n.Spec.Containers[defContainerID].Args = []string{}
 	}
 
 	if c.Args != nil {
-		n.Containers[defContainerID].Args = *c.Args
+		n.Spec.Containers[defContainerID].Args = *c.Args
 	}
 
 	if !reflect.DeepEqual(c.Resources, corev1.ResourceRequirements{}) {
-		n.Containers[defContainerID].Resources = c.Resources
+		n.Spec.Containers[defContainerID].Resources = c.Resources
 	}
 
 	if len(c.Env) > 0 {
-		n.Containers[defContainerID].Env = append(n.Containers[defContainerID].Env, c.Env...)
+		n.Spec.Containers[defContainerID].Env = append(
+			n.Spec.Containers[defContainerID].Env,
+			c.Env...)
 	}
 
 	return n, nil

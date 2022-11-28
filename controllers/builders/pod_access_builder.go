@@ -40,7 +40,7 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 	logger := log.FromContext(b.Ctx)
 
 	// First, get the desired PodSpec. If there's a failure at this point, return it.
-	podSpec, err := b.generatePodSpec()
+	podTemplateSpec, err := b.generatePodTemplateSpec()
 	if err != nil {
 		logger.Error(err, "Failed to generate PodSpec for PodAccessRequest")
 		return statusString, accessString, err
@@ -48,14 +48,14 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 
 	// Run the PodSpec through the optional mutation config
 	mutator := b.Template.Spec.ControllerTargetMutationConfig
-	podSpec, err = mutator.PatchPodSpec(podSpec)
+	podTemplateSpec, err = mutator.PatchPodTemplateSpec(podTemplateSpec)
 	if err != nil {
 		logger.Error(err, "Failed to mutate PodSpec for PodAccessRequest")
 		return statusString, accessString, err
 	}
 
 	// Generate a Pod for the user to access
-	pod, err := b.createPod(podSpec)
+	pod, err := b.createPod(podTemplateSpec)
 	if err != nil {
 		logger.Error(err, "Failed to create Pod for AccessRequest")
 		return statusString, accessString, err
@@ -90,6 +90,6 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 	return statusString, accessString, err
 }
 
-func (b *PodAccessBuilder) generatePodSpec() (corev1.PodSpec, error) {
-	return b.getPodSpecFromController()
+func (b *PodAccessBuilder) generatePodTemplateSpec() (corev1.PodTemplateSpec, error) {
+	return b.getPodTemplateFromController()
 }

@@ -232,13 +232,13 @@ func (b *BaseBuilder) getTargetPodSelectorLabels() (labels.Selector, error) {
 	}
 }
 
-func (b *BaseBuilder) getPodSpecFromController() (corev1.PodSpec, error) {
+func (b *BaseBuilder) getPodTemplateFromController() (corev1.PodTemplateSpec, error) {
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 	logger := log.FromContext(b.Ctx)
 
 	targetController, err := b.GetTargetRefResource()
 	if err != nil {
-		return corev1.PodSpec{}, err
+		return corev1.PodTemplateSpec{}, err
 	}
 
 	// TODO: Figure out a more generic way to do this that doesn't involve a bunch of checks like this
@@ -247,28 +247,28 @@ func (b *BaseBuilder) getPodSpecFromController() (corev1.PodSpec, error) {
 		controller, err := b.getDeployment(targetController)
 		if err != nil {
 			logger.Error(err, "Failed to find target Deployment")
-			return corev1.PodSpec{}, err
+			return corev1.PodTemplateSpec{}, err
 		}
-		return *controller.Spec.Template.Spec.DeepCopy(), nil
+		return *controller.Spec.Template.DeepCopy(), nil
 
 	case "DaemonSet":
 		controller, err := b.getDaemonSet(targetController)
 		if err != nil {
 			logger.Error(err, "Failed to find target DaemonSet")
-			return corev1.PodSpec{}, err
+			return corev1.PodTemplateSpec{}, err
 		}
-		return *controller.Spec.Template.Spec.DeepCopy(), nil
+		return *controller.Spec.Template.DeepCopy(), nil
 
 	case "StatefulSet":
 		controller, err := b.getStatefulSet(targetController)
 		if err != nil {
 			logger.Error(err, "Failed to find target StatefulSet")
-			return corev1.PodSpec{}, err
+			return corev1.PodTemplateSpec{}, err
 		}
-		return *controller.Spec.Template.Spec.DeepCopy(), nil
+		return *controller.Spec.Template.DeepCopy(), nil
 
 	default:
-		return corev1.PodSpec{}, errors.New("invalid input")
+		return corev1.PodTemplateSpec{}, errors.New("invalid input")
 	}
 }
 
@@ -410,14 +410,19 @@ func (b *BaseBuilder) createAccessRoleBinding() (*rbacv1.RoleBinding, error) {
 	return rb, nil
 }
 
-func (b *BaseBuilder) createPod(podSpec corev1.PodSpec) (*corev1.Pod, error) {
+func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1.Pod, error) {
 	logger := log.FromContext(b.Ctx)
 
 	// Desired pod
 	pod := &corev1.Pod{}
 	pod.Name = generateResourceName(b.Request)
 	pod.Namespace = b.Template.GetNamespace()
-	pod.Spec = podSpec
+	pod.Spec = *podTemplateSpec.Spec.DeepCopy()
+	pod.ObjectMeta.Annotations = podTemplateSpec.ObjectMeta.Annotations
+
+	// Disabled until we implement a selectorLabel filter.
+	//
+	// pod.ObjectMeta.Labels = podTemplateSpec.Labels
 
 	// Generate an emptyPod resource. We use this to define the type, name and namespace of the resource, which
 	// will be passed into the CreateOrUpdate function.

@@ -43,7 +43,7 @@ type PodAccessTemplateSpec struct {
 	// controller-sourced PodSpec. This setting is only valid if controllerTargetRef is set.
 	//
 	// +kubebuilder:validation:Optional
-	ControllerTargetMutationConfig *PodSpecMutationConfig `json:"controllerTargetMutationConfig,omitempty"`
+	ControllerTargetMutationConfig *PodTemplateSpecMutationConfig `json:"controllerTargetMutationConfig,omitempty"`
 
 	// PodSpec ...
 	//
@@ -122,7 +122,7 @@ func (t *PodAccessTemplate) Validate() error {
 	}
 
 	if (*t.Spec.ControllerTargetRef == CrossVersionObjectReference{}) &&
-		reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodSpecMutationConfig{}) {
+		reflect.DeepEqual(t.Spec.ControllerTargetMutationConfig, PodTemplateSpecMutationConfig{}) {
 		return errors.New(
 			"cannot set Spec.controllerTargetMutationConfig if Spec.controllerTargetRef is not also set",
 		)

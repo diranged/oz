@@ -3,6 +3,7 @@
 [exec_access_template]: API.md#execaccesstemplate
 [pod_access_request]: API.md#podaccessrequest
 [pod_access_template]: API.md#podaccesstemplate
+[pts_mutation_config]: API.md#crds.wizardofoz.co/v1alpha1.PodTemplateSpecMutationConfig
 [kube_crd]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
 [kube_rbac]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [kube_subjects]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-subjects
@@ -10,6 +11,7 @@
 # Oz RBAC Controller
 
 [![ci](https://github.com/diranged/oz/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/diranged/oz/actions/workflows/main.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/diranged/oz/badge.svg?branch=main)](https://coveralls.io/github/diranged/oz?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/diranged/oz)](https://goreportcard.com/report/github.com/diranged/oz)
 
 _The Wizard of Oz_: The "Great and Powerfull Oz", or also known as the "man
@@ -143,13 +145,153 @@ go install github.com/diranged/oz/ozctl@$RELEASE
 
 ## Setup Examples
 
-### Developer Access into a Temporary Pod
+### Developer Access into a Temporary (Dedicated) Pod
 
 For all of the use cases where a developer needs access into a "prod" or
 "staging"-like environment, we recommend the
 [`PodAccessTemplate`][pod_access_template] and its corresponding
-[`PodAccessRequest`][pod_access_request].
+[`PodAccessRequest`][pod_access_request]. The motivation behind this model is
+that you can provide developers with predefined access into a workspace that
+has access to the various resources (databases, code, tools) that are necessary
+- but without putting them directly in the path of traffic.
 
+Example use cases:
+
+* Manually executing a schema migration
+* Debugging a piece of code against production data
+* Running a [Django Shell](https://realpython.com/lessons/django-shell/) command
+
+#### [`PodAccessTemplate`][pod_access_template]
+
+[pts]: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core
+[dep]: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#deploymentspec-v1-apps
+
+A simple [`PodAccessTemplate`][pod_access_template] informs *Oz* how to build a
+dedicated `Pod`, `Role` and `RoleBinding` for the request. The Pod's `PodSpec`
+is created by copying an exising [`PodTemplateSpec`][pts] from an existing
+controller ([Deployment][dep], etc..), then running it through the
+[`PodTemplateSpecMutationConfig`][pts_mutation_config] settings, and outputting
+a final `PodTemplateSpec`.
+
+Starting off, here's a simple `Deployment` example to illustrate our point:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example
+spec:
+  replicas: 5
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      oz-examples: example
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: true
+      labels:
+        oz-examples: example
+    spec:
+      containers:
+      - image: nginx:latest
+        name: nginx
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+          - name: FOO
+            value: foo
+        resources:
+          limits:
+            cpu: 1
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+```
+
+Given this above example, if we create a `Pod` purely directly from the
+`.spec.template` field, we will end up with a few issues that may be
+challenging for a development environment.
+
+* The `spec.template.spec.resources.limits` settings may be too restrictive for
+  the particular shell commands we need to run.
+* We may not want the default container entrypoint to run (thus avoiding the
+  application startup).
+* We _definitely_ do not want the `oz-examples: example` label in place,
+  because that would make our new pod eligable to receive traffic from a
+  `Service`.
+
+With that in mind, here's an example [`PodAccessTemplate`][pod_access_template]
+that might work.
+
+```yaml
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: PodAccessTemplate
+metadata:
+  name: deployment-example
+spec:
+  accessConfig:
+    # How long can a PodAccessRequest make a request for?
+    maxDuration: 2h
+
+    # What is the default duration for a request to live, if not otherwise
+    # specified?
+    defaultDuration: 1h
+
+    # A list of Kubernetes Groups that are allowed to request access through
+    # this template.
+    allowedGroups:
+      - admins
+      - devs
+
+  # A reference to the Controller (Deployment) where we want to get our Pod
+  # configuration from.
+  controllerTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example
+
+  # Mutations that are applied to the PodSpec before it is created
+  controllerTargetMutationConfig:
+    # Override the .spec.containers[0].command field so that we do not start up
+    # Nginx or other code.
+    command: [/bin/sleep, '999999']
+
+    # Override the all-important FOO variable for the purpose of our test
+    # environment.
+    env:
+      - name: FOO
+        value: bar
+
+    # Override the default resources requested 
+    resources:
+      limits:
+        memory: 2Gi
+        cpu: 2
+      requests:
+        memory: 512Mi
+        cpu: 0
+
+  # The maximum memory a PodAccessRequest can request?
+  #
+  # TODO: Not implemented
+  # maxMemory: 4Gi
+
+  # The maximum CPUs a PodAccessRequest can request?
+  #
+  # TODO: Not implemented
+  maxCpu: 2
+
+  # The maximum ephemeral storage a PodAccessRequest can request?
+  #
+  # TODO: Not implemented
+  maxStorage: 1Gi
+```
+
+#### [`ExecAccessTemplate`][exec_access_template]
 
 ### Exec Access into Existing Pods
 

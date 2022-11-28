@@ -840,8 +840,8 @@ CrossVersionObjectReference
 <td>
 <code>controllerTargetMutationConfig</code><br/>
 <em>
-<a href="#crds.wizardofoz.co/v1alpha1.PodSpecMutationConfig">
-PodSpecMutationConfig
+<a href="#crds.wizardofoz.co/v1alpha1.PodTemplateSpecMutationConfig">
+PodTemplateSpecMutationConfig
 </a>
 </em>
 </td>
@@ -961,8 +961,8 @@ CrossVersionObjectReference
 <td>
 <code>controllerTargetMutationConfig</code><br/>
 <em>
-<a href="#crds.wizardofoz.co/v1alpha1.PodSpecMutationConfig">
-PodSpecMutationConfig
+<a href="#crds.wizardofoz.co/v1alpha1.PodTemplateSpecMutationConfig">
+PodTemplateSpecMutationConfig
 </a>
 </em>
 </td>
@@ -1053,13 +1053,13 @@ CoreStatus
 </tr>
 </tbody>
 </table>
-<h3 id="crds.wizardofoz.co/v1alpha1.PodSpecMutationConfig">PodSpecMutationConfig
+<h3 id="crds.wizardofoz.co/v1alpha1.PodTemplateSpecMutationConfig">PodTemplateSpecMutationConfig
 </h3>
 <p>
 (<em>Appears on:</em><a href="#crds.wizardofoz.co/v1alpha1.PodAccessTemplateSpec">PodAccessTemplateSpec</a>)
 </p>
 <div>
-<p>PodSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
+<p>PodTemplateSpecMutationConfig provides a common pattern for describing mutations to an existing PodSpec
 that should be applied. The primary use case is in the PodAccessTemplate, where an existing
 controller (Deployment, DaemonSet, StatefulSet) can be used as the reference for the PodSpec
 that is launched for the user. However, the operator may want to make modifications to the
