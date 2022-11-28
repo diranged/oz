@@ -55,8 +55,26 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 		It(
 			"getDefaultContainerID should return 1 by if we set the container name to contB",
 			func() {
-				// Basic resource with no mutation config
+				// Basic resource with simple container identifier
 				config := &PodTemplateSpecMutationConfig{DefaultContainerName: "contB"}
+
+				// Run it
+				ret, err := config.getDefaultContainerID(ctx, podTemplateSpec)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// VERIFY: We got back '1'
+				Expect(ret).To(Equal(1))
+			},
+		)
+
+		It(
+			"getDefaultContainerID should return 1 by if the annotation is set",
+			func() {
+				// Patch the deployment
+				podTemplateSpec.Annotations[DefaultContainerAnnotationKey] = "contB"
+
+				// Basic resource with no mutation config
+				config := &PodTemplateSpecMutationConfig{}
 
 				// Run it
 				ret, err := config.getDefaultContainerID(ctx, podTemplateSpec)

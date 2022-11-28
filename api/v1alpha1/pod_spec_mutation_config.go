@@ -42,7 +42,7 @@ type PodTemplateSpecMutationConfig struct {
 	// Args will override the Spec.containers[0].args property.
 	Args *[]string `json:"args,omitempty"`
 
-	// Env allows overriding specific  variables (or adding new ones). Note, we do not
+	// Env allows overriding specific environment variables (or adding new ones). Note, we do not
 	// purge the original environmnt variables.
 	Env []corev1.EnvVar `json:"env,omitempty"`
 
