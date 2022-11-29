@@ -214,10 +214,9 @@ spec:
                     type: array
                   keepTerminationGracePeriod:
                     default: false
-                    description: Optionally (but by default) wipe out the TerminationGracePeriodSeconds
-                      setting for the PodSpec. This ensures that these temporary pods
-                      are terminated immediately upon the AccessRequest expiring or
-                      being deleted.
+                    description: By default, Oz wipes out the Spec.terminationGracePeriodSeconds
+                      setting on Pods to ensure that they can be killed as soon as
+                      the AccessRequest expires. This flag overrides that behavior.
                     type: boolean
                   resources:
                     description: If supplied these resource requirements will override

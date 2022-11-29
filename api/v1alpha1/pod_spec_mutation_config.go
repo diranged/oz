@@ -51,9 +51,9 @@ type PodTemplateSpecMutationConfig struct {
 	// containers.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// Optionally (but by default) wipe out the TerminationGracePeriodSeconds
-	// setting for the PodSpec. This ensures that these temporary pods are
-	// terminated immediately upon the AccessRequest expiring or being deleted.
+	// By default, Oz wipes out the Spec.terminationGracePeriodSeconds setting
+	// on Pods to ensure that they can be killed as soon as the AccessRequest
+	// expires. This flag overrides that behavior.
 	//
 	// +kubebuilder:default:=false
 	KeepTerminationGracePeriod bool `json:"keepTerminationGracePeriod,omitempty"`
