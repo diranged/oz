@@ -30,9 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	zaplogfmt "github.com/jsternberg/zap-logfmt"
+
 	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 	"github.com/diranged/oz/controllers"
-	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -178,6 +179,10 @@ func main() {
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
+		os.Exit(1)
+	}
+	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
