@@ -50,6 +50,13 @@ type PodTemplateSpecMutationConfig struct {
 	// the pod. Note though that we do not override all of the resource requests in the Pod because there may be many
 	// containers.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// Optionally (but by default) wipe out the TerminationGracePeriodSeconds
+	// setting for the PodSpec. This ensures that these temporary pods are
+	// terminated immediately upon the AccessRequest expiring or being deleted.
+	//
+	// +kubebuilder:default:=false
+	KeepTerminationGracePeriod bool `json:"keepTerminationGracePeriod,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
@@ -120,6 +127,12 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 	defContainerID, err := c.getDefaultContainerID(ctx, orig)
 	if err != nil {
 		return orig, err
+	}
+
+	// By default we purge the Spec.terminationGracePeriodSeconds value.
+	if !c.KeepTerminationGracePeriod {
+		logger.V(1).Info(fmt.Sprintf("Purging spec.terminationGracePeriodSeconds..."))
+		n.Spec.TerminationGracePeriodSeconds = nil
 	}
 
 	if c.Command != nil {

@@ -212,6 +212,13 @@ spec:
                       - name
                       type: object
                     type: array
+                  keepTerminationGracePeriod:
+                    default: false
+                    description: Optionally (but by default) wipe out the TerminationGracePeriodSeconds
+                      setting for the PodSpec. This ensures that these temporary pods
+                      are terminated immediately upon the AccessRequest expiring or
+                      being deleted.
+                    type: boolean
                   resources:
                     description: If supplied these resource requirements will override
                       the default .Spec.containers[0].resource requested for the the
