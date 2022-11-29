@@ -1,4 +1,4 @@
-name: Controller Release
+name: Release
 
 on:
   push:
@@ -11,5 +11,4 @@ jobs:
   publish:
     uses: ./.github/workflows/publish.yaml
     with:
-      push: true
-      release: true
+      publish: true
