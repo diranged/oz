@@ -145,7 +145,7 @@ func (r *PodAccessRequestReconciler) Reconcile(
 		// TODO: Check the error type. If it's a non-failure, then be more
 		// intelligent
 		return ctrl.Result{
-			RequeueAfter: time.Duration(time.Duration(PodWaitReconciliationInterval) * time.Second),
+			RequeueAfter: time.Duration(PodWaitReconciliationInterval * int(time.Second)),
 		}, nil
 	}
 

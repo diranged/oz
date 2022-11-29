@@ -1,5 +1,11 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 
+ifeq (,$(PUBLISH))
+GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
+else
+GORELEASER_FLAGS := --rm-dist
+endif
+
 ## Tool Binaries
 REVIVE_VER ?= v1.2.4
 REVIVE     ?= $(LOCALBIN)/revive
@@ -10,12 +16,14 @@ GOFUMPT     ?= $(LOCALBIN)/gofumpt
 GOLINES_VER ?= v0.11.0
 GOLINES     ?= $(LOCALBIN)/golines
 
+GORELEASER_VER ?= v1.13.1
+GORELEASER     ?= $(LOCALBIN)/goreleaser
+
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
 GEN_CRD_API_DOCS     ?= $(LOCALBIN)/go-crd-api-reference-docs
 
-.PHONY: docker-load
-docker-load:
-	kind load docker-image $(IMG) -n $(KIND_CLUSTER_NAME)
+goreleaser:
+
 
 .PHONY: cover
 cover:
@@ -32,6 +40,11 @@ lint: revive
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e:
 	go test ./test/e2e/ -v -ginkgo.v
+
+.PHONY: goreleaser
+goreleaser: $(GORELEASER)
+$(GORELEASER):
+	GOBIN=$(LOCALBIN) go install github.com/goreleaser/goreleaser@$(GORELEASER_VER)
 
 .PHONY: gofumpt
 gofumpt: $(GOFUMPT)
@@ -53,6 +66,18 @@ revive: $(REVIVE) ## Download revive locally if necessary.
 $(REVIVE): $(LOCALBIN) Custom.mk
 	GOBIN=$(LOCALBIN) go install github.com/mgechev/revive@$(REVIVE_VER)
 
+.PHONY: release
+release: $(GORELEASER)
+	IMG=$(IMG) $(GORELEASER) release $(GORELEASER_FLAGS)
+
+.PHONY: build
+build: $(GORELEASER)
+	$(GORELEASER) release --snapshot --rm-dist
+
+.PHONY: docker-load
+docker-load:
+	kind load docker-image $(IMG) -n $(KIND_CLUSTER_NAME)
+
 gen-crd-api-reference-docs: $(GEN_CRD_API_DOCS)
 $(GEN_CRD_API_DOCS):
 	GOBIN=$(LOCALBIN) go install github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)
@@ -65,13 +90,3 @@ godocs: $(GEN_CRD_API_DOCS)
 		-template-dir $$(go env GOMODCACHE)/github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)/template \
 		-out-file API.md \
 		-v 5
-
-##@ Build CLI
-.PHONY: cli
-cli: outputs/ozctl-osx outputs/ozctl-osx-arm64
-
-outputs/ozctl-osx: ozctl controllers api $(SOURCE)
-	GOOS=darwin GOARCH=amd64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl
-
-outputs/ozctl-osx-arm64: ozctl controllers api $(SOURCE)
-	GOOS=darwin GOARCH=arm64 LDFLAGS=$(RELEASE_LDFLAGS) go build -o $@ ./ozctl

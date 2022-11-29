@@ -10,7 +10,7 @@ testbin/*
 Dockerfile.cross
 
 # Binary outputs
-outputs/*
+dist
 
 # docker-buildx
 .buildx_cache
