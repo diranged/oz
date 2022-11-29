@@ -113,7 +113,9 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	// VERIFICATION: Verifies the requested duration
 	err = r.verifyDuration(builder)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 
 	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.

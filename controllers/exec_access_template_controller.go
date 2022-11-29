@@ -81,13 +81,17 @@ func (r *ExecAccessTemplateReconciler) Reconcile(
 	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
 	err = r.VerifyTargetRef(builder)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 
 	// VERIFICATION: Make sure the DefaultDuration and MaxDuration settings are valid
 	err = r.VerifyMiscSettings(builder)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 
 	// TODO:
@@ -96,7 +100,9 @@ func (r *ExecAccessTemplateReconciler) Reconcile(
 	// FINAL: Set Status.Ready state
 	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{
+			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
+		}, err
 	}
 	return ctrl.Result{
 		RequeueAfter: time.Duration(r.ReconcililationInterval * int(time.Minute)),
