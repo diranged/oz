@@ -10,10 +10,6 @@ const (
 	// checks of the target resources that our controllers are managing.
 	DefaultReconciliationInterval int = 5
 
-	// ErrorReconciliationInterval defines how long (in seconds) in between a failed reconciliation
-	// loop before the next one should kick off.
-	ErrorReconciliationInterval int = 30
-
 	// PodWaitReconciliationInterval is how long between attemps to check
 	// whether or not a Target Pod has come up.
 	PodWaitReconciliationInterval int = 5

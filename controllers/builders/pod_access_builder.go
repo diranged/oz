@@ -105,7 +105,7 @@ func (b *PodAccessBuilder) VerifyAccessResources() (statusString string, err err
 
 	// Next, get the Pod. If the pod-get fails, then we need to return that failure.
 	pod := &corev1.Pod{}
-	err = b.Client.Get(b.Ctx, types.NamespacedName{
+	err = b.APIReader.Get(b.Ctx, types.NamespacedName{
 		Name:      b.Request.Status.PodName,
 		Namespace: b.Request.Namespace,
 	}, pod)
