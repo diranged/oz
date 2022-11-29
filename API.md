@@ -1161,6 +1161,23 @@ the annotations, make sure to set the <code>purgeAnnotations</code> flag to <cod
 </tr>
 <tr>
 <td>
+<code>podLabels</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>If supplied, Oz will insert these
+<a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">labels</a>
+into the target
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core"><code>PodTemplateSpec</code></a>.
+By default Oz purges all Labels from pods (to prevent the new Pod from
+having traffic routed to it), so this is effectively a new set of labels
+applied to the Pod.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>purgeAnnotations</code><br/>
 <em>
 bool

@@ -9,7 +9,6 @@ import (
 	api "github.com/diranged/oz/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -122,78 +121,23 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 			}
 		})
 
-		It("generatePodTemplateSpec should return unmutated spec by default", func() {
+		// TODO: Write tests that check the builder logic, more than that check the nested api logic
+		It("generatePodTemplateSpec should return unmutated without error", func() {
 			// Get the original pod template spec...
 			podTemplateSpec, err := builder.generatePodTemplateSpec()
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Run the PodSpec through the optional mutation config
 			mutator := template.Spec.ControllerTargetMutationConfig
-			mutatedSpec, err := mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			ret, err := mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
 			Expect(err).To(Not(HaveOccurred()))
 
+			// Wipe: metadata.labels (not optional)
+			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
+			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+
 			// VERIFY: The original spec and new spec are identical
-			Expect(podTemplateSpec).To(Equal(mutatedSpec))
+			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
 		})
-
-		It(
-			"generatePodTemplateSpec should find the default container to mutate via annotation",
-			func() {
-				template.Spec.ControllerTargetMutationConfig = &api.PodTemplateSpecMutationConfig{
-					Command: &[]string{"/bin/sleep"},
-					Args:    &[]string{"100"},
-				}
-				// Get the original pod template spec...
-				podTemplateSpec, err := builder.generatePodTemplateSpec()
-				Expect(err).To(Not(HaveOccurred()))
-
-				// Run the PodSpec through the optional mutation config
-				mutator := template.Spec.ControllerTargetMutationConfig
-				podTemplateSpec, err = mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
-				Expect(err).To(Not(HaveOccurred()))
-
-				// VERIFY: contB (container 0) had some mutations
-				Expect(len(podTemplateSpec.Spec.Containers[1].Command)).To(Equal(1))
-				Expect(podTemplateSpec.Spec.Containers[1].Command[0]).To(Equal("/bin/sleep"))
-				Expect(podTemplateSpec.Spec.Containers[1].Args[0]).To(Equal("100"))
-			},
-		)
-
-		It(
-			"generatePodTemplateSpec should find the default container based on the user supplied value",
-			func() {
-				// Create a default PodAccessTemplate. We'll mutate it for specific tests.
-				cpuReq, _ := resource.ParseQuantity("1")
-				template.Spec.ControllerTargetMutationConfig = &api.PodTemplateSpecMutationConfig{
-					DefaultContainerName: "contA",
-					Command:              &[]string{"/bin/sleep"},
-					Args:                 &[]string{"100"},
-					Env: []corev1.EnvVar{
-						{Name: "FOO", Value: "BAR"},
-					},
-					Resources: corev1.ResourceRequirements{
-						Requests: map[corev1.ResourceName]resource.Quantity{
-							"cpu": cpuReq,
-						},
-					},
-				}
-
-				// Get the original pod template spec...
-				podTemplateSpec, err := builder.generatePodTemplateSpec()
-				Expect(err).To(Not(HaveOccurred()))
-
-				// Run the PodSpec through the optional mutation config
-				mutator := template.Spec.ControllerTargetMutationConfig
-				podTemplateSpec, err = mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
-				Expect(err).To(Not(HaveOccurred()))
-
-				// VERIFY: contA (container 0) had some mutations
-				Expect(len(podTemplateSpec.Spec.Containers[0].Command)).To(Equal(1))
-				Expect(podTemplateSpec.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
-				Expect(podTemplateSpec.Spec.Containers[0].Args[0]).To(Equal("100"))
-				Expect(podTemplateSpec.Spec.Containers[0].Env[0].Name).To(Equal("FOO"))
-				Expect(podTemplateSpec.Spec.Containers[0].Env[0].Value).To(Equal("BAR"))
-			},
-		)
 	})
 })

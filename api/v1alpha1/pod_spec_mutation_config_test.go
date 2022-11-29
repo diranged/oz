@@ -143,6 +143,8 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			expectedPodTemplateSpec.Spec.Containers[0].ReadinessProbe = nil
 			// Wipe: startupProbe
 			expectedPodTemplateSpec.Spec.Containers[0].StartupProbe = nil
+			// Wipe: metadata.labels
+			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
 
 			// VERIFY: Unmutated by default
 			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
@@ -161,8 +163,12 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
 			Expect(err).To(Not(HaveOccurred()))
 
+			// Wipe: metadata.labels (not optional)
+			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
+			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+
 			// VERIFY: Unmutated by default
-			Expect(ret).To(Equal(podTemplateSpec))
+			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
 		})
 
 		It("PatchPodTemplateSpec should purge default annotations if requested", func() {
@@ -199,6 +205,9 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 				PodAnnotations: &map[string]string{
 					"TestAnnotation": "value",
 				},
+				PodLabels: &map[string]string{
+					"TestLabelTwo": "bar",
+				},
 				Env: []corev1.EnvVar{
 					{Name: "FOO", Value: "BAR"},
 				},
@@ -214,6 +223,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 			// VERIFY: New annotation is inserted
 			Expect(ret.ObjectMeta.Annotations["TestAnnotation"]).To(Equal("value"))
+			Expect(ret.ObjectMeta.Labels["TestLabelTwo"]).To(Equal("bar"))
 
 			// VERIFY: Resources are set
 			Expect(ret.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("1"))

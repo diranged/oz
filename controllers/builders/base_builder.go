@@ -373,10 +373,7 @@ func (b *BaseBuilder) createPod(podTemplateSpec corev1.PodTemplateSpec) (*corev1
 	// Finish filling out the desired PodSpec at this point.
 	pod.Spec = *podTemplateSpec.Spec.DeepCopy()
 	pod.ObjectMeta.Annotations = podTemplateSpec.ObjectMeta.Annotations
-
-	// Disabled until we implement a selectorLabel filter.
-	//
-	// pod.ObjectMeta.Labels = podTemplateSpec.Labels
+	pod.ObjectMeta.Labels = podTemplateSpec.ObjectMeta.Labels
 
 	// Set the ownerRef for the Deployment
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
