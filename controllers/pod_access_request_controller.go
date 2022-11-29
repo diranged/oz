@@ -113,9 +113,7 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	// VERIFICATION: Verifies the requested duration
 	err = r.verifyDuration(builder)
 	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
-		}, err
+		return ctrl.Result{}, err
 	}
 
 	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
@@ -129,25 +127,32 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	// set up a 30 second delay before the next reconciliation attempt.
 	_, err = r.verifyAccessResources(builder)
 	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
-		}, err
+		return ctrl.Result{}, err
 	}
 
 	// VERIFICATION: Make sure the access resources (pod) are actually up and ready
 	_, err = r.verifyAccessResourcesReady(builder)
 	if err != nil {
+		// SPECIAL TREATMENT: An error here means, requeue this and run it
+		// again in few seconds while we wait for the Pod to come up. It does
+		// not necessarily mean a real failure happened.
+		//
+		// The requeue logic of the requeueAfter setting only takes effect if
+		// err==nil:
+		//
+		//   https://github.com/kubernetes-sigs/controller-runtime/blob/053233652960f536727e1980eb0ad8ceb9bef096/pkg/internal/controller/controller.go#L214-L235
+		//
+		// TODO: Check the error type. If it's a non-failure, then be more
+		// intelligent
 		return ctrl.Result{
 			RequeueAfter: time.Duration(time.Duration(PodWaitReconciliationInterval) * time.Second),
-		}, err
+		}, nil
 	}
 
 	// FINAL: Set Status.Ready state
 	err = r.setReadyStatus(ctx, resource)
 	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: time.Duration(time.Duration(ErrorReconciliationInterval) * time.Second),
-		}, err
+		return ctrl.Result{}, err
 	}
 
 	// Exit Reconciliation Loop
