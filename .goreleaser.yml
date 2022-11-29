@@ -79,3 +79,9 @@ docker_manifests:
     image_templates:
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-amd64
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-arm64v8
+
+# https://goreleaser.com/customization/release/
+release:
+  github:
+    disable: false
+    prerelease: auto
