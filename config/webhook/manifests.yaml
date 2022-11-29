@@ -1,0 +1,54 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-crds-wizardofoz-co-v1alpha1-podaccessrequest
+  failurePolicy: Fail
+  name: mpodaccessrequest.kb.io
+  rules:
+  - apiGroups:
+    - crds.wizardofoz.co
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - podaccessrequests
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-crds-wizardofoz-co-v1alpha1-podaccessrequest
+  failurePolicy: Fail
+  name: vpodaccessrequest.kb.io
+  rules:
+  - apiGroups:
+    - crds.wizardofoz.co
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - podaccessrequests
+  sideEffects: None

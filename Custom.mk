@@ -38,8 +38,12 @@ lint: revive
 	$(REVIVE) -config revive.toml -formatter stylish ./...
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
-test-e2e:
+test-e2e: cert-manager
 	go test ./test/e2e/ -v -ginkgo.v
+
+.PHONY: cert-manager
+cert-manager:
+	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.10.1/cert-manager.yaml
 
 .PHONY: goreleaser
 goreleaser: $(GORELEASER)

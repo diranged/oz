@@ -19,7 +19,7 @@ jobs:
       - name: Run Tests
         env:
           KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT: true
-        run: make test
+        run: make cert-manager test
 
       - name: Report coverage
         run: make cover
