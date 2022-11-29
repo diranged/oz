@@ -30,7 +30,7 @@ func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 	cmd.Printf(logNotice("%s created!\n"), req.GetName())
 }
 
-func waitForAcessRequest(cmd *cobra.Command, req api.IRequestResource) {
+func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 	// Get our Kubernetes Client
 	client, _ := getKubeClient()
 

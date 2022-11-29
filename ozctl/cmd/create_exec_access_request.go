@@ -95,7 +95,7 @@ var createExecAccessRequestCmd = &cobra.Command{
 		createAccessRequest(cmd, req)
 
 		// Wait until the access request is ready
-		waitForAcessRequest(cmd, req)
+		waitForAccessRequest(cmd, req)
 	},
 }
 
@@ -104,6 +104,8 @@ func init() {
 		StringVarP(&targetPod, "target-pod", "p", "", "Optional name of a specific target pod to request access for")
 	createExecAccessRequestCmd.Flags().
 		StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
+	createExecAccessRequestCmd.Flags().
+		StringVarP(&waitTime, "wait", "w", "1m", "Duration to wait for the access request to be fully ready. Valid time units are: ns, us, ms, s, m, h.")
 	createExecAccessRequestCmd.Flags().
 		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `ExecAccessRequest` objects.")
 
