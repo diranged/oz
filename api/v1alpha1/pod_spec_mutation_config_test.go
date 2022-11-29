@@ -165,6 +165,27 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			Expect(ret).To(Equal(podTemplateSpec))
 		})
 
+		It("PatchPodTemplateSpec should purge default annotations if requested", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{
+				PurgeAnnotations: true,
+				PodAnnotations: &map[string]string{
+					"TestAnnotation": "value",
+				},
+			}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: Only one annotation found
+			Expect(ret.ObjectMeta.Annotations).To(Equal(
+				map[string]string{
+					"TestAnnotation": "value",
+				},
+			))
+		})
+
 		It("PatchPodTemplateSpec should mutate command", func() {
 			// Basic resource with no mutation config
 			config := &PodTemplateSpecMutationConfig{
@@ -174,6 +195,9 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 					Limits: corev1.ResourceList{
 						corev1.ResourceCPU: *resource.NewQuantity(1, resource.Format("DecimalExponent")),
 					},
+				},
+				PodAnnotations: &map[string]string{
+					"TestAnnotation": "value",
 				},
 				Env: []corev1.EnvVar{
 					{Name: "FOO", Value: "BAR"},
@@ -187,6 +211,9 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// VERIFY: Command/Args is set
 			Expect(ret.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
 			Expect(ret.Spec.Containers[0].Args[0]).To(Equal("100"))
+
+			// VERIFY: New annotation is inserted
+			Expect(ret.ObjectMeta.Annotations["TestAnnotation"]).To(Equal("value"))
 
 			// VERIFY: Resources are set
 			Expect(ret.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("1"))
