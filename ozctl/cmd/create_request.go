@@ -61,7 +61,7 @@ func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 		}
 
 		if waitCtx.Err() != nil {
-			fmt.Printf(logError("Error - timed out waiting for %s to be ready"), req.GetName())
+			fmt.Printf(logError("\nError - timed out waiting for %s to be ready\n"), req.GetName())
 			for _, cond := range *req.GetStatus().GetConditions() {
 				cmd.Printf(
 					"Condition %s, State: %s, Reason: %s, Message: %s\n",
