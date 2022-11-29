@@ -36,6 +36,7 @@ dockers:
   - image_templates: ["{{ .Env.IMG }}"]
     dockerfile: Dockerfile
     use: buildx
+    skip_push: true
 
   # Potential Release - AMD64
   - image_templates: ["ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-amd64"]
@@ -70,7 +71,8 @@ dockers:
       - --label=org.opencontainers.image.licenses=Apache-2.0
 
 docker_manifests:
-  - name_template: ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}
+  - id:
+    name_template: ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}
     image_templates:
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-amd64
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-arm64v8
@@ -80,8 +82,15 @@ docker_manifests:
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-amd64
       - ghcr.io/diranged/{{ .ProjectName }}:{{ .Version }}-arm64v8
 
-# https://goreleaser.com/customization/release/
-release:
-  github:
-    disable: false
-    prerelease: auto
+# https://goreleaser.com/customization/changelog/
+changelog:
+  use: github
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
