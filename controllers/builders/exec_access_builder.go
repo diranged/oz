@@ -24,6 +24,12 @@ type ExecAccessBuilder struct {
 	Template *api.ExecAccessTemplate
 }
 
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var (
+	_ IBuilder = &ExecAccessBuilder{}
+	_ IBuilder = (*ExecAccessBuilder)(nil)
+)
+
 // GenerateAccessResources is the primary function called by the reconciler to this Builder object. This function
 // is responsible for building all of the temporary access resources, and returning back information about them
 // to the user. Any error causes this function to stop and fail.

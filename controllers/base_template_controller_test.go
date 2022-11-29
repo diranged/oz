@@ -22,7 +22,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 		var (
 			deployment *appsv1.Deployment
 			template   *api.ExecAccessTemplate
-			builder    *builders.BaseBuilder
+			builder    builders.IBuilder
 			r          *BaseTemplateReconciler
 			fakeClient client.Client
 			ctx        = context.Background()

@@ -13,6 +13,10 @@ const (
 	// ErrorReconciliationInterval defines how long (in seconds) in between a failed reconciliation
 	// loop before the next one should kick off.
 	ErrorReconciliationInterval int = 30
+
+	// PodWaitReconciliationInterval is how long between attemps to check
+	// whether or not a Target Pod has come up.
+	PodWaitReconciliationInterval int = 5
 )
 
 // OzResourceConditionTypes defines a set of known Status.Condition[].ConditionType fields that are
@@ -35,6 +39,10 @@ const (
 	// ConditionAccessResourcesCreated indicates whether or not the target access request resources
 	// have been properly created.
 	ConditionAccessResourcesCreated OzResourceConditionTypes = "AccessResourcesCreated"
+
+	// ConditionAccessResourcesReady indicates that all of the "access
+	// resources" (eg, a Pod) are up and in the ready state.
+	ConditionAccessResourcesReady OzResourceConditionTypes = "AccessResourcesReady"
 
 	// ConditionTargetRefExists indicates whether or not an AccessTemplate is pointing to a valid
 	// Controller.

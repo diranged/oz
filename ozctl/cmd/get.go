@@ -53,7 +53,8 @@ var getCmd = &cobra.Command{
 			}))
 
 		if err := printr.PrintObj(obj, os.Stdout); err != nil {
-			panic(err.Error())
+			cmd.Printf(`Error: %s`, err)
+			os.Exit(1)
 		}
 	},
 }
