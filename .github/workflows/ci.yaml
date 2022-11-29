@@ -31,7 +31,6 @@ jobs:
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/docgen.yaml
 
-
   lint:
     needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
@@ -43,12 +42,12 @@ jobs:
     uses: ./.github/workflows/test.yaml
 
   test-e2e:
-    needs: detect-noop
+    needs: build
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/test-e2e.yaml
 
   publish-dry:
-    needs: detect-noop
+    needs: build
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/publish.yaml
     with:
