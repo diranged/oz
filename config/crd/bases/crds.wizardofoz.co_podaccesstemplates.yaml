@@ -212,6 +212,33 @@ spec:
                       - name
                       type: object
                     type: array
+                  keepLivenessProbe:
+                    default: false
+                    description: By default, Oz wipes out the livenessProbe configuration
+                      for the default container so that the container does not get
+                      terminated if the main application is not running or passing
+                      checks. This setting overrides that behavior.
+                    type: boolean
+                  keepReadinessProbe:
+                    default: false
+                    description: By default, Oz wipes out the readinessProbe configuration
+                      for the default container so that the container does not get
+                      terminated if the main application is not running or passing
+                      checks. This setting overrides that behavior.
+                    type: boolean
+                  keepStartupProbe:
+                    default: false
+                    description: By default, Oz wipes out the startupProbe configuration
+                      for the default container so that the container does not get
+                      terminated if the main application is not running or passing
+                      checks. This setting overrides that behavior.
+                    type: boolean
+                  keepTerminationGracePeriod:
+                    default: false
+                    description: By default, Oz wipes out the Spec.terminationGracePeriodSeconds
+                      setting on Pods to ensure that they can be killed as soon as
+                      the AccessRequest expires. This flag overrides that behavior.
+                    type: boolean
                   resources:
                     description: If supplied these resource requirements will override
                       the default .Spec.containers[0].resource requested for the the

@@ -50,6 +50,41 @@ type PodTemplateSpecMutationConfig struct {
 	// the pod. Note though that we do not override all of the resource requests in the Pod because there may be many
 	// containers.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// By default, Oz wipes out the PodSpec
+	// [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// setting on Pods to ensure that they can be killed as soon as the
+	// AccessRequest expires. This flag overrides that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepTerminationGracePeriod bool `json:"keepTerminationGracePeriod,omitempty"`
+
+	// By default, Oz wipes out the PodSpec
+	// [`livenessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepLivenessProbe bool `json:"keepLivenessProbe,omitempty"`
+
+	// By default, Oz wipes out the PodSpec
+	// [`readinessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepReadinessProbe bool `json:"keepReadinessProbe,omitempty"`
+
+	// By default, Oz wipes out the PodSpec
+	// [`startupProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepStartupProbe bool `json:"keepStartupProbe,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
@@ -120,6 +155,29 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 	defContainerID, err := c.getDefaultContainerID(ctx, orig)
 	if err != nil {
 		return orig, err
+	}
+
+	// By default we purge the Spec.terminationGracePeriodSeconds value.
+	if !c.KeepTerminationGracePeriod {
+		logger.V(1).Info(fmt.Sprintf("Purging spec.terminationGracePeriodSeconds..."))
+		n.Spec.TerminationGracePeriodSeconds = nil
+	}
+	if !c.KeepLivenessProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].livenessProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].LivenessProbe = nil
+	}
+
+	if !c.KeepReadinessProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].readinessProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].ReadinessProbe = nil
+	}
+
+	if !c.KeepStartupProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].startupProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].StartupProbe = nil
 	}
 
 	if c.Command != nil {

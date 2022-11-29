@@ -17,6 +17,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 	BeforeEach(func() {
 		// Create a fake deployment target
+		termPeriod := int64(300)
 		podTemplateSpec = v1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
@@ -27,10 +28,47 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 				},
 			},
 			Spec: corev1.PodSpec{
+				TerminationGracePeriodSeconds: &termPeriod,
 				Containers: []corev1.Container{
 					{
 						Name:  "contA",
 						Image: "nginx:latest",
+						LivenessProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
+						ReadinessProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
+						StartupProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
 					},
 					{
 						Name:  "contB",
@@ -86,9 +124,38 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			},
 		)
 
-		It("PatchPodTemplateSpec should return unmutated by default", func() {
+		It("PatchPodTemplateSpec should return only default mutations normally", func() {
 			// Basic resource with no mutation config
 			config := &PodTemplateSpecMutationConfig{}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// Apply the default mutations to the original pod template spec,
+			// these are the mutations we expect because they are hard-coded.
+			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
+			// Wipe: TerminationGracePeriodSeconds
+			expectedPodTemplateSpec.Spec.TerminationGracePeriodSeconds = nil
+			// Wipe: livenessProbe
+			expectedPodTemplateSpec.Spec.Containers[0].LivenessProbe = nil
+			// Wipe: readinessProbe
+			expectedPodTemplateSpec.Spec.Containers[0].ReadinessProbe = nil
+			// Wipe: startupProbe
+			expectedPodTemplateSpec.Spec.Containers[0].StartupProbe = nil
+
+			// VERIFY: Unmutated by default
+			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
+		})
+
+		It("PatchPodTemplateSpec should allow skipping the default mutations", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{
+				KeepTerminationGracePeriod: true,
+				KeepLivenessProbe:          true,
+				KeepStartupProbe:           true,
+				KeepReadinessProbe:         true,
+			}
 
 			// Run it
 			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
