@@ -1145,6 +1145,36 @@ containers.</p>
 </tr>
 <tr>
 <td>
+<code>podAnnotations</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>If supplied, these
+<a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">annotations</a>
+are applied to the target
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core"><code>PodTemplateSpec</code></a>.
+These are merged into the final Annotations. If you want to <em>replace</em>
+the annotations, make sure to set the <code>purgeAnnotations</code> flag to <code>true</code>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>purgeAnnotations</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz keeps the original
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core"><code>PodTemplateSpec</code></a>
+<code>metadata.annotations</code> field. If you want to purge this, set this flag
+to <code>true.</code></p>
+</td>
+</tr>
+<tr>
+<td>
 <code>keepTerminationGracePeriod</code><br/>
 <em>
 bool

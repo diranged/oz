@@ -51,6 +51,22 @@ type PodTemplateSpecMutationConfig struct {
 	// containers.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
+	// If supplied, these
+	// [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/)
+	// are applied to the target
+	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core).
+	// These are merged into the final Annotations. If you want to _replace_
+	// the annotations, make sure to set the `purgeAnnotations` flag to `true`.
+	PodAnnotations *map[string]string `json:"podAnnotations,omitempty"`
+
+	// By default, Oz keeps the original
+	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core)
+	// `metadata.annotations` field. If you want to purge this, set this flag
+	// to `true.`
+	//
+	// +kubebuilder:default:=false
+	PurgeAnnotations bool `json:"purgeAnnotations,omitempty"`
+
 	// By default, Oz wipes out the PodSpec
 	// [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
 	// setting on Pods to ensure that they can be killed as soon as the
@@ -145,6 +161,8 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 // Returns:
 //
 //	corev1.PodSpec: A new PodSpec object with the mutated configuration.
+//
+// revive:disable:cyclomatic High complexity score but easy to understand
 func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 	ctx context.Context,
 	orig corev1.PodTemplateSpec,
@@ -178,6 +196,18 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 		logger.V(1).
 			Info(fmt.Sprintf("Purging spec.containers[%d].startupProbe...", defContainerID))
 		n.Spec.Containers[defContainerID].StartupProbe = nil
+	}
+
+	if c.PurgeAnnotations {
+		logger.V(1).Info("Purging metadata.annotations...")
+		n.ObjectMeta.Annotations = map[string]string{}
+	}
+
+	if c.PodAnnotations != nil {
+		for k, v := range *c.PodAnnotations {
+			logger.V(1).Info(fmt.Sprintf("Setting metadata.annotations.%s: %s", k, v))
+			n.ObjectMeta.Annotations[k] = v
+		}
 	}
 
 	if c.Command != nil {

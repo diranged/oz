@@ -214,30 +214,45 @@ spec:
                     type: array
                   keepLivenessProbe:
                     default: false
-                    description: By default, Oz wipes out the livenessProbe configuration
-                      for the default container so that the container does not get
-                      terminated if the main application is not running or passing
-                      checks. This setting overrides that behavior.
+                    description: By default, Oz wipes out the PodSpec [`livenessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+                      configuration for the default container so that the container
+                      does not get terminated if the main application is not running
+                      or passing checks. This setting overrides that behavior.
                     type: boolean
                   keepReadinessProbe:
                     default: false
-                    description: By default, Oz wipes out the readinessProbe configuration
-                      for the default container so that the container does not get
-                      terminated if the main application is not running or passing
-                      checks. This setting overrides that behavior.
+                    description: By default, Oz wipes out the PodSpec [`readinessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+                      configuration for the default container so that the container
+                      does not get terminated if the main application is not running
+                      or passing checks. This setting overrides that behavior.
                     type: boolean
                   keepStartupProbe:
                     default: false
-                    description: By default, Oz wipes out the startupProbe configuration
-                      for the default container so that the container does not get
-                      terminated if the main application is not running or passing
-                      checks. This setting overrides that behavior.
+                    description: By default, Oz wipes out the PodSpec [`startupProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+                      configuration for the default container so that the container
+                      does not get terminated if the main application is not running
+                      or passing checks. This setting overrides that behavior.
                     type: boolean
                   keepTerminationGracePeriod:
                     default: false
-                    description: By default, Oz wipes out the Spec.terminationGracePeriodSeconds
+                    description: By default, Oz wipes out the PodSpec [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
                       setting on Pods to ensure that they can be killed as soon as
                       the AccessRequest expires. This flag overrides that behavior.
+                    type: boolean
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: If supplied, these [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/)
+                      are applied to the target [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core).
+                      These are merged into the final Annotations. If you want to
+                      _replace_ the annotations, make sure to set the `purgeAnnotations`
+                      flag to `true`.
+                    type: object
+                  purgeAnnotations:
+                    default: false
+                    description: By default, Oz keeps the original [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core)
+                      `metadata.annotations` field. If you want to purge this, set
+                      this flag to `true.`
                     type: boolean
                   resources:
                     description: If supplied these resource requirements will override
