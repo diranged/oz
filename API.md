@@ -1151,9 +1151,10 @@ bool
 </em>
 </td>
 <td>
-<p>By default, Oz wipes out the Spec.terminationGracePeriodSeconds setting
-on Pods to ensure that they can be killed as soon as the AccessRequest
-expires. This flag overrides that behavior.</p>
+<p>By default, Oz wipes out the PodSpec
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core"><code>terminationGracePeriodSeconds</code></a>
+setting on Pods to ensure that they can be killed as soon as the
+AccessRequest expires. This flag overrides that behavior.</p>
 </td>
 </tr>
 <tr>
@@ -1164,10 +1165,11 @@ bool
 </em>
 </td>
 <td>
-<p>By default, Oz wipes out the livenessProbe configuration for the default
-container so that the container does not get terminated if the main
-application is not running or passing checks. This setting overrides
-that behavior.</p>
+<p>By default, Oz wipes out the PodSpec
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core"><code>livenessProbe</code></a>
+configuration for the default container so that the container does not
+get terminated if the main application is not running or passing checks.
+This setting overrides that behavior.</p>
 </td>
 </tr>
 <tr>
@@ -1178,10 +1180,11 @@ bool
 </em>
 </td>
 <td>
-<p>By default, Oz wipes out the readinessProbe configuration for the default
-container so that the container does not get terminated if the main
-application is not running or passing checks. This setting overrides
-that behavior.</p>
+<p>By default, Oz wipes out the PodSpec
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core"><code>readinessProbe</code></a>
+configuration for the default container so that the container does not
+get terminated if the main application is not running or passing checks.
+This setting overrides that behavior.</p>
 </td>
 </tr>
 <tr>
@@ -1192,10 +1195,11 @@ bool
 </em>
 </td>
 <td>
-<p>By default, Oz wipes out the startupProbe configuration for the default
-container so that the container does not get terminated if the main
-application is not running or passing checks. This setting overrides
-that behavior.</p>
+<p>By default, Oz wipes out the PodSpec
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core"><code>startupProbe</code></a>
+configuration for the default container so that the container does not
+get terminated if the main application is not running or passing checks.
+This setting overrides that behavior.</p>
 </td>
 </tr>
 </tbody>

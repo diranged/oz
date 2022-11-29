@@ -51,33 +51,37 @@ type PodTemplateSpecMutationConfig struct {
 	// containers.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// By default, Oz wipes out the Spec.terminationGracePeriodSeconds setting
-	// on Pods to ensure that they can be killed as soon as the AccessRequest
-	// expires. This flag overrides that behavior.
+	// By default, Oz wipes out the PodSpec
+	// [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// setting on Pods to ensure that they can be killed as soon as the
+	// AccessRequest expires. This flag overrides that behavior.
 	//
 	// +kubebuilder:default:=false
 	KeepTerminationGracePeriod bool `json:"keepTerminationGracePeriod,omitempty"`
 
-	// By default, Oz wipes out the livenessProbe configuration for the default
-	// container so that the container does not get terminated if the main
-	// application is not running or passing checks. This setting overrides
-	// that behavior.
+	// By default, Oz wipes out the PodSpec
+	// [`livenessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
 	//
 	// +kubebuilder:default:=false
 	KeepLivenessProbe bool `json:"keepLivenessProbe,omitempty"`
 
-	// By default, Oz wipes out the readinessProbe configuration for the default
-	// container so that the container does not get terminated if the main
-	// application is not running or passing checks. This setting overrides
-	// that behavior.
+	// By default, Oz wipes out the PodSpec
+	// [`readinessProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
 	//
 	// +kubebuilder:default:=false
 	KeepReadinessProbe bool `json:"keepReadinessProbe,omitempty"`
 
-	// By default, Oz wipes out the startupProbe configuration for the default
-	// container so that the container does not get terminated if the main
-	// application is not running or passing checks. This setting overrides
-	// that behavior.
+	// By default, Oz wipes out the PodSpec
+	// [`startupProbe`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
+	// configuration for the default container so that the container does not
+	// get terminated if the main application is not running or passing checks.
+	// This setting overrides that behavior.
 	//
 	// +kubebuilder:default:=false
 	KeepStartupProbe bool `json:"keepStartupProbe,omitempty"`
