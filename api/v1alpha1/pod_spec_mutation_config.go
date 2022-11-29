@@ -59,6 +59,15 @@ type PodTemplateSpecMutationConfig struct {
 	// the annotations, make sure to set the `purgeAnnotations` flag to `true`.
 	PodAnnotations *map[string]string `json:"podAnnotations,omitempty"`
 
+	// If supplied, Oz will insert these
+	// [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+	// into the target
+	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
+	// By default Oz purges all Labels from pods (to prevent the new Pod from
+	// having traffic routed to it), so this is effectively a new set of labels
+	// applied to the Pod.
+	PodLabels *map[string]string `json:"podLabels,omitempty"`
+
 	// By default, Oz keeps the original
 	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#podtemplatespec-v1-core)
 	// `metadata.annotations` field. If you want to purge this, set this flag
@@ -207,6 +216,21 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 		for k, v := range *c.PodAnnotations {
 			logger.V(1).Info(fmt.Sprintf("Setting metadata.annotations.%s: %s", k, v))
 			n.ObjectMeta.Annotations[k] = v
+		}
+	}
+
+	// Always purge the metadata.labels before moving forward. We do this to
+	// ensure that we never launch a Pod that is going to accept traffic for
+	// part of a service.
+	//
+	// TODO: Figure out how to use controller selector labels to purge more
+	// selectively in the future.
+	n.ObjectMeta.Labels = map[string]string{}
+
+	if c.PodLabels != nil {
+		for k, v := range *c.PodLabels {
+			logger.V(1).Info(fmt.Sprintf("Setting metadata.labels.%s: %s", k, v))
+			n.ObjectMeta.Labels[k] = v
 		}
 	}
 
