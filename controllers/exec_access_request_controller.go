@@ -129,7 +129,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(
 
 	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
 	// set up a 30 second delay before the next reconciliation attempt.
-	_, err = r.verifyAccessResources(builder)
+	err = r.verifyAccessResourcesBuilt(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -204,5 +204,6 @@ func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.ExecAccessRequest{}).
+		WithEventFilter(ignoreStatusUpdatesAndDeletion()).
 		Complete(r)
 }

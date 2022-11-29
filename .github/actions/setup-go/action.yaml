@@ -7,23 +7,5 @@ runs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
+        cache: true
         go-version-file: "go.mod"
-
-    - name: Find the Go Cache
-      id: go
-      shell: bash
-      run: |
-        echo "build-cache=$(go env GOCACHE)" >> $GITHUB_OUTPUT
-        echo "mod-cache=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
-
-    - name: Cache the Go Build Cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.go.outputs.build-cache }}
-        key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
-
-    - name: Cache Go Dependencies
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.go.outputs.mod-cache }}
-        key: ${{ runner.os }}-mod-${{ hashFiles('**/go.sum') }}

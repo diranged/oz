@@ -3,10 +3,7 @@ name: Reusable Workflow
 on:
   workflow_call:
     inputs:
-      push:
-        type: boolean
-        default: false
-      release:
+      publish:
         type: boolean
         default: false
 
@@ -21,26 +18,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
-
-      - name: Build Binaries
-        run: make build cli
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
 
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+      - name: Build Artifacts
+        run: make build
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2.1.0
@@ -49,50 +39,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4.1.1
-        with:
-          images: |
-            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            # set latest tag for default branch
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{version}}
-            type=semver,pattern={{major}}
-            type=sha
-            type=ref,event=pr
-            type=ref,event=branch
-
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3.2.0
+      - if: ${{ ! inputs.publish }}
+        uses: goreleaser/goreleaser-action@v2
         with:
-          context: .
-          push: ${{ inputs.push }}
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Just to make the .goreleaser.yml pass when not using `make ..` targets.
+          IMG: img:local
 
-      # Temp fix
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Upload binaries to release
-        if: ${{ inputs.release }}
-        uses: svenstaro/upload-release-action@v2
+      - if: ${{ inputs.publish }}
+        uses: goreleaser/goreleaser-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file_glob: true
-          file: outputs/ozctl-*
-          tag: ${{ github.ref }}
-          overwrite: true
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Just to make the .goreleaser.yml pass when not using `make ..` targets.
+          IMG: img:local

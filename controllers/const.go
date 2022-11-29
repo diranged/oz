@@ -40,6 +40,9 @@ const (
 	// resources" (eg, a Pod) are up and in the ready state.
 	ConditionAccessResourcesReady OzResourceConditionTypes = "AccessResourcesReady"
 
+	// ConditionAccessMessage is used to record
+	ConditionAccessMessage OzResourceConditionTypes = "AccessMessage"
+
 	// ConditionTargetRefExists indicates whether or not an AccessTemplate is pointing to a valid
 	// Controller.
 	ConditionTargetRefExists OzResourceConditionTypes = "TargetRefExists"

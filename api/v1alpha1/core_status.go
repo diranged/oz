@@ -1,6 +1,8 @@
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // ICoreStatus is used to define the core common status functions that all Status structs in this
 // API must adhere to. These common functions simplify the reconciler() functions so that they can

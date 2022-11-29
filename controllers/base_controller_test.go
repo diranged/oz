@@ -24,8 +24,8 @@ type FakeBuilder struct {
 	retErr          error
 }
 
-func (b *FakeBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
-	return b.retStatusString, b.retAccessString, b.retErr
+func (b *FakeBuilder) GenerateAccessResources() (statusString string, err error) {
+	return b.retStatusString, b.retErr
 }
 
 var (

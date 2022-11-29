@@ -43,23 +43,25 @@ var (
 //	string may go away.
 //
 //	err: Any errors during the building and application of these resources.
-func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
+func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, err error) {
+	var accessString string
+
 	// Get the target Pod Name that the user is going to have access to
 	targetPodName, err := b.getPodName()
 	if err != nil {
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Get the Role, or error out
 	role, err := b.createAccessRole(targetPodName)
 	if err != nil {
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Get the Binding, or error out
 	rb, err := b.createAccessRoleBinding()
 	if err != nil {
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
@@ -70,8 +72,9 @@ func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, acce
 	)
 
 	b.Request.SetPodName(targetPodName)
+	b.Request.Status.SetAccessMessage(accessString)
 
-	return statusString, accessString, err
+	return statusString, err
 }
 
 // generatePodName is used to discover the target pod that the user is going to have access to. This

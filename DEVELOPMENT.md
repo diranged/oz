@@ -35,7 +35,7 @@ $ kind create cluster
    install/upgrade the controller:
 
 ```sh
-$ make docker-build docker-load manifests deploy
+$ make release docker-load manifests deploy
 ...
 service/oz-controller-manager-metrics-service created
 deployment.apps/oz-controller-manager created

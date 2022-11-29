@@ -25,6 +25,12 @@ type PodAccessBuilder struct {
 	Template *api.PodAccessTemplate
 }
 
+// https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
+var (
+	_ IBuilder = &PodAccessBuilder{}
+	_ IBuilder = (*PodAccessBuilder)(nil)
+)
+
 // GenerateAccessResources is the primary function called by the reconciler to this Builder object. This function
 // is responsible for building all of the temporary access resources, and returning back information about them
 // to the user. Any error causes this function to stop and fail.
@@ -38,14 +44,15 @@ type PodAccessBuilder struct {
 //	string may go away.
 //
 //	err: Any errors during the building and application of these resources.
-func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, accessString string, err error) {
+func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, err error) {
 	logger := log.FromContext(b.Ctx)
+	var accessString string
 
 	// First, get the desired PodSpec. If there's a failure at this point, return it.
 	podTemplateSpec, err := b.generatePodTemplateSpec()
 	if err != nil {
 		logger.Error(err, "Failed to generate PodSpec for PodAccessRequest")
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Run the PodSpec through the optional mutation config
@@ -53,26 +60,26 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 	podTemplateSpec, err = mutator.PatchPodTemplateSpec(b.Ctx, podTemplateSpec)
 	if err != nil {
 		logger.Error(err, "Failed to mutate PodSpec for PodAccessRequest")
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Generate a Pod for the user to access
 	pod, err := b.createPod(podTemplateSpec)
 	if err != nil {
 		logger.Error(err, "Failed to create Pod for AccessRequest")
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Get the Role, or error out
 	role, err := b.createAccessRole(pod.GetName())
 	if err != nil {
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	// Get the Binding, or error out
 	rb, err := b.createAccessRoleBinding()
 	if err != nil {
-		return statusString, accessString, err
+		return statusString, err
 	}
 
 	statusString = fmt.Sprintf(
@@ -87,26 +94,25 @@ func (b *PodAccessBuilder) GenerateAccessResources() (statusString string, acces
 		pod.GetName(),
 	)
 
-	b.Request.Status.PodName = pod.GetName()
+	b.Request.SetPodName(pod.GetName())
+	b.Request.Status.SetAccessMessage(accessString)
 
-	return statusString, accessString, err
+	return statusString, err
 }
 
 // VerifyAccessResources verifies that the Pod created in the
 // GenerateAccessResources() function is up and in the "Running" phase.
 func (b *PodAccessBuilder) VerifyAccessResources() (statusString string, err error) {
-	// logger := log.FromContext(b.Ctx)
-
 	// First, verify whether or not the PodName field has been set. If not,
 	// then some part of the reconciliation has previously failed.
-	if b.Request.Status.PodName == "" {
+	if b.Request.GetPodName() == "" {
 		return "No Pod Assigned Yet", errors.New("status.podName not yet set")
 	}
 
 	// Next, get the Pod. If the pod-get fails, then we need to return that failure.
 	pod := &corev1.Pod{}
 	err = b.APIReader.Get(b.Ctx, types.NamespacedName{
-		Name:      b.Request.Status.PodName,
+		Name:      b.Request.GetPodName(),
 		Namespace: b.Request.Namespace,
 	}, pod)
 	if err != nil {

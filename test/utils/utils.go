@@ -12,7 +12,7 @@ import (
 )
 
 // Run executes the provided command within this context
-func Run(cmd *exec.Cmd) ([]byte, error) {
+func Run(cmd *exec.Cmd) (string, error) {
 	dir, _ := GetProjectDir()
 	cmd.Dir = dir
 	fmt.Fprintf(GinkgoWriter, "running dir: %s\n", cmd.Dir)
@@ -28,10 +28,17 @@ func Run(cmd *exec.Cmd) ([]byte, error) {
 	fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return output, fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))
+		return string(
+				output,
+			), fmt.Errorf(
+				"%s failed with error: (%v) %s",
+				command,
+				err,
+				string(output),
+			)
 	}
 
-	return output, nil
+	return string(output), nil
 }
 
 // GetProjectDir will return the directory where the project is
