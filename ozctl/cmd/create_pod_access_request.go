@@ -80,13 +80,15 @@ var createPodAccessRequestCmd = &cobra.Command{
 		createAccessRequest(cmd, req)
 
 		// Wait until the access request is ready
-		waitForAcessRequest(cmd, req)
+		waitForAccessRequest(cmd, req)
 	},
 }
 
 func init() {
 	createPodAccessRequestCmd.Flags().
 		StringVarP(&duration, "duration", "D", "", "Duration for the access request to be valid. Valid time units are: ns, us, ms, s, m, h.")
+	createPodAccessRequestCmd.Flags().
+		StringVarP(&waitTime, "wait", "w", "5m", "Duration to wait for the access request to be fully ready. Valid time units are: ns, us, ms, s, m, h.")
 	createPodAccessRequestCmd.Flags().
 		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
 

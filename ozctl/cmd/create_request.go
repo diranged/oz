@@ -30,7 +30,7 @@ func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 	cmd.Printf(logNotice("%s created!\n"), req.GetName())
 }
 
-func waitForAcessRequest(cmd *cobra.Command, req api.IRequestResource) {
+func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 	// Get our Kubernetes Client
 	client, _ := getKubeClient()
 
@@ -61,7 +61,7 @@ func waitForAcessRequest(cmd *cobra.Command, req api.IRequestResource) {
 		}
 
 		if waitCtx.Err() != nil {
-			fmt.Printf(logError("Error - timed out waiting for %s to be ready"), req.GetName())
+			fmt.Printf(logError("\nError - timed out waiting for %s to be ready\n"), req.GetName())
 			for _, cond := range *req.GetStatus().GetConditions() {
 				cmd.Printf(
 					"Condition %s, State: %s, Reason: %s, Message: %s\n",
