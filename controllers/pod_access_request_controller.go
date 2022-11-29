@@ -73,7 +73,7 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
 	logger.Info("Verifying PodAccessRequest exists")
-	resource, err := api.GetPodAccessRequest(ctx, r.Client, req.Name, req.Namespace)
+	resource, err := api.GetPodAccessRequest(ctx, r.APIReader, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find PodAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil
@@ -125,13 +125,13 @@ func (r *PodAccessRequestReconciler) Reconcile(
 
 	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
 	// set up a 30 second delay before the next reconciliation attempt.
-	_, err = r.verifyAccessResources(builder)
+	err = r.verifyAccessResourcesBuilt(builder)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	// VERIFICATION: Make sure the access resources (pod) are actually up and ready
-	_, err = r.verifyAccessResourcesReady(builder)
+	err = r.verifyAccessResourcesReady(builder)
 	if err != nil {
 		// SPECIAL TREATMENT: An error here means, requeue this and run it
 		// again in few seconds while we wait for the Pod to come up. It does
@@ -145,7 +145,7 @@ func (r *PodAccessRequestReconciler) Reconcile(
 		// TODO: Check the error type. If it's a non-failure, then be more
 		// intelligent
 		return ctrl.Result{
-			RequeueAfter: time.Duration(PodWaitReconciliationInterval * int(time.Second)),
+			RequeueAfter: time.Duration(PodWaitReconciliationInterval) * time.Second,
 		}, nil
 	}
 
@@ -197,5 +197,6 @@ func (r *PodAccessRequestReconciler) getTargetTemplate(
 func (r *PodAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.PodAccessRequest{}).
+		WithEventFilter(ignoreStatusUpdatesAndDeletion()).
 		Complete(r)
 }

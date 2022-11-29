@@ -159,38 +159,31 @@ func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool
 	return false, nil
 }
 
-// verifyAccessResources calls out to the Builder interface's GenerateAccessResources() method to build out
+// verifyAccessResourcesBuilt calls out to the Builder interface's GenerateAccessResources() method to build out
 // all of the resources that are required for thie particular access request. The Status.Conditions field is
 // then updated with the ConditionAccessResourcesCreated condition appropriately.
-func (r *BaseRequestReconciler) verifyAccessResources(
+func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
 	builder builders.IBuilder,
-) (accessString string, err error) {
+) error {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are built")
 
-	statusString, accessString, err := builder.GenerateAccessResources()
+	statusString, err := builder.GenerateAccessResources()
 	if err != nil {
-		builder.GetRequest().GetStatus().SetAccessMessage("")
 		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			ConditionAccessResourcesCreated,
 			metav1.ConditionFalse,
 			string(metav1.StatusFailure),
 			fmt.Sprintf("ERROR: %s", err))
-		return accessString, err
+		return err
 	}
-
-	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
-	if err := r.updateCondition(
+	return r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
 		ConditionAccessResourcesCreated,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
-		statusString); err != nil {
-		return accessString, err
-	}
-
-	return accessString, nil
+		statusString)
 }
 
 // verifyAccessResourcesReady is a followup to the verifyAccessResources()
@@ -198,33 +191,27 @@ func (r *BaseRequestReconciler) verifyAccessResources(
 // the way up and reached the "Running" phase.
 func (r *BaseRequestReconciler) verifyAccessResourcesReady(
 	builder builders.IPodAccessBuilder,
-) (accessString string, err error) {
+) error {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are ready")
 
 	statusString, err := builder.VerifyAccessResources()
 	if err != nil {
-		builder.GetRequest().GetStatus().SetAccessMessage("")
 		r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			ConditionAccessResourcesReady,
 			metav1.ConditionFalse,
 			"NotYetReady",
 			fmt.Sprintf("%s", err))
-		return accessString, err
+		return err
 	}
 
-	builder.GetRequest().GetStatus().SetAccessMessage(accessString)
-	if err := r.updateCondition(
+	return r.updateCondition(
 		builder.GetCtx(), builder.GetRequest(),
 		ConditionAccessResourcesReady,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
-		statusString); err != nil {
-		return accessString, err
-	}
-
-	return accessString, nil
+		statusString)
 }
 
 // DeleteResource just deletes the resource immediately

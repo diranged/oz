@@ -1,9 +1,9 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 
-ifeq (,$(PUBLISH))
-GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
-else
+ifeq (true,$(PUBLISH))
 GORELEASER_FLAGS := --rm-dist
+else
+GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
 endif
 
 ## Tool Binaries
@@ -72,7 +72,7 @@ release: $(GORELEASER)
 
 .PHONY: build
 build: $(GORELEASER)
-	$(GORELEASER) release --snapshot --rm-dist
+	PUBLISH=false $(MAKE) release
 
 .PHONY: docker-load
 docker-load:

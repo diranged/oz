@@ -181,12 +181,19 @@ var _ = Describe("PodAccessRequestController", Ordered, func() {
 
 			// Refetch our Request object... reconiliation has mutated its
 			// .Status fields.
-			By("Refetching our Request status...")
+			By("Refetching our Request...")
 			err = k8sClient.Get(ctx, types.NamespacedName{
 				Name:      request.Name,
 				Namespace: request.Namespace,
 			}, request)
 			Expect(err).To(Not(HaveOccurred()))
+
+			// Verify that the request access message was set
+			By("Verifying the Status.AccessMessage is set, but ready state is false")
+			Expect(
+				request.Status.AccessMessage,
+			).To(MatchRegexp("kubectl exec -ti -n .* .* -- /bin/sh"))
+			Expect(request.Status.IsReady()).To(BeFalse())
 
 			// Patch the pod status state to "Running" so we can simulate that
 			// the pod is actually up now.

@@ -82,13 +82,10 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			builder.retStatusString = "success"
 
 			// Build the resources
-			accessStr, err := r.verifyAccessResources(builder)
+			err := r.verifyAccessResourcesBuilt(builder)
 
 			// VERIFY: no error
 			Expect(err).To(Not(HaveOccurred()))
-
-			// VERIFY: accessStr is valid
-			Expect(accessStr).To(Equal("here you go"))
 
 			// VERIFY: the conditions in the request object were updated
 			Expect(meta.IsStatusConditionPresentAndEqual(
@@ -111,13 +108,10 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				builder.retStatusString = "failure"
 
 				// Build the resources
-				accessStr, err := r.verifyAccessResources(builder)
+				err := r.verifyAccessResourcesBuilt(builder)
 
 				// VERIFY: error occurred
 				Expect(err).To(HaveOccurred())
-
-				// VERIFY: accessStr is valid
-				Expect(accessStr).To(Equal("an error happened"))
 
 				// VERIFY: the conditions in the request object were updated
 				Expect(meta.IsStatusConditionPresentAndEqual(
@@ -143,16 +137,13 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			request.Name = "bogus"
 
 			// Build the resources
-			accessStr, err := r.verifyAccessResources(builder)
+			err := r.verifyAccessResourcesBuilt(builder)
 
 			// VERIFY: error occurred
 			Expect(err).To(HaveOccurred())
 			Expect(
 				err.Error(),
 			).To(Equal("execaccessrequests.crds.wizardofoz.co \"bogus\" not found"))
-
-			// VERIFY: accessStr is valid
-			Expect(accessStr).To(Equal("here you go"))
 		})
 	})
 

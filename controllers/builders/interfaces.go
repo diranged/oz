@@ -40,7 +40,7 @@ type IBuilder interface {
 	GetTemplate() api.ITemplateResource
 
 	// Generates all of the resources required to fulfill the access request.
-	GenerateAccessResources() (statusString string, accessString string, err error)
+	GenerateAccessResources() (statusString string, err error)
 
 	// GetTargetRefResource returns a generic but populated client.Object resource from an Access
 	// Template. Typically this is a Deployment, DaemonSet, etc.

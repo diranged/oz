@@ -15,8 +15,5 @@ jobs:
       - name: Set up Go
         uses: ./.github/actions/setup-go
 
-      - name: Build Binaries
-        run: make build cli
-
-      - name: Build Docker Image
-        run: make docker-build
+      - name: Build Artifacts
+        run: make build

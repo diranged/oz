@@ -182,6 +182,22 @@ var _ = Describe("oz-controller", Ordered, func() {
 						return err
 					}, time.Minute, time.Second).Should(Succeed())
 				}
+
+				By("Checking AccessMessage is valid and not empty")
+				cmd := exec.Command(
+					"kubectl",
+					"get",
+					"-f",
+					request,
+					"-n",
+					namespace,
+					"-o=jsonpath={.status.accessMessage}",
+				)
+				message, err := utils.Run(cmd)
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(
+					message,
+				).To(MatchRegexp("kubectl exec -ti -n oz-system deployment-example-.* -- /bin/sh"))
 			})
 		})
 	})

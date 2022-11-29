@@ -3,10 +3,7 @@ name: Reusable Workflow
 on:
   workflow_call:
     inputs:
-      push:
-        type: boolean
-        default: false
-      release:
+      publish:
         type: boolean
         default: false
 
@@ -26,13 +23,13 @@ jobs:
       - name: Set up Go
         uses: ./.github/actions/setup-go
 
-      - name: Build Binaries
-        run: make build cli
-
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
+
+      - name: Build Artifacts
+        run: make build
 
       - name: Cache Docker layers
         uses: actions/cache@v3
@@ -52,16 +49,16 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - if: ${{ .inputs.publish }}
+      - if: ${{ inputs.publish }}
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist --help
+          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - if: ${{ ! .inputs.publish }}
+      - if: ${{ ! inputs.publish }}
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
