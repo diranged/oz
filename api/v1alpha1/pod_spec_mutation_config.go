@@ -57,6 +57,30 @@ type PodTemplateSpecMutationConfig struct {
 	//
 	// +kubebuilder:default:=false
 	KeepTerminationGracePeriod bool `json:"keepTerminationGracePeriod,omitempty"`
+
+	// By default, Oz wipes out the livenessProbe configuration for the default
+	// container so that the container does not get terminated if the main
+	// application is not running or passing checks. This setting overrides
+	// that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepLivenessProbe bool `json:"keepLivenessProbe,omitempty"`
+
+	// By default, Oz wipes out the readinessProbe configuration for the default
+	// container so that the container does not get terminated if the main
+	// application is not running or passing checks. This setting overrides
+	// that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepReadinessProbe bool `json:"keepReadinessProbe,omitempty"`
+
+	// By default, Oz wipes out the startupProbe configuration for the default
+	// container so that the container does not get terminated if the main
+	// application is not running or passing checks. This setting overrides
+	// that behavior.
+	//
+	// +kubebuilder:default:=false
+	KeepStartupProbe bool `json:"keepStartupProbe,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
@@ -133,6 +157,23 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 	if !c.KeepTerminationGracePeriod {
 		logger.V(1).Info(fmt.Sprintf("Purging spec.terminationGracePeriodSeconds..."))
 		n.Spec.TerminationGracePeriodSeconds = nil
+	}
+	if !c.KeepLivenessProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].livenessProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].LivenessProbe = nil
+	}
+
+	if !c.KeepReadinessProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].readinessProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].ReadinessProbe = nil
+	}
+
+	if !c.KeepStartupProbe {
+		logger.V(1).
+			Info(fmt.Sprintf("Purging spec.containers[%d].startupProbe...", defContainerID))
+		n.Spec.Containers[defContainerID].StartupProbe = nil
 	}
 
 	if c.Command != nil {

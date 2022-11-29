@@ -33,6 +33,42 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 					{
 						Name:  "contA",
 						Image: "nginx:latest",
+						LivenessProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
+						ReadinessProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
+						StartupProbe: &v1.Probe{
+							ProbeHandler: v1.ProbeHandler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/true"},
+								},
+							},
+							InitialDelaySeconds: 5,
+							TimeoutSeconds:      5,
+							PeriodSeconds:       30,
+							SuccessThreshold:    1,
+							FailureThreshold:    3,
+						},
 					},
 					{
 						Name:  "contB",
@@ -99,7 +135,14 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// Apply the default mutations to the original pod template spec,
 			// these are the mutations we expect because they are hard-coded.
 			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
+			// Wipe: TerminationGracePeriodSeconds
 			expectedPodTemplateSpec.Spec.TerminationGracePeriodSeconds = nil
+			// Wipe: livenessProbe
+			expectedPodTemplateSpec.Spec.Containers[0].LivenessProbe = nil
+			// Wipe: readinessProbe
+			expectedPodTemplateSpec.Spec.Containers[0].ReadinessProbe = nil
+			// Wipe: startupProbe
+			expectedPodTemplateSpec.Spec.Containers[0].StartupProbe = nil
 
 			// VERIFY: Unmutated by default
 			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
@@ -109,6 +152,9 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// Basic resource with no mutation config
 			config := &PodTemplateSpecMutationConfig{
 				KeepTerminationGracePeriod: true,
+				KeepLivenessProbe:          true,
+				KeepStartupProbe:           true,
+				KeepReadinessProbe:         true,
 			}
 
 			// Run it

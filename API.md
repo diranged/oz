@@ -1143,6 +1143,61 @@ the pod. Note though that we do not override all of the resource requests in the
 containers.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>keepTerminationGracePeriod</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz wipes out the Spec.terminationGracePeriodSeconds setting
+on Pods to ensure that they can be killed as soon as the AccessRequest
+expires. This flag overrides that behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>keepLivenessProbe</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz wipes out the livenessProbe configuration for the default
+container so that the container does not get terminated if the main
+application is not running or passing checks. This setting overrides
+that behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>keepReadinessProbe</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz wipes out the readinessProbe configuration for the default
+container so that the container does not get terminated if the main
+application is not running or passing checks. This setting overrides
+that behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>keepStartupProbe</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz wipes out the startupProbe configuration for the default
+container so that the container does not get terminated if the main
+application is not running or passing checks. This setting overrides
+that behavior.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <hr/>
