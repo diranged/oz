@@ -173,9 +173,11 @@ var _ = Describe("PodAccessRequestController", Ordered, func() {
 					Namespace: request.Namespace,
 				},
 			})
-			// We should have errored out with a "Pod in Pending" phase
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Pod in Pending Phase"))
+			Expect(err).To(Not(HaveOccurred()))
+
+			// Verify that the Request is still in not-ready state, even though
+			// the reconcile didn't error out.
+			Expect(request.Status.IsReady()).To(BeFalse())
 
 			// Refetch our Request object... reconiliation has mutated its
 			// .Status fields.
