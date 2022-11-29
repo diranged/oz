@@ -46,7 +46,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release ${{ if inputs.publish }}--snapshot{{ else }}--rm-dist{{ end }}
+          args: release ${{ inputs.publish }}--snapshot{{ else }}--rm-dist{{ end }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Just to make the .goreleaser.yml pass when not using `make ..` targets.
