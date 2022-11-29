@@ -49,20 +49,12 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - if: ${{ inputs.publish }}
-        uses: goreleaser/goreleaser-action@v2
+      - uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release ${{ if inputs.publish }}--snapshot{{ else }}--rm-dist{{ end }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - if: ${{ ! inputs.publish }}
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          distribution: goreleaser
-          version: latest
-          args: --snapshot
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Just to make the .goreleaser.yml pass when not using `make ..` targets.
+          IMG: img:local
