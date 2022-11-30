@@ -3,10 +3,9 @@ package webhook
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
-	admissionv1 "k8s.io/api/admission/v1"
+	v1 "k8s.io/api/admission/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -85,58 +84,70 @@ var _ admission.DecoderInjector = &validatorForType{}
 // Handle handles admission requests.
 //
 // revive:disable:cyclomatic Replication of existing code in Controller-Runtime
-func (h *validatorForType) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (h *validatorForType) Handle(_ context.Context, req admission.Request) admission.Response {
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/validator.go#L59-L62
 	if h.object == nil {
 		panic("object should never be nil")
 	}
 
-	ctx = admission.NewContextWithRequest(ctx, req)
-
 	// Get the object in the request
-	obj := h.object.DeepCopyObject()
-
-	var err error
-	switch req.Operation {
-	case admissionv1.Create:
-		if err := h.decoder.Decode(req, obj); err != nil {
+	//
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/validator.go#L63-L79
+	obj := h.object.DeepCopyObject().(IContextuallyValidatableObject)
+	if req.Operation == v1.Create {
+		err := h.decoder.Decode(req, obj)
+		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = h.object.ValidateCreate(req)
-	case admissionv1.Update:
+		err = obj.ValidateCreate(req)
+		if err != nil {
+			var apiStatus apierrors.APIStatus
+			if errors.As(err, &apiStatus) {
+				return validationResponseFromStatus(false, apiStatus.Status())
+			}
+			return admission.Denied(err.Error())
+		}
+	}
+	if req.Operation == v1.Update {
 		oldObj := obj.DeepCopyObject()
-		if err := h.decoder.DecodeRaw(req.Object, obj); err != nil {
+
+		err := h.decoder.DecodeRaw(req.Object, obj)
+		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
-		if err := h.decoder.DecodeRaw(req.OldObject, oldObj); err != nil {
+		err = h.decoder.DecodeRaw(req.OldObject, oldObj)
+		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = h.object.ValidateUpdate(req, oldObj)
-	case admissionv1.Delete:
+		err = obj.ValidateUpdate(req, oldObj)
+		if err != nil {
+			var apiStatus apierrors.APIStatus
+			if errors.As(err, &apiStatus) {
+				return validationResponseFromStatus(false, apiStatus.Status())
+			}
+			return admission.Denied(err.Error())
+		}
+	}
+
+	if req.Operation == v1.Delete {
 		// In reference to PR: https://github.com/kubernetes/kubernetes/pull/76346
 		// OldObject contains the object being deleted
-		if err := h.decoder.DecodeRaw(req.OldObject, obj); err != nil {
+		err := h.decoder.DecodeRaw(req.OldObject, obj)
+		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = h.object.ValidateDelete(req)
-	default:
-		return admission.Errored(
-			http.StatusBadRequest,
-			fmt.Errorf("unknown operation request %q", req.Operation),
-		)
-	}
-
-	// Check the error message first.
-	if err != nil {
-		var apiStatus apierrors.APIStatus
-		if errors.As(err, &apiStatus) {
-			return validationResponseFromStatus(false, apiStatus.Status())
+		err = obj.ValidateDelete(req)
+		if err != nil {
+			var apiStatus apierrors.APIStatus
+			if errors.As(err, &apiStatus) {
+				return validationResponseFromStatus(false, apiStatus.Status())
+			}
+			return admission.Denied(err.Error())
 		}
-		return admission.Denied(err.Error())
 	}
 
-	// Return allowed if everything succeeded.
 	return admission.Allowed("")
 }

@@ -3,10 +3,10 @@ package webhook
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -80,31 +80,39 @@ var _ admission.DecoderInjector = &defaulterForType{}
 // object, calling the `Default()` function on that object, and then returning
 // back the patched response to the API server.
 func (h *defaulterForType) Handle(ctx context.Context, req admission.Request) admission.Response {
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L57-L59
 	if h.object == nil {
 		panic("object should never be nil")
 	}
 
-	ctx = admission.NewContextWithRequest(ctx, req)
+	// always skip when a DELETE operation received in mutation handler
+	// describe in https://github.com/kubernetes-sigs/controller-runtime/issues/1762
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L61-L70
+	if req.Operation == admissionv1.Delete {
+		return admission.Response{AdmissionResponse: admissionv1.AdmissionResponse{
+			Allowed: true,
+			Result: &metav1.Status{
+				Code: http.StatusOK,
+			},
+		}}
+	}
 
 	// Get the object in the request
-	obj := h.object.DeepCopyObject()
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L72-L76
+	obj := h.object.DeepCopyObject().(IContextuallyDefaultableObject)
 	if err := h.decoder.Decode(req, obj); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
 	// Default the object
-	if err := h.object.Default(req); err != nil {
-		var apiStatus apierrors.APIStatus
-		if errors.As(err, &apiStatus) {
-			return validationResponseFromStatus(false, apiStatus.Status())
-		}
-		return admission.Denied(err.Error())
-	}
-
-	// Create the patch
+	//
+	// orig: https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L78-L83
+	obj.Default(req)
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
+
+	// Create the patch
 	return admission.PatchResponseFromRaw(req.Object.Raw, marshalled)
 }
