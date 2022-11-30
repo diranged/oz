@@ -181,7 +181,9 @@ func main() {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
 		os.Exit(1)
 	}
-	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+
+	// Webhooks
+	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupIdentityWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
 		os.Exit(1)
 	}
@@ -189,6 +191,7 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "ExecAccessRequest")
 		os.Exit(1)
 	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
