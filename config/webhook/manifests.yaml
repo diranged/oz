@@ -11,6 +11,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /mutate-crds-wizardofoz-co-v1alpha1-execaccessrequest
+  failurePolicy: Fail
+  name: mexecaccessrequest.kb.io
+  rules:
+  - apiGroups:
+    - crds.wizardofoz.co
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - execaccessrequests
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /mutate-crds-wizardofoz-co-v1alpha1-podaccessrequest
   failurePolicy: Fail
   name: mpodaccessrequest.kb.io
@@ -32,6 +52,26 @@ metadata:
   creationTimestamp: null
   name: validating-webhook-configuration
 webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-crds-wizardofoz-co-v1alpha1-execaccessrequest
+  failurePolicy: Fail
+  name: vexecaccessrequest.kb.io
+  rules:
+  - apiGroups:
+    - crds.wizardofoz.co
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - execaccessrequests
+  sideEffects: None
 - admissionReviewVersions:
   - v1
   clientConfig:
