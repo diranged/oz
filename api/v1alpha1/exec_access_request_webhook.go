@@ -17,11 +17,14 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/diranged/oz/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -33,9 +36,9 @@ var execaccessrequestlog = logf.Log.WithName("execaccessrequest-resource")
 // accept MutatingWebhookConfiguration and ValidatingWebhookConfiguration calls
 // from the Kubernetes API server.
 func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	//if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
-	//	panic(err)
-	//}
+	if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
+		panic(err)
+	}
 	if err := webhook.RegisterContextualValidator(r, mgr); err != nil {
 		panic(err)
 	}
@@ -48,17 +51,16 @@ func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 //+kubebuilder:webhook:path=/mutate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=true,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update,versions=v1alpha1,name=mexecaccessrequest.kb.io,admissionReviewVersions=v1
 
-// var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
+var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-// func (r *ExecAccessRequest) Default(req admission.Request) error {
-// 	logger := log.FromContext(context.Background())
-// 	logger.Info("defaulter Well gotcha", "req", ObjectToJSON(req), "self", ObjectToJSON(r))
-// 	return errors.New("junk")
-// }
+func (r *ExecAccessRequest) Default(req admission.Request) error {
+	logger := log.FromContext(context.Background())
+	logger.Info("defaulter Well gotcha", "req", ObjectToJSON(req), "self", ObjectToJSON(r))
+	return errors.New("junk")
+}
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update,versions=v1alpha1,name=vexecaccessrequest.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update;delete,versions=v1alpha1,name=vexecaccessrequest.kb.io,admissionReviewVersions=v1
 
 var _ webhook.IContextuallyValidatableObject = &ExecAccessRequest{}
 

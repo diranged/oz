@@ -29,13 +29,15 @@ import (
 // log is for logging in this package.
 var podaccessrequestlog = logf.Log.WithName("podaccessrequest-resource")
 
+//+kubebuilder:webhook:path=/mutate-crds-wizardofoz-co-v1alpha1-podaccessrequest,mutating=true,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=create;update,versions=v1alpha1,name=mpodaccessrequest.kb.io,admissionReviewVersions=v1
+
 // SetupWebhookWithManager configures the webhook service in the Manager to
 // accept MutatingWebhookConfiguration and ValidatingWebhookConfiguration calls
 // from the Kubernetes API server.
 func (r *PodAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	// if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
-	// 	panic(err)
-	// }
+	if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
+		panic(err)
+	}
 	if err := webhook.RegisterContextualValidator(r, mgr); err != nil {
 		panic(err)
 	}
@@ -46,17 +48,14 @@ func (r *PodAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/mutate-crds-wizardofoz-co-v1alpha1-podaccessrequest,mutating=true,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=create;update,versions=v1alpha1,name=mpodaccessrequest.kb.io,admissionReviewVersions=v1
-
-// var _ webhook.IContextuallyDefaultableObject = &PodAccessRequest{}
+var _ webhook.IContextuallyDefaultableObject = &PodAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-//func (r *PodAccessRequest) Default(req admission.Request) error {
-//  return nil
-//}
+func (r *PodAccessRequest) Default(_ admission.Request) error {
+	return nil
+}
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-podaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=create;update,versions=v1alpha1,name=vpodaccessrequest.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-podaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=create;update;delete,versions=v1alpha1,name=vpodaccessrequest.kb.io,admissionReviewVersions=v1
 
 var _ webhook.IContextuallyValidatableObject = &PodAccessRequest{}
 
