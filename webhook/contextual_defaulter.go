@@ -79,7 +79,7 @@ var _ admission.DecoderInjector = &defaulterForType{}
 // [`admission.Request`](https://pkg.go.dev/k8s.io/api/admission/v1#AdmissionRequest)
 // object, calling the `Default()` function on that object, and then returning
 // back the patched response to the API server.
-func (h *defaulterForType) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admission.Response {
 	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L57-L59
 	if h.object == nil {
 		panic("object should never be nil")

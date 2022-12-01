@@ -56,6 +56,7 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+// revive:disable:cyclomatic Long, but easy to understand
 func main() {
 	var metricsAddr string
 	var probeAddr string
@@ -183,7 +184,7 @@ func main() {
 	}
 
 	// Webhooks
-	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupIdentityWebhookWithManager(mgr); err != nil {
+	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
 		os.Exit(1)
 	}

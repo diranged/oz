@@ -9,16 +9,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+const delimiter = "-"
+
 // Copy-Pasta from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/builder/webhook.go#L208-L216
 func generateMutatePath(gvk schema.GroupVersionKind) string {
-	return "/mutate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" +
-		gvk.Version + "-" + strings.ToLower(gvk.Kind)
+	return "/mutate" + delimiter + strings.ReplaceAll(gvk.Group, ".", delimiter) + delimiter +
+		gvk.Version + delimiter + strings.ToLower(gvk.Kind)
 }
 
 // Copy-Pasta from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/builder/webhook.go#L208-L216
 func generateValidatePath(gvk schema.GroupVersionKind) string {
-	return "/validate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" +
-		gvk.Version + "-" + strings.ToLower(gvk.Kind)
+	return "/validate" + delimiter + strings.ReplaceAll(gvk.Group, ".", delimiter) + delimiter +
+		gvk.Version + delimiter + strings.ToLower(gvk.Kind)
 }
 
 // validationResponseFromStatus returns a response for admitting a request with provided Status object.

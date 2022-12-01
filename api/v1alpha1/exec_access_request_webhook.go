@@ -17,15 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/diranged/oz/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -33,10 +29,13 @@ import (
 // log is for logging in this package.
 var execaccessrequestlog = logf.Log.WithName("execaccessrequest-resource")
 
+// SetupWebhookWithManager configures the webhook service in the Manager to
+// accept MutatingWebhookConfiguration and ValidatingWebhookConfiguration calls
+// from the Kubernetes API server.
 func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
-		panic(err)
-	}
+	//if err := webhook.RegisterContextualDefaulter(r, mgr); err != nil {
+	//	panic(err)
+	//}
 	if err := webhook.RegisterContextualValidator(r, mgr); err != nil {
 		panic(err)
 	}
@@ -47,18 +46,16 @@ func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
 //+kubebuilder:webhook:path=/mutate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=true,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update,versions=v1alpha1,name=mexecaccessrequest.kb.io,admissionReviewVersions=v1
 
-var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
+// var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *ExecAccessRequest) Default(req admission.Request) error {
-	logger := log.FromContext(context.Background())
-	logger.Info("defaulter Well gotcha", "req", ObjectToJSON(req), "self", ObjectToJSON(r))
-	return errors.New("junk")
-}
+// func (r *ExecAccessRequest) Default(req admission.Request) error {
+// 	logger := log.FromContext(context.Background())
+// 	logger.Info("defaulter Well gotcha", "req", ObjectToJSON(req), "self", ObjectToJSON(r))
+// 	return errors.New("junk")
+// }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update,versions=v1alpha1,name=vexecaccessrequest.kb.io,admissionReviewVersions=v1
@@ -67,19 +64,22 @@ var _ webhook.IContextuallyValidatableObject = &ExecAccessRequest{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *ExecAccessRequest) ValidateCreate(req admission.Request) error {
-	execaccessrequestlog.Info("validate create", "name", r.Name)
-
-	return fmt.Errorf("faking an error")
-
-	// TODO(user): fill in your validation logic upon object creation.
-	// return nil
+	if req.UserInfo.Username != "" {
+		execaccessrequestlog.Info(
+			fmt.Sprintf("Create ExecAccessRequest from %s", req.UserInfo.Username),
+		)
+	} else {
+		// TODO: Make this fail, after we have confidence in the code in a live environment.
+		execaccessrequestlog.Info("WARNING - Create ExecAccessRequest with missing user identity")
+	}
+	return nil
 }
 
 // ValidateUpdate prevents immutable updates to the ExecAccessRequest.
-//
-// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
-func (r *ExecAccessRequest) ValidateUpdate(req admission.Request, old runtime.Object) error {
+func (r *ExecAccessRequest) ValidateUpdate(_ admission.Request, old runtime.Object) error {
 	execaccessrequestlog.Info("validate update", "name", r.Name)
+
+	// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
 	oldRequest, _ := old.(*ExecAccessRequest)
 	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
 		return fmt.Errorf(
@@ -89,21 +89,10 @@ func (r *ExecAccessRequest) ValidateUpdate(req admission.Request, old runtime.Ob
 	return nil
 }
 
-// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
+// ValidateDelete implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
 func (r *ExecAccessRequest) ValidateDelete(req admission.Request) error {
-	execaccessrequestlog.Info("validate delete", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object deletion.
+	execaccessrequestlog.Info(
+		fmt.Sprintf("Delete ExecAccessRequest from %s", req.UserInfo.Username),
+	)
 	return nil
-}
-
-// ObjectToJSON is a quick helper function for pretty-printing an entire K8S object in JSON form.
-// Used in certain debug log statements primarily.
-func ObjectToJSON(obj any) string {
-	jsonData, err := json.Marshal(obj)
-	if err != nil {
-		fmt.Printf("could not marshal json: %s\n", err)
-		return ""
-	}
-	return string(jsonData)
 }

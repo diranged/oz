@@ -115,7 +115,7 @@ func (d *TestDefaulter) GroupVersionKind() schema.GroupVersionKind {
 	return testDefaulterGVK
 }
 
-func (d *TestDefaulter) SetGroupVersionKind(gvk schema.GroupVersionKind) {}
+func (d *TestDefaulter) SetGroupVersionKind(_ schema.GroupVersionKind) {}
 
 var _ runtime.Object = &TestDefaulterList{}
 

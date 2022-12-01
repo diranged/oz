@@ -91,7 +91,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = (&PodAccessRequest{}).SetupIdentityWebhookWithManager(mgr)
+	err = (&PodAccessRequest{}).SetupWebhookWithManager(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&ExecAccessRequest{}).SetupWebhookWithManager(mgr)
