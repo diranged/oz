@@ -94,3 +94,25 @@ webhooks:
     resources:
     - podaccessrequests
   sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /watch-v1-pod
+  failurePolicy: Fail
+  name: vpod.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - CONNECT
+    resources:
+    - pods/exec
+    - pods/attach
+  sideEffects: None

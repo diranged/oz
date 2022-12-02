@@ -72,6 +72,8 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	// First make sure we use the ApiReader (non-cached) client to go and figure out if the resource exists or not. If
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
+	//
+	// TODO: Validate IsReady().
 	logger.Info("Verifying PodAccessRequest exists")
 	resource, err := api.GetPodAccessRequest(ctx, r.APIReader, req.Name, req.Namespace)
 	if err != nil {
