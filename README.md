@@ -374,6 +374,77 @@ spec:
 The `ozctl` tool provides end-users with a quick and easy way to request access
 against pre-defined access templates. T
 
+
+## Architecture
+
+The **Oz** controller operates using the standard
+[controller-runtime](https://github.com/kubernetes-sigs/controller-runtime)
+framework. To help better explain the flow that users and operators of this
+tool can expect, we've got some architecture diagrams below. For more detailed
+diagrams of the internal workings, see the
+[`controllers/README.md`](controllers/README.md) document.
+
+
+### How `ozctl` and **Oz** work together for a `PodAccessRequest`
+
+In the simple scenario where an engineer _Alice_ needs a temporary Pod created
+to perform some work, here's the basic flow:
+
+```mermaid
+sequenceDiagram
+    participant Alice
+    participant Ozctl
+    participant Kubernetes
+    participant Oz
+    participant PodAccessRequest
+
+    link PodAccessRequest: API @ [pod_access_request]
+    
+    Note over Alice,Ozctl: Alice requests access to a development Pod
+    Alice->>Ozctl: ozctl create podaccessrequest
+    
+    Note over Ozctl,Kubernetes: CLI prepares a PodAccessRequest{} resource
+    Ozctl->>Kubernetes: Create PodAccessRequest{}...
+
+    Note over Kubernetes,Oz: Mutating Webhook called...
+    Kubernetes->>Oz: /mutate-v1-pod...
+    Oz-->Oz: Call Default(admission.Request)
+    
+    Note over Kubernetes,Oz: Mutated PodAccessRequest is returned
+    Oz->>Kubernetes: User Info Context applied
+
+    Note over Kubernetes,Oz: Validating Webhook called to record Alice's action
+    Kubernetes->>Oz: /validate-v1-pod...
+    
+    Note over Kubernetes,Oz: Emit Log Event
+    Oz-->Oz: Call ValidateCreate(...)
+    Oz-->Oz: Call Log.Info("Alice ...")
+    Oz->>Kubernetes: `Allowed=True`
+    
+    Note over Kubernetes,Ozctl: Cluster responds that the resource has been created
+    Kubernetes->>Ozctl: PodAccessRequest{} created
+    
+    par
+      loop Reconcile Loop...
+      Note over Kubernetes,Oz: Initial trigger event from Kubernetes
+        Kubernetes->>Oz: Reconcile(PodAccessRequest)
+
+        Oz-->Oz: Verify Request Durations
+        Oz-->Oz: Verify Access Still Valid
+        Oz->>Kubernetes: Create Role, RoleBinding, Pod
+        Kubernetes ->> Oz: Resources Created
+        Oz-->Oz: Verify Pod is "Ready"
+        Oz->>Kubernetes: Set Status.IsReady=True
+      end
+    and
+      loop CLI Loop
+        Ozctl->>Kubernetes: Is Status.IsReady?
+        Kubernetes->>Ozctl: True
+        Ozctl->>Alice: "You're ready... kubectl exec ..."
+      end
+    end
+```
+
 ## License
 
 Copyright 2022 Matt Wise.
