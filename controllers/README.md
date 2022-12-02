@@ -2,10 +2,10 @@
 [exec_access_template]: /API.md#execaccesstemplate
 [pod_access_request]: /API.md#podaccessrequest
 [pod_access_template]: /API.md#podaccesstemplate
-[access_config]: /diranged/oz/blob/pod_watcher/API.md#accessconfig
-[target_ref]: /diranged/oz/blob/pod_watcher/API.md#crossversionobjectreference
-[runtime]: https://github.com/kubernetes-sigs/controller-runtime
+[access_config]: /API.md#accessconfig
+[target_ref]: /API.md#crossversionobjectreference
 [builders]: ./builders/README.md
+[runtime]: https://github.com/kubernetes-sigs/controller-runtime
 
 # Controllers
 
@@ -29,6 +29,40 @@ against the Kubernetes API.
 Generally speaking, we try to keep the `reconcile()` functions short and easy
 to read/understand. The heavy lifting is actually done by our
 [`Builder`][builders] structs.
+
+## [`ExecAccessTemplateReconciler`](exec_access_template_controller.go)
+
+The [`ExecAccessTemplateReconciler`](exec_access_template_controller.go) is a
+very simple controller whose job is to make sure that the `ExecAccessTemplate`
+is valid and available for use. It primarily validates that the template has
+valid [`AccessConfig`][access_config] settings, and a valid
+[`TargetRef`][target_ref] pointing to a real Pod controller (Deployment, etc).
+
+```mermaid
+sequenceDiagram
+  participant Kubernetes
+  participant Oz
+  participant ExecAccessTemplateReconciler
+  
+  Note over Oz,Kubernetes: The Oz Controller begins to watch for resources
+  Oz->>Kubernetes: Watch ExecAccessTemplate{} Resources...
+  Kubernetes->>Oz: New ExecAccessTemplate{} Created
+  
+  loop Reconcile Loop...
+    Note over Oz,ExecAccessTemplateReconciler: Runtime calls Reconciler function
+    Oz->>ExecAccessTemplateReconciler: reconcile(...)
+    
+    Note over ExecAccessTemplateReconciler: Verify Target Reference Exists
+    ExecAccessTemplateReconciler->>Kubernetes: Get Deployment{Name: foo}
+    Kubernetes->>ExecAccessTemplateReconciler: 
+    
+    Note over ExecAccessTemplateReconciler: Verify Access Configurations Settings are Valid
+    ExecAccessTemplateReconciler-->ExecAccessTemplateReconciler: api.VerifyMiscSettings()
+    
+    Note over ExecAccessTemplateReconciler: Write ready state back into resource
+    ExecAccessTemplateReconciler->>Kubernetes: Update .Status.IsReady=True
+  end
+```
 
 ## [`PodAccessTemplateReconciler`](pod_access_template_controller.go)
 
@@ -64,59 +98,57 @@ sequenceDiagram
   end
 ```
 
-## PodAccess
- 
+## [`PodAccessRequestReconciler`](pod_access_request_controller.go)
+
+The [`PodAccessRequestReconciler`](pod_access_request_controller.go) handles
+the creation of a dedicated workload `Pod` for an engineer on-demand based on
+the configuration of a [`PodAccessTemplate`](#podaccesstemplatereconciler). The
+reconciler logic itself is fairly simple, and most of the heavy lifting is
+actually handled by a [`PodAccessBuilder`](builders/pod_access_builder.go).
+
 ```mermaid
 sequenceDiagram
-    participant Alice
-    participant Ozctl
-    participant Kubernetes
-    participant Oz
-    participant PodAccessRequest
+  participant Kubernetes
+  participant Oz
+  participant PodAccessRequestReconciler
+  participant PodAccessBuilder
+  participant PodAccessTemplate
+  
+  Oz->>Kubernetes: Watch PodAccessRequest{} Resources...
+  Kubernetes->>Oz: New PodAccessRequest{} Created
 
-    link PodAccessRequest: API @ [pod_access_request]
+  loop Reconcile Loop...
+    Note over Oz,PodAccessRequestReconciler: Runtime calls Reconciler function
+    Oz-->>PodAccessRequestReconciler: reconcile(...)
     
-    Note over Alice,Ozctl: Alice requests access to a development Pod
-    Alice->>Ozctl: ozctl create podaccessrequest
+    Note over PodAccessRequestReconciler: Verify `PodAccessTemplate` Exists
+    PodAccessRequestReconciler->>Kubernetes: Get PodAccessTemplate{Name: foo}
+    Kubernetes->>PodAccessRequestReconciler: 
     
-    Note over Ozctl,Kubernetes: CLI prepares a PodAccessRequest{} resource
-    Ozctl->>Kubernetes: Create PodAccessRequest{}...
+    Note over PodAccessRequestReconciler: Verify AccessConfiguration Settings are Valid
+    PodAccessRequestReconciler-->>PodAccessRequestReconciler: verifyDuration()
+    PodAccessRequestReconciler-->>PodAccessRequestReconciler: isAccessExpired()
+    
+    Note over PodAccessRequestReconciler,PodAccessBuilder: Begin Building Access Resources
+    PodAccessRequestReconciler-->>PodAccessBuilder: verifyAccessResourcesBuilt()
+    
+    PodAccessBuilder->>Kubernetes: Get Deployment{Name: foo..}
+    PodAccessBuilder-->>PodAccessTemplate: GenerateMutatedPodSpec(Deployment{}...)
 
-    Note over Kubernetes,Oz: Mutating Webhook called...
-    Kubernetes->>Oz: /mutate-v1-pod...
-    Oz-->Oz: Call Default(admission.Request)
+    Note over PodAccessBuilder: Create the Resources
+    PodAccessBuilder->>Kubernetes: Create Pod{Name: foo...}
+    PodAccessBuilder->>Kubernetes: Create Role{Name: foo...}
+    PodAccessBuilder->>Kubernetes: Create RoleBinding{Name: foo...}
     
-    Note over Kubernetes,Oz: Mutated PodAccessRequest is returned
-    Oz->>Kubernetes: User Info Context applied
 
-    Note over Kubernetes,Oz: Validating Webhook called to record Alice's action
-    Kubernetes->>Oz: /validate-v1-pod...
+    Note over PodAccessBuilder: Verify Resources Ready
+    PodAccessRequestReconciler-->>PodAccessBuilder: verifyAccessResourcesReady()
     
-    Note over Kubernetes,Oz: Emit Log Event
-    Oz-->Oz: Call ValidateCreate(...)
-    Oz-->Oz: Call Log.Info("Alice ...")
-    Oz->>Kubernetes: `Allowed=True`
-    
-    Note over Kubernetes,Ozctl: Cluster responds that the resource has been created
-    Kubernetes->>Ozctl: PodAccessRequest{} created
-    
-    par
-      loop Reconcile Loop...
-      Note over Kubernetes,Oz: Initial trigger event from Kubernetes
-        Kubernetes->>Oz: Reconcile(PodAccessRequest)
+    PodAccessBuilder->>Kubernetes: Get Pod{}.Status.Ready
+    Kubernetes->>PodAccessBuilder: Pod{}.Status.Ready=True
+    PodAccessBuilder-->>PodAccessRequestReconciler: Pod Is Ready
 
-        Oz-->Oz: Verify Request Durations
-        Oz-->Oz: Verify Access Still Valid
-        Oz->>Kubernetes: Create Role, RoleBinding, Pod
-        Kubernetes ->> Oz: Resources Created
-        Oz-->Oz: Verify Pod is "Ready"
-        Oz->>Kubernetes: Set Status.IsReady=True
-      end
-    and
-      loop CLI Loop
-        Ozctl->>Kubernetes: Is Status.IsReady?
-        Kubernetes->>Ozctl: True
-        Ozctl->>Alice: "You're ready... kubectl exec ..."
-      end
-    end
+    Note over PodAccessRequestReconciler: Write ready state back into resource
+    PodAccessRequestReconciler->>Kubernetes: Update .Status.IsReady=True
+  end
 ```
