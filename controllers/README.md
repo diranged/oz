@@ -64,6 +64,53 @@ sequenceDiagram
   end
 ```
 
+## [`ExecAccessRequestReconciler`](exec_access_request_controller.go)
+
+The [`ExecAccessRequestReconciler`](exec_access_request_controller.go) handles
+creating a `Role` and `RoleBinding` that grant an engineer `kubectl exec ...`
+access into an already existing Pod for a particular target deploymnt.
+
+The reconciler logic itself is fairly simple, and most of the heavy lifting is
+actually handled by a [`ExecAccessBuilder`](builders/exec_access_builder.go).
+
+```mermaid
+sequenceDiagram
+  participant Kubernetes
+  participant Oz
+  participant ExecAccessRequestReconciler
+  participant ExecAccessBuilder
+  participant ExecAccessTemplate
+
+  Oz->>Kubernetes: Watch ExecAccessRequest{} Resources...
+  Kubernetes->>Oz: New ExecAccessRequest{} Created
+
+  loop Reconcile Loop...
+    Note over Oz,ExecAccessRequestReconciler: Runtime calls Reconciler function
+    Oz-->>ExecAccessRequestReconciler: reconcile(...)
+
+    Note over ExecAccessRequestReconciler: Verify `ExecAccessTemplate` Exists
+    ExecAccessRequestReconciler->>Kubernetes: Get ExecAccessTemplate{Name: foo}
+    Kubernetes->>ExecAccessRequestReconciler: 
+
+    Note over ExecAccessRequestReconciler: Verify AccessConfiguration Settings are Valid
+    ExecAccessRequestReconciler-->>ExecAccessRequestReconciler: verifyDuration()
+    ExecAccessRequestReconciler-->>ExecAccessRequestReconciler: isAccessExpired()
+
+    Note over ExecAccessRequestReconciler,ExecAccessBuilder: Begin Building Access Resources
+    ExecAccessRequestReconciler-->>ExecAccessBuilder: verifyAccessResourcesBuilt()
+
+    ExecAccessBuilder->>Kubernetes: Get Deployment{Name: foo..}
+    Kubernetes->>ExecAccessBuilder: 
+
+    Note over ExecAccessBuilder: Create the Resources
+    ExecAccessBuilder->>Kubernetes: Create Role{Name: foo...}
+    ExecAccessBuilder->>Kubernetes: Create RoleBinding{Name: foo...}
+
+    Note over ExecAccessRequestReconciler: Write ready state back into resource
+    ExecAccessRequestReconciler->>Kubernetes: Update .Status.IsReady=True
+  end
+```
+
 ## [`PodAccessTemplateReconciler`](pod_access_template_controller.go)
 
 The [`PodAccessTemplateReconciler`](pod_access_template_controller.go) is a
@@ -133,6 +180,7 @@ sequenceDiagram
     PodAccessRequestReconciler-->>PodAccessBuilder: verifyAccessResourcesBuilt()
     
     PodAccessBuilder->>Kubernetes: Get Deployment{Name: foo..}
+    Kubernetes->>PodAccessBuilder: 
     PodAccessBuilder-->>PodAccessTemplate: GenerateMutatedPodSpec(Deployment{}...)
 
     Note over PodAccessBuilder: Create the Resources
