@@ -29,6 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 
@@ -127,6 +128,34 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Webhooks for our core CRDs are registered through the api/v1alpha1
+	// package. These webhooks are registered so that we can pre-populate (or
+	// validate) our custom resources before they ever get to the Reconcile()
+	// functions.
+	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
+		os.Exit(1)
+	}
+	if err = (&crdsv1alpha1.ExecAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "ExecAccessRequest")
+		os.Exit(1)
+	}
+
+	// These special Webhooks are registered for the purpose of event-logging
+	// user-actions.
+	hookServer := mgr.GetWebhookServer()
+	hookServer.Register(
+		"/watch-v1-pod",
+		&webhook.Admission{Handler: &controllers.PodExecWatcher{Client: mgr.GetClient()}},
+	)
+
+	// Set Up the Reconcilers
+	//
+	// These are the core components that are "watching" the custom resource
+	// (PodAccessRequests, PodAccessTemplates, etc). These reconcilers may
+	// depend on some information having been injected by the Webhooks we
+	// registered above.
+	//
 	if err = (&controllers.ExecAccessTemplateReconciler{
 		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
 			BaseReconciler: controllers.BaseReconciler{
@@ -180,16 +209,6 @@ func main() {
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
-		os.Exit(1)
-	}
-
-	// Webhooks
-	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
-		os.Exit(1)
-	}
-	if err = (&crdsv1alpha1.ExecAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "ExecAccessRequest")
 		os.Exit(1)
 	}
 
