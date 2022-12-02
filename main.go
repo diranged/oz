@@ -30,9 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	zaplogfmt "github.com/jsternberg/zap-logfmt"
+
 	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
 	"github.com/diranged/oz/controllers"
-	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -55,6 +56,7 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+// revive:disable:cyclomatic Long, but easy to understand
 func main() {
 	var metricsAddr string
 	var probeAddr string
@@ -180,6 +182,17 @@ func main() {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
 		os.Exit(1)
 	}
+
+	// Webhooks
+	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
+		os.Exit(1)
+	}
+	if err = (&crdsv1alpha1.ExecAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "ExecAccessRequest")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

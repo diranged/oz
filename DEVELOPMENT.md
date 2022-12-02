@@ -23,10 +23,11 @@ should provide the most common extensions that will make development easier.
 
 First, spin up an empty [KIND][kind] cluster in your development environment.
 We recommend always creating a new KIND environment for every project you work
-on.
+on. Once it is up, you must also install the `cert-manager` toolkit...
 
 ```sh
 $ kind create cluster
+$ make cert-manager
 ```
 
 ### Running on the cluster

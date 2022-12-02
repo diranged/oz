@@ -25,13 +25,17 @@ resources:
   kind: ExecAccessRequest
   path: github.com/diranged/oz/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: wizardofoz.co
   group: crds
-  kind: AccessTemplate
+  kind: PodAccessTemplate
   path: github.com/diranged/oz/api/v1alpha1
   version: v1alpha1
 - api:
@@ -40,7 +44,11 @@ resources:
   controller: true
   domain: wizardofoz.co
   group: crds
-  kind: AccessRequest
+  kind: PodAccessRequest
   path: github.com/diranged/oz/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
 version: "3"

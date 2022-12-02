@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -12,11 +10,10 @@ import (
 )
 
 var _ = Describe("PodSpecMutationConfig", Ordered, func() {
-	ctx := context.Background()
 	var podTemplateSpec corev1.PodTemplateSpec
 
 	BeforeEach(func() {
-		// Create a fake deployment target
+		// Create a fake podTemplateSpec target
 		termPeriod := int64(300)
 		podTemplateSpec = v1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{

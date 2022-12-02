@@ -22,7 +22,6 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -127,20 +126,6 @@ func (r *ExecAccessRequest) SetPodName(name string) error {
 // GetPodName conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) GetPodName() string {
 	return r.Status.PodName
-}
-
-// ValidateUpdate prevents immutable updates to the ExecAccessRequest.
-//
-// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
-// TODO: is this webhook only?
-func (r *ExecAccessRequest) ValidateUpdate(old runtime.Object) error {
-	oldRequest, _ := old.(*ExecAccessRequest)
-	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
-		return fmt.Errorf(
-			"error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead",
-		)
-	}
-	return nil
 }
 
 // GetExecAccessRequest returns back an ExecAccessRequest resource matching the request supplied to

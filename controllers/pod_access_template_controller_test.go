@@ -218,10 +218,8 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 					return nil
 				}
 				return fmt.Errorf(
-					fmt.Sprintf(
-						"Failed to reconcile resource: %s",
-						strconv.FormatBool(found.GetStatus().IsReady()),
-					),
+					"Failed to reconcile resource: %s",
+					strconv.FormatBool(found.GetStatus().IsReady()),
 				)
 			}, 10*time.Second, time.Second).Should(Succeed())
 		})
