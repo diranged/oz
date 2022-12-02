@@ -399,31 +399,31 @@ sequenceDiagram
     participant PodAccessRequest
 
     link PodAccessRequest: API @ [pod_access_request]
-    
+
     Note over Alice,Ozctl: Alice requests access to a development Pod
     Alice->>Ozctl: ozctl create podaccessrequest
-    
+
     Note over Ozctl,Kubernetes: CLI prepares a PodAccessRequest{} resource
     Ozctl->>Kubernetes: Create PodAccessRequest{}...
 
     Note over Kubernetes,Oz: Mutating Webhook called...
     Kubernetes->>Oz: /mutate-v1-pod...
     Oz-->Oz: Call Default(admission.Request)
-    
+
     Note over Kubernetes,Oz: Mutated PodAccessRequest is returned
     Oz->>Kubernetes: User Info Context applied
 
     Note over Kubernetes,Oz: Validating Webhook called to record Alice's action
     Kubernetes->>Oz: /validate-v1-pod...
-    
+
     Note over Kubernetes,Oz: Emit Log Event
     Oz-->Oz: Call ValidateCreate(...)
     Oz-->Oz: Call Log.Info("Alice ...")
     Oz->>Kubernetes: `Allowed=True`
-    
+
     Note over Kubernetes,Ozctl: Cluster responds that the resource has been created
     Kubernetes->>Ozctl: PodAccessRequest{} created
-    
+
     par
       loop Reconcile Loop...
       Note over Kubernetes,Oz: Initial trigger event from Kubernetes
