@@ -107,7 +107,10 @@ func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admi
 	// Default the object
 	//
 	// orig: https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L78-L83
-	obj.Default(req)
+	if err := obj.Default(req); err != nil {
+		return admission.Errored(http.StatusBadRequest, err)
+	}
+
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)

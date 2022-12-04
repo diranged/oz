@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,10 @@ var createCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			cmd.Help()
+			if err := cmd.Help(); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 			os.Exit(0)
 		}
 		return nil

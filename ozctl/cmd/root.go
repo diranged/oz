@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -60,13 +61,19 @@ func Execute() {
 	})
 
 	// Sanity check
-	verifyUsernameSet()
+	if err := verifyUsernameSet(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	// Populate our scopedScheme
 	scopedScheme, _ = api.SchemeBuilder.Build()
 
 	// Make sure to add in our api schemes with the custom resources
-	api.AddToScheme(scheme.Scheme)
+	if err := api.AddToScheme(scheme.Scheme); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	// Set up the root command and make sure that doesn't fail.
 	if err := rootCmd.Execute(); err != nil {
@@ -77,8 +84,7 @@ func Execute() {
 
 func verifyUsernameSet() error {
 	if usernameEnv == "" {
-		fmt.Println("ERROR: This CLI tool requires that the $USER environment be set to something")
-		os.Exit(1)
+		return errors.New("this CLI tool requires that the $USER environment be set to something")
 	}
 	return nil
 }

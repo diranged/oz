@@ -71,7 +71,8 @@ func (b *ExecAccessBuilder) GenerateAccessResources() (statusString string, err 
 		targetPodName,
 	)
 
-	b.Request.SetPodName(targetPodName)
+	// TODO: check err return from SetPodName
+	_ = b.Request.SetPodName(targetPodName)
 	b.Request.Status.SetAccessMessage(accessString)
 
 	return statusString, err
