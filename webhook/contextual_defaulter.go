@@ -3,7 +3,10 @@ package webhook
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -107,7 +110,15 @@ func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admi
 	// Default the object
 	//
 	// orig: https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L78-L83
-	obj.Default(req)
+	err := obj.Default(req)
+	if err != nil {
+		var apiStatus apierrors.APIStatus
+		if errors.As(err, &apiStatus) {
+			return validationResponseFromStatus(false, apiStatus.Status())
+		}
+		return admission.Denied(err.Error())
+	}
+
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)

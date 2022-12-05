@@ -237,7 +237,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 		err := k8sClient.Create(ctx, namespace)
 		Expect(err).To(Not(HaveOccurred()))
 
-		By("Creating the Deployment to peform the tests")
+		By("Creating the Deployment to perform the tests")
 		deployment = &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-deployment",
