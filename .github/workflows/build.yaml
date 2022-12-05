@@ -17,3 +17,6 @@ jobs:
 
       - name: Build Artifacts
         run: make build
+
+      - name: Check for diff?
+        run: git diff --exit-code
