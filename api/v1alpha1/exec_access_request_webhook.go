@@ -17,14 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
-	"errors"
 	"fmt"
 
 	"github.com/diranged/oz/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -55,9 +52,7 @@ var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *ExecAccessRequest) Default(req admission.Request) error {
-	logger := log.FromContext(context.Background())
-	logger.Info("defaulter Well gotcha", "req", ObjectToJSON(req), "self", ObjectToJSON(r))
-	return errors.New("junk")
+	return nil
 }
 
 //+kubebuilder:webhook:path=/validate-crds-wizardofoz-co-v1alpha1-execaccessrequest,mutating=false,failurePolicy=fail,sideEffects=None,groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=create;update;delete,versions=v1alpha1,name=vexecaccessrequest.kb.io,admissionReviewVersions=v1
