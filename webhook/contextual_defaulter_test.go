@@ -89,6 +89,29 @@ var _ = Describe("Defaulter Handler", func() {
 			})
 		}).To(Panic())
 	})
+
+	It("should fail if default() returns error", func() {
+		obj := &TestDefaulter{}
+		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		handler := &admission.Webhook{
+			Handler: &defaulterForType{object: obj, decoder: decoder},
+		}
+
+		resp := handler.Handle(context.TODO(), admission.Request{
+			AdmissionRequest: admissionv1.AdmissionRequest{
+				Operation: admissionv1.Create,
+				UserInfo: authenticationv1.UserInfo{
+					Username: "",
+				},
+				Object: runtime.RawExtension{
+					Raw: []byte("{}"),
+				},
+			},
+		})
+		Expect(len(resp.Patches)).To(Equal(0))
+		Expect(resp.Result.Code).Should(Equal(int32(http.StatusForbidden)))
+		Expect(resp.Allowed).Should(BeFalse())
+	})
 })
 
 // TestDefaulter.

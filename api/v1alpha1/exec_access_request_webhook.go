@@ -51,7 +51,7 @@ func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *ExecAccessRequest) Default(req admission.Request) error {
+func (r *ExecAccessRequest) Default(_ admission.Request) error {
 	return nil
 }
 
