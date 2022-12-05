@@ -17,25 +17,25 @@ const namespace = "oz-system"
 // Run e2e tests using the Ginkgo runner.
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
-	fmt.Fprintf(GinkgoWriter, "Starting Oz Operator suite\n")
+	_, _ = fmt.Fprintf(GinkgoWriter, "Starting Oz Operator suite\n")
 	RunSpecs(t, "Oz e2e suite")
 }
 
 // Before we start the suite, pre-build the docker image, create the test namespace and get
 // everything spun up.
 var _ = BeforeSuite(func() {
-	cmd := exec.Command("kubectl", "create", "ns", namespace)
+	_ = exec.Command("kubectl", "create", "ns", namespace)
 
-	cmd = exec.Command("make", "release")
-	_, err := utils.Run(cmd)
+	cmdRelease := exec.Command("make", "release")
+	_, err := utils.Run(cmdRelease)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	cmd = exec.Command("make", "docker-load")
-	_, err = utils.Run(cmd)
+	cmdDockerLoad := exec.Command("make", "docker-load")
+	_, err = utils.Run(cmdDockerLoad)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	cmd = exec.Command("make", "deploy")
-	_, err = utils.Run(cmd)
+	cmdDeploy := exec.Command("make", "deploy")
+	_, err = utils.Run(cmdDeploy)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	EventuallyWithOffset(1, func() error {

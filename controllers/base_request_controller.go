@@ -38,7 +38,8 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	// from lasting indefinitely.
 	var requestedDuration time.Duration
 	if requestedDuration, err = builder.GetRequest().GetDuration(); err != nil {
-		r.updateCondition(
+		// TODO: check err return from updateCondition
+		_ = r.updateCondition(
 			builder.GetCtx(),
 			builder.GetRequest(),
 			ConditionDurationsValid,
@@ -50,7 +51,8 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	}
 	templateDefaultDuration, err := builder.GetTemplate().GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		r.updateCondition(
+		// TODO: check err return from updateCondition
+		_ = r.updateCondition(
 			builder.GetCtx(),
 			builder.GetRequest(),
 			ConditionDurationsValid,
@@ -63,7 +65,8 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 
 	templateMaxDuration, err := builder.GetTemplate().GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		r.updateCondition(
+		// TODO: check err return from updateCondition
+		_ = r.updateCondition(
 			builder.GetCtx(),
 			builder.GetRequest(),
 			ConditionDurationsValid,
@@ -170,7 +173,8 @@ func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
 
 	statusString, err := builder.GenerateAccessResources()
 	if err != nil {
-		r.updateCondition(
+		// TODO: check err return from updateCondition
+		_ = r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			ConditionAccessResourcesCreated,
 			metav1.ConditionFalse,
@@ -197,7 +201,8 @@ func (r *BaseRequestReconciler) verifyAccessResourcesReady(
 
 	statusString, err := builder.VerifyAccessResources()
 	if err != nil {
-		r.updateCondition(
+		// TODO: check err return from updateCondition
+		_ = r.updateCondition(
 			builder.GetCtx(), builder.GetRequest(),
 			ConditionAccessResourcesReady,
 			metav1.ConditionFalse,

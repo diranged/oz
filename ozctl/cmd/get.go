@@ -1,16 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
 )
-
-var ourScheme *runtime.Scheme
 
 var getCmd = &cobra.Command{
 	Use:   "get <resource> ...options",
@@ -19,7 +17,10 @@ var getCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			cmd.Help()
+			if err := cmd.Help(); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 			os.Exit(0)
 		}
 

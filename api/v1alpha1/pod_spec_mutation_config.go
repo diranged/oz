@@ -186,7 +186,7 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 
 	// By default we purge the Spec.terminationGracePeriodSeconds value.
 	if !c.KeepTerminationGracePeriod {
-		logger.V(1).Info(fmt.Sprintf("Purging spec.terminationGracePeriodSeconds..."))
+		logger.V(1).Info("Purging spec.terminationGracePeriodSeconds...")
 		n.Spec.TerminationGracePeriodSeconds = nil
 	}
 	if !c.KeepLivenessProbe {

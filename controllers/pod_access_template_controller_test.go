@@ -207,7 +207,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 			By("Verifying the resource became ready")
 			Eventually(func() error {
 				found := &api.PodAccessTemplate{}
-				k8sClient.Get(ctx, types.NamespacedName{
+				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
 				}, found)
@@ -291,7 +291,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 			By("Verify that the TargetRefExists condition is False")
 			Eventually(func() error {
 				found := &api.PodAccessTemplate{}
-				k8sClient.Get(ctx, types.NamespacedName{
+				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
 				}, found)
@@ -316,7 +316,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 			By("Verify that the TargetDuration condition is False")
 			Eventually(func() error {
 				found := &api.PodAccessTemplate{}
-				k8sClient.Get(ctx, types.NamespacedName{
+				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
 				}, found)

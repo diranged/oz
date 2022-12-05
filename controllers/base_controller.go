@@ -83,8 +83,12 @@ func (r *BaseReconciler) updateStatus(ctx context.Context, res api.ICoreResource
 		return err
 	}
 
-	// Refetch the object when we're done to make sure we are working with the latest version
-	r.refetch(ctx, res)
+	// Re-fetch the object when we're done to make sure we are working with the latest version
+	if _, err := r.refetch(ctx, res); err != nil {
+		logger.Error(err, "Failed to refetch object")
+		return err
+	}
+
 	logger.V(2).
 		Info("Post Obj Json", "resourceVersion", res.GetResourceVersion(), "json", builders.ObjectToJSON(res))
 
