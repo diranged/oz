@@ -13,6 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
 var _ = Describe("PodAccessRequestController", Ordered, func() {
@@ -34,7 +35,7 @@ var _ = Describe("PodAccessRequestController", Ordered, func() {
 			By("Creating the Namespace to perform the tests")
 			namespace = &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: randomString(8),
+					Name: utils.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, namespace)

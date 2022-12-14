@@ -3,9 +3,11 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	//revive:disable:dot-imports
 	. "github.com/onsi/ginkgo/v2"
@@ -75,4 +77,12 @@ func GetNonEmptyLines(output string) []string {
 	}
 
 	return res
+}
+
+// RandomString is a function for generating a random string for certain tests
+func RandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, length)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)[:length]
 }

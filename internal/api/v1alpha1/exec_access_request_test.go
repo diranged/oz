@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
@@ -18,6 +19,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
 // The ExecAccessRequest tests are primarily testing the behavior of the
@@ -231,7 +234,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 		By("Creating the Namespace to perform the tests")
 		namespace = &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: randomString(8),
+				Name: utils.RandomString(8),
 			},
 		}
 		err := k8sClient.Create(ctx, namespace)

@@ -14,6 +14,7 @@ import (
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
 type FakeBuilder struct {
@@ -51,7 +52,7 @@ var _ = Describe("BaseReconciler", Ordered, func() {
 			By("Creating the Namespace to perform the tests")
 			namespace = &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: randomString(8),
+					Name: utils.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, namespace)
