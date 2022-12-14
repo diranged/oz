@@ -27,9 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
-	"github.com/diranged/oz/internal/controllers/internal/conditions"
 	"github.com/diranged/oz/internal/controllers/internal/status"
 	"github.com/diranged/oz/internal/controllers/internal/utils"
 )
@@ -79,7 +78,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(
 	// it doesn't come back, we exit out beacuse it is likely the object has been deleted and we no longer need to
 	// worry about it.
 	logger.Info("Verifying ExecAccessRequest exists")
-	resource, err := api.GetExecAccessRequest(ctx, r.Client, req.Name, req.Namespace)
+	resource, err := v1alpha1.GetExecAccessRequest(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find ExecAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil
@@ -156,31 +155,31 @@ func (r *ExecAccessRequestReconciler) Reconcile(
 // updated with the status.
 //
 // Returns:
-//   - Pointer to the api.ExecAccessTemplate (or nil)
+//   - Pointer to the v1alpha1.ExecAccessTemplate (or nil)
 //   - An "error" only if the UpdateCondition function fails
 func (r *ExecAccessRequestReconciler) getTargetTemplate(
 	ctx context.Context,
-	req *api.ExecAccessRequest,
-) (*api.ExecAccessTemplate, error) {
+	req *v1alpha1.ExecAccessRequest,
+) (*v1alpha1.ExecAccessTemplate, error) {
 	logger := r.getLogger(ctx)
 	logger.Info(
 		fmt.Sprintf("Verifying that Target Template %s still exists...", req.Spec.TemplateName),
 	)
 
-	var tmpl *api.ExecAccessTemplate
+	var tmpl *v1alpha1.ExecAccessTemplate
 	var err error
 
-	if tmpl, err = api.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
+	if tmpl, err = v1alpha1.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
 		return nil, status.UpdateCondition(
-			ctx, r, req, conditions.ConditionTargetTemplateExists, metav1.ConditionFalse,
+			ctx, r, req, v1alpha1.ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 	return tmpl, status.UpdateCondition(
 		ctx,
 		r,
 		req,
-		conditions.ConditionTargetTemplateExists,
+		v1alpha1.ConditionTargetTemplateExists,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"Found Target Template",
@@ -211,7 +210,7 @@ func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.ExecAccessRequest{}).
+		For(&v1alpha1.ExecAccessRequest{}).
 		WithEventFilter(utils.IgnoreStatusUpdatesAndDeletion()).
 		Complete(r)
 }

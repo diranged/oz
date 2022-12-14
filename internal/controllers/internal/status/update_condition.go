@@ -8,8 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/internal/conditions"
 )
 
 // UpdateCondition provides a simple way to update the .Status.Conditions field
@@ -20,11 +20,13 @@ import (
 // conditions first from the request object. From there, we insert in a new
 // Condition into the resource. Finally we call the UpdateStatus() function to
 // push the update to Kubernetes.
+//
+// revive:disable:argument-limit long but reasonable
 func UpdateCondition(
 	ctx context.Context,
 	rec hasStatusReconciler,
 	res api.ICoreResource,
-	conditionType conditions.OzResourceConditionTypes,
+	conditionType v1alpha1.IConditionType,
 	conditionStatus metav1.ConditionStatus,
 	reason string,
 	message string,
@@ -34,7 +36,7 @@ func UpdateCondition(
 		Info(fmt.Sprintf("Updating condition %s to %s", conditionType, conditionStatus))
 
 	meta.SetStatusCondition(res.GetStatus().GetConditions(), metav1.Condition{
-		Type:               string(conditionType),
+		Type:               conditionType.String(),
 		Status:             conditionStatus,
 		ObservedGeneration: res.GetGeneration(),
 		LastTransitionTime: metav1.Time{},

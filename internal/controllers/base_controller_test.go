@@ -17,7 +17,6 @@ type FakeBuilder struct {
 
 	// Flags for faking GenerateAccessResources
 	retStatusString string
-	retAccessString string
 	retErr          error
 }
 

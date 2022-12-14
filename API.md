@@ -565,6 +565,14 @@ CoreStatus
 </tr>
 </tbody>
 </table>
+<h3 id="crds.wizardofoz.co/v1alpha1.IConditionType">IConditionType
+</h3>
+<div>
+<p>IConditionType provides an interface for accepting any condition string that
+has a String() function. This simplifies the
+controllers/internal/status/update_status.go code to have a single
+UpdateStatus() function.</p>
+</div>
 <h3 id="crds.wizardofoz.co/v1alpha1.ICoreResource">ICoreResource
 </h3>
 <div>
@@ -1250,6 +1258,69 @@ This setting overrides that behavior.</p>
 </td>
 </tr>
 </tbody>
+</table>
+<h3 id="crds.wizardofoz.co/v1alpha1.RequestConditionTypes">RequestConditionTypes
+(<code>string</code> alias)</h3>
+<div>
+<p>RequestConditionTypes defines a set of known Status.Condition[].ConditionType fields that are
+used throughout the AccessRequest and AccessTemplate reconcilers.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr><td><p>&#34;AccessMessage&#34;</p></td>
+<td><p>ConditionAccessMessage is used to record</p>
+</td>
+</tr><tr><td><p>&#34;AccessResourcesCreated&#34;</p></td>
+<td><p>ConditionAccessResourcesCreated indicates whether or not the target
+access request resources have been properly created.</p>
+</td>
+</tr><tr><td><p>&#34;AccessResourcesReady&#34;</p></td>
+<td><p>ConditionAccessResourcesReady indicates that all of the &ldquo;access
+resources&rdquo; (eg, a Pod) are up and in the ready state.</p>
+</td>
+</tr><tr><td><p>&#34;AccessStillValid&#34;</p></td>
+<td><p>ConditionAccessStillValid is continaully updated based on whether or not
+the Access Request has timed out.</p>
+</td>
+</tr><tr><td><p>&#34;AccessDurationsValid&#34;</p></td>
+<td><p>ConditionRequestDurationsValid is used by both AccessTemplate and
+AccessRequest resources. It indicates whether or not the various
+duration fields are valid.</p>
+</td>
+</tr><tr><td><p>&#34;TargetTemplateExists&#34;</p></td>
+<td><p>ConditionTargetTemplateExists indicates that the Access Request is
+pointing to a valid Access Template.</p>
+</td>
+</tr></tbody>
+</table>
+<h3 id="crds.wizardofoz.co/v1alpha1.TemplateConditionTypes">TemplateConditionTypes
+(<code>string</code> alias)</h3>
+<div>
+<p>TemplateConditionTypes defines a set of known Status.Condition[].ConditionType fields that are
+used throughout the AccessTemplate reconcilers and written to the ITemplateResource resources.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr><td><p>&#34;TargetRefExists&#34;</p></td>
+<td><p>ConditionTargetRefExists indicates whether or not an AccessTemplate is
+pointing to a valid Controller.</p>
+</td>
+</tr><tr><td><p>&#34;AccessDurationsValid&#34;</p></td>
+<td><p>ConditionTemplateDurationsValid is used by both AccessTemplate and
+AccessRequest resources. It indicates whether or not the various
+duration fields are valid.</p>
+</td>
+</tr></tbody>
 </table>
 <hr/>
 <p><em>

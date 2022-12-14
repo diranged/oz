@@ -14,27 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/utils"
 	testingutils "github.com/diranged/oz/internal/testing/utils"
-)
-
-type FakeBuilder struct {
-	builders.BaseBuilder
-
-	// Flags for faking GenerateAccessResources
-	retStatusString string
-	retAccessString string
-	retErr          error
-}
-
-func (b *FakeBuilder) GenerateAccessResources() (statusString string, err error) {
-	return b.retStatusString, b.retErr
-}
-
-var (
-	_ builders.IBuilder = &FakeBuilder{}
-	_ builders.IBuilder = (*FakeBuilder)(nil)
 )
 
 type mockReconciler struct {

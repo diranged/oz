@@ -6,8 +6,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
-	"github.com/diranged/oz/internal/controllers/internal/conditions"
 	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
@@ -34,13 +34,13 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IBuilder) erro
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
 		return status.UpdateCondition(
-			ctx, r, tmpl, conditions.ConditionTargetRefExists, metav1.ConditionFalse,
+			ctx, r, tmpl, v1alpha1.ConditionTargetRefExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
 	return status.UpdateCondition(
-		ctx, r, tmpl, conditions.ConditionTargetRefExists, metav1.ConditionTrue,
+		ctx, r, tmpl, v1alpha1.ConditionTargetRefExists, metav1.ConditionTrue,
 		string(metav1.StatusSuccess), "Success")
 }
 
@@ -60,7 +60,7 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 			ctx,
 			r,
 			tmpl,
-			conditions.ConditionDurationsValid,
+			v1alpha1.ConditionTemplateDurationsValid,
 			metav1.ConditionFalse,
 			string(
 				metav1.StatusReasonNotAcceptable,
@@ -74,7 +74,7 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 			ctx,
 			r,
 			tmpl,
-			conditions.ConditionDurationsValid,
+			v1alpha1.ConditionTemplateDurationsValid,
 			metav1.ConditionFalse,
 			string(
 				metav1.StatusReasonNotAcceptable,
@@ -84,12 +84,12 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 	}
 	if defaultDuration > maxDuration {
 		return status.UpdateCondition(
-			ctx, r, tmpl, conditions.ConditionDurationsValid, metav1.ConditionFalse,
+			ctx, r, tmpl, v1alpha1.ConditionTemplateDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable),
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
 	}
 	return status.UpdateCondition(
-		ctx, r, tmpl, conditions.ConditionDurationsValid, metav1.ConditionTrue,
+		ctx, r, tmpl, v1alpha1.ConditionTemplateDurationsValid, metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"spec.defaultDuration and spec.maxDuration valid")
 }
