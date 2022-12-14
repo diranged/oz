@@ -9,7 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -51,19 +50,6 @@ func (r *BaseReconciler) SetReconciliationInterval() {
 	}
 }
 
-// refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
-// supplied object reference. This is critical to avoid "the object has been modified; please apply
-// your changes to the latest version and try again" errors when updating object status fields.
-func (r *BaseReconciler) refetch(ctx context.Context, obj client.Object) (*client.Object, error) {
-	if err := r.APIReader.Get(ctx, types.NamespacedName{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-	}, obj); err != nil {
-		return nil, err
-	}
-	return &obj, nil
-}
-
 // UpdateStatus pushes the client.Object.Status field into Kubernetes if it has been updated, and
 // then takes care of calling Refetch() to re-populate the object pointer with the updated object
 // revision from Kubernetes.
@@ -82,7 +68,7 @@ func (r *BaseReconciler) updateStatus(ctx context.Context, res api.ICoreResource
 	}
 
 	// Re-fetch the object when we're done to make sure we are working with the latest version
-	if _, err := r.refetch(ctx, res); err != nil {
+	if _, err := refetch(ctx, r.APIReader, res); err != nil {
 		logger.Error(err, "Failed to refetch object")
 		return err
 	}

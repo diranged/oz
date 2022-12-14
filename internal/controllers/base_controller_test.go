@@ -98,7 +98,7 @@ var _ = Describe("BaseReconciler", Ordered, func() {
 			Expect(origResourceVer).To(Not(Equal(newResourceVer)))
 
 			// Now, refetch th data
-			_, _ = reconciler.refetch(ctx, cm)
+			_, _ = refetch(ctx, reconciler.APIReader, cm)
 
 			// Verify that the new object has the new resource version
 			Expect(newResourceVer).To(Equal(cm.ResourceVersion))

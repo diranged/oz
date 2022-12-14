@@ -1,9 +1,26 @@
 package controllers
 
 import (
+	"context"
+
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
+
+// refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
+// supplied object reference. This is critical to avoid "the object has been modified; please apply
+// your changes to the latest version and try again" errors when updating object status fields.
+func refetch(ctx context.Context, reader client.Reader, obj client.Object) (*client.Object, error) {
+	if err := reader.Get(ctx, types.NamespacedName{
+		Name:      obj.GetName(),
+		Namespace: obj.GetNamespace(),
+	}, obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
 
 // ignoreStatusUpdatesAndDeletion filters out reconcile requests where only the
 // Status was updated, or on Deletes.
