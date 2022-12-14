@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package main is operator-sdk boilerplate
-package main
+package manager
 
 import (
 	"flag"
@@ -58,7 +58,7 @@ func init() {
 }
 
 // revive:disable:cyclomatic Long, but easy to understand
-func main() {
+func Main() {
 	var metricsAddr string
 	var probeAddr string
 	var enableLeaderElection bool

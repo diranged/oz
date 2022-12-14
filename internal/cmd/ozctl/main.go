@@ -1,10 +1,10 @@
 // Package main is boilerplate top level code for setting up a cobra-based CLI tool.
-package main
+package ozctl
 
 import (
-	cmd "github.com/diranged/oz/ozctl/cmd"
+	"github.com/diranged/oz/internal/cmd/ozctl/cmd"
 )
 
-func main() {
+func Main() {
 	cmd.Execute()
 }
