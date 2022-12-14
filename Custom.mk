@@ -39,7 +39,7 @@ lint: revive
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e: cert-manager
-	go test ./test/e2e/ -v -ginkgo.v
+	go test ./internal/testing/e2e/ -v -ginkgo.v
 
 .PHONY: cert-manager
 cert-manager:
