@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/diranged/oz/internal/controllers/builders"
+	"github.com/diranged/oz/internal/builders"
 )
 
 // BaseRequestReconciler provides a base reconciler with common functions for handling our Template CRDs

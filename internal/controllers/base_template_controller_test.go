@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/builders"
+	"github.com/diranged/oz/internal/builders"
 )
 
 var _ = Describe("BaseTemplateReconciler", Ordered, func() {

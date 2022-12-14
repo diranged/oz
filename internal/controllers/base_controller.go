@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/builders"
+	"github.com/diranged/oz/internal/builders"
 )
 
 // BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some
