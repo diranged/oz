@@ -29,6 +29,9 @@ import (
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers/internal/conditions"
+	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/controllers/internal/utils"
 )
 
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object
@@ -134,7 +137,7 @@ func (r *ExecAccessRequestReconciler) Reconcile(
 	}
 
 	// FINAL: Set Status.Ready state
-	err = r.setReadyStatus(ctx, resource)
+	err = status.SetReadyStatus(ctx, r, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -169,13 +172,19 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(
 
 	if tmpl, err = api.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
-		return nil, r.updateCondition(
-			ctx, req, ConditionTargetTemplateExists, metav1.ConditionFalse,
+		return nil, status.UpdateCondition(
+			ctx, r, req, conditions.ConditionTargetTemplateExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
-	return tmpl, r.updateCondition(
-		ctx, req, ConditionTargetTemplateExists, metav1.ConditionTrue, string(metav1.StatusSuccess),
-		"Found Target Template")
+	return tmpl, status.UpdateCondition(
+		ctx,
+		r,
+		req,
+		conditions.ConditionTargetTemplateExists,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		"Found Target Template",
+	)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -203,6 +212,6 @@ func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.ExecAccessRequest{}).
-		WithEventFilter(ignoreStatusUpdatesAndDeletion()).
+		WithEventFilter(utils.IgnoreStatusUpdatesAndDeletion()).
 		Complete(r)
 }

@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/internal/conditions"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -287,7 +288,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 				if meta.IsStatusConditionPresentAndEqual(
 					*found.GetStatus().GetConditions(),
-					string(ConditionTargetRefExists),
+					string(conditions.ConditionTargetRefExists),
 					metav1.ConditionFalse,
 				) {
 					// If the condition is set, and its set to False, then we can return success. We
@@ -297,7 +298,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 				// Return a failure. We'll loop over this a few times before giving up.
 				return fmt.Errorf(
 					"Expected %s to be %s",
-					ConditionTargetRefExists,
+					conditions.ConditionTargetRefExists,
 					metav1.ConditionFalse,
 				)
 			}, 10*time.Second, time.Second).Should(Succeed())
@@ -312,7 +313,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 
 				if meta.IsStatusConditionPresentAndEqual(
 					*found.GetStatus().GetConditions(),
-					string(ConditionDurationsValid),
+					string(conditions.ConditionDurationsValid),
 					metav1.ConditionFalse,
 				) {
 					// If the condition is set, and its set to False, then we can return success. We
@@ -323,7 +324,7 @@ var _ = Describe("ExecAccessTemplateController", Ordered, func() {
 				// Return a failure. We'll loop over this a few times before giving up.
 				return fmt.Errorf(
 					"Expected %s to be %s",
-					ConditionTargetRefExists,
+					conditions.ConditionTargetRefExists,
 					metav1.ConditionFalse,
 				)
 			}, 10*time.Second, time.Second).Should(Succeed())

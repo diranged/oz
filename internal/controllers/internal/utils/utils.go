@@ -1,4 +1,5 @@
-package controllers
+// Package utils provides some common utility functions for our controllers
+package utils
 
 import (
 	"context"
@@ -9,10 +10,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
+// Refetch uses the "consistent client" (non-caching) to retreive the latest state of the object into the
 // supplied object reference. This is critical to avoid "the object has been modified; please apply
 // your changes to the latest version and try again" errors when updating object status fields.
-func refetch(ctx context.Context, reader client.Reader, obj client.Object) (*client.Object, error) {
+func Refetch(ctx context.Context, reader client.Reader, obj client.Object) (*client.Object, error) {
 	if err := reader.Get(ctx, types.NamespacedName{
 		Name:      obj.GetName(),
 		Namespace: obj.GetNamespace(),
@@ -22,7 +23,7 @@ func refetch(ctx context.Context, reader client.Reader, obj client.Object) (*cli
 	return &obj, nil
 }
 
-// ignoreStatusUpdatesAndDeletion filters out reconcile requests where only the
+// IgnoreStatusUpdatesAndDeletion filters out reconcile requests where only the
 // Status was updated, or on Deletes.
 //
 // **Deletes**
@@ -38,7 +39,7 @@ func refetch(ctx context.Context, reader client.Reader, obj client.Object) (*cli
 // tested and include their own automatic requeue-after settings.
 //
 // https://sdk.operatorframework.io/docs/building-operators/golang/references/event-filtering/
-func ignoreStatusUpdatesAndDeletion() predicate.Predicate {
+func IgnoreStatusUpdatesAndDeletion() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// Ignore updates to CR status in which case metadata.Generation does not change

@@ -7,6 +7,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers/internal/conditions"
+	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
 // BaseTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
@@ -31,14 +33,14 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IBuilder) erro
 
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
-		return r.updateCondition(
-			ctx, tmpl, ConditionTargetRefExists, metav1.ConditionFalse,
+		return status.UpdateCondition(
+			ctx, r, tmpl, conditions.ConditionTargetRefExists, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
-	return r.updateCondition(
-		ctx, tmpl, ConditionTargetRefExists, metav1.ConditionTrue,
+	return status.UpdateCondition(
+		ctx, r, tmpl, conditions.ConditionTargetRefExists, metav1.ConditionTrue,
 		string(metav1.StatusSuccess), "Success")
 }
 
@@ -54,10 +56,11 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 	// Verify that MaxDuration is greater than DesiredDuration.
 	defaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		return r.updateCondition(
+		return status.UpdateCondition(
 			ctx,
+			r,
 			tmpl,
-			ConditionDurationsValid,
+			conditions.ConditionDurationsValid,
 			metav1.ConditionFalse,
 			string(
 				metav1.StatusReasonNotAcceptable,
@@ -67,10 +70,11 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 	}
 	maxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		return r.updateCondition(
+		return status.UpdateCondition(
 			ctx,
+			r,
 			tmpl,
-			ConditionDurationsValid,
+			conditions.ConditionDurationsValid,
 			metav1.ConditionFalse,
 			string(
 				metav1.StatusReasonNotAcceptable,
@@ -79,13 +83,13 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) e
 		)
 	}
 	if defaultDuration > maxDuration {
-		return r.updateCondition(
-			ctx, tmpl, ConditionDurationsValid, metav1.ConditionFalse,
+		return status.UpdateCondition(
+			ctx, r, tmpl, conditions.ConditionDurationsValid, metav1.ConditionFalse,
 			string(metav1.StatusReasonNotAcceptable),
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
 	}
-	return r.updateCondition(
-		ctx, tmpl, ConditionDurationsValid, metav1.ConditionTrue,
+	return status.UpdateCondition(
+		ctx, r, tmpl, conditions.ConditionDurationsValid, metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"spec.defaultDuration and spec.maxDuration valid")
 }

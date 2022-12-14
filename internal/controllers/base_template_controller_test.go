@@ -16,6 +16,7 @@ import (
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers/internal/conditions"
 )
 
 var _ = Describe("BaseTemplateReconciler", Ordered, func() {
@@ -119,7 +120,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set as True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionTargetRefExists),
+				string(conditions.ConditionTargetRefExists),
 				metav1.ConditionTrue)).To(BeTrue())
 		})
 
@@ -172,7 +173,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionTargetRefExists),
+				string(conditions.ConditionTargetRefExists),
 				metav1.ConditionFalse)).To(BeTrue())
 		})
 	})
@@ -244,11 +245,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 			)
 			Expect(cond.Message).To(Equal("spec.defaultDuration and spec.maxDuration valid"))
 		})
@@ -293,11 +294,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 			)
 			Expect(
 				cond.Message,
@@ -344,11 +345,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 			)
 			Expect(
 				cond.Message,
@@ -395,11 +396,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(conditions.ConditionDurationsValid),
 			)
 			Expect(
 				cond.Message,
