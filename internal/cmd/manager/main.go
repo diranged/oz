@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package main is operator-sdk boilerplate
+// Package manager is operator-sdk boilerplate
 package manager
 
 import (
@@ -57,6 +57,8 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+// Main begins the command execution
+//
 // revive:disable:cyclomatic Long, but easy to understand
 func Main() {
 	var metricsAddr string

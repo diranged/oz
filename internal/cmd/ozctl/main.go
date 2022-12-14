@@ -1,10 +1,11 @@
-// Package main is boilerplate top level code for setting up a cobra-based CLI tool.
+// Package ozctl is the top level entrypoint for the cobra-based CLI tool
 package ozctl
 
 import (
 	"github.com/diranged/oz/internal/cmd/ozctl/cmd"
 )
 
+// Main begins the command execution
 func Main() {
 	cmd.Execute()
 }
