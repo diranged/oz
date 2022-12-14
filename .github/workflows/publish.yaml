@@ -43,7 +43,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - if: ${{ ! inputs.publish }}
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
@@ -54,7 +54,7 @@ jobs:
           IMG: img:local
 
       - if: ${{ inputs.publish }}
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
