@@ -35,6 +35,7 @@ import (
 
 	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/controllers"
+	"github.com/diranged/oz/internal/controllers/podwatcher"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -148,7 +149,7 @@ func Main() {
 	hookServer := mgr.GetWebhookServer()
 	hookServer.Register(
 		"/watch-v1-pod",
-		&webhook.Admission{Handler: &controllers.PodExecWatcher{Client: mgr.GetClient()}},
+		&webhook.Admission{Handler: &podwatcher.PodExecWatcher{Client: mgr.GetClient()}},
 	)
 
 	// Set Up the Reconcilers

@@ -1,4 +1,5 @@
-package controllers
+// Package podwatcher provides a Webhook handler for Pod Exec/Debug events for auditing purposes
+package podwatcher
 
 import (
 	"context"
