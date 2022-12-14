@@ -3,9 +3,10 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/diranged/oz/controllers/builders"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 // BaseTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs

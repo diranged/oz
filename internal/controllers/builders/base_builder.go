@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -19,6 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 const shortUIDLength = 8

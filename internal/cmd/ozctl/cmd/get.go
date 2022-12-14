@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 var getCmd = &cobra.Command{

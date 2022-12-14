@@ -3,18 +3,19 @@ package controllers
 import (
 	"context"
 
-	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers/builders"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 var _ = Describe("BaseTemplateReconciler", Ordered, func() {

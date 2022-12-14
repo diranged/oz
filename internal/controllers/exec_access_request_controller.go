@@ -25,11 +25,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers/builders"
+	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 // ExecAccessRequestReconciler reconciles a ExecAccessRequest object

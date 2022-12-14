@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers/builders"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -13,6 +11,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 type FakeBuilder struct {

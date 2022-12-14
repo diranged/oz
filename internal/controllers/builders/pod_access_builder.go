@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 // PodAccessBuilder implements the required resources for the api.AccessTemplate CRD.

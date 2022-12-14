@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/diranged/oz/test/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
 // Make sure this matches the namespace in "config/default/kustomization.yaml"

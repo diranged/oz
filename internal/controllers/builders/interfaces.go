@@ -3,9 +3,10 @@ package builders
 import (
 	"context"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 // IBuilder defines the interface for a particular "access builder". An "access builder" is typically

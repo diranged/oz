@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 // ExecAccessBuilder implements the required resources for the api.ExecAccessTemplate CRD.

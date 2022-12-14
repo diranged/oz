@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/diranged/oz/controllers"
-	"github.com/diranged/oz/test/utils"
 	. "github.com/onsi/ginkgo/v2"
-
 	//nolint:golint
 	//nolint:revive
 	. "github.com/onsi/gomega"
+
+	"github.com/diranged/oz/internal/controllers"
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
 var _ = Describe("oz-controller", Ordered, func() {

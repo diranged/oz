@@ -26,8 +26,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers/builders"
+	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 // PodAccessRequestReconciler reconciles a AccessRequest object

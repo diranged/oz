@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	cc "github.com/ivanpirog/coloredcobra"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 // Variables filled out during the initial `Execute()` step. These are used throughout the various

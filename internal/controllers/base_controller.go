@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"strconv"
 
-	api "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers/builders"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers/builders"
 )
 
 // BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some

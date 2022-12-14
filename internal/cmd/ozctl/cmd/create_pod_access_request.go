@@ -5,9 +5,10 @@ import (
 	"regexp"
 	"time"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 var createPodAccessRequestExample = `
