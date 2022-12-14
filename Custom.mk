@@ -39,7 +39,7 @@ lint: revive
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e: cert-manager
-	go test ./test/e2e/ -v -ginkgo.v
+	go test ./internal/testing/e2e/ -v -ginkgo.v
 
 .PHONY: cert-manager
 cert-manager:
@@ -90,7 +90,7 @@ $(GEN_CRD_API_DOCS):
 godocs: $(GEN_CRD_API_DOCS)
 	bin/gen-crd-api-reference-docs \
 		-config ./gen-crd-api-reference-docs.json \
-		-api-dir ./api/v1alpha1 \
+		-api-dir ./internal/api/v1alpha1 \
 		-template-dir $$(go env GOMODCACHE)/github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_DOCS_VER)/template \
 		-out-file API.md \
 		-v 5

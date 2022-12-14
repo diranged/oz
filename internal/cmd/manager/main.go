@@ -33,8 +33,8 @@ import (
 
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 
-	crdsv1alpha1 "github.com/diranged/oz/api/v1alpha1"
-	"github.com/diranged/oz/controllers"
+	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/controllers"
 	//+kubebuilder:scaffold:imports
 )
 

@@ -6,9 +6,10 @@ import (
 	"os"
 	"time"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {

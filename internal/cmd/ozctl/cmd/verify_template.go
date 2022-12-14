@@ -3,8 +3,9 @@ package cmd
 import (
 	"os"
 
-	api "github.com/diranged/oz/api/v1alpha1"
 	"github.com/spf13/cobra"
+
+	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 var accessRequestInitMsg = logNotice(`Initiating Access Request...
