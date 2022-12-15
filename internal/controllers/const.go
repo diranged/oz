@@ -1,8 +1,8 @@
 package controllers
 
 const (
-	fieldSelectorMetadataName string = "metadata.name"
-	fieldSelectorStatusPhase  string = "status.phase"
+	FieldSelectorMetadataName string = "metadata.name"
+	FieldSelectorStatusPhase  string = "status.phase"
 )
 
 const (

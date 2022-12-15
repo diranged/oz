@@ -189,7 +189,7 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(
 // SetupWithManager sets up the controller with the Manager.
 func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// Provide a searchable index in the cached kubernetes client for "metadata.name" - the pod name.
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, fieldSelectorMetadataName, func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, FieldSelectorMetadataName, func(rawObj client.Object) []string {
 		// grab the job object, extract the name...
 		pod := rawObj.(*v1.Pod)
 		name := pod.GetName()
@@ -200,7 +200,7 @@ func (r *ExecAccessRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Provide a searchable index in the cached kubernetes client for "status.phase", allowing us to
 	// search for Running Pods.
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, fieldSelectorStatusPhase, func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, FieldSelectorStatusPhase, func(rawObj client.Object) []string {
 		// grab the job object, extract the phase...
 		pod := rawObj.(*v1.Pod)
 		phase := string(pod.Status.Phase)

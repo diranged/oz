@@ -38,7 +38,7 @@ warningCode = 1
 
 [rule.add-constant]
 arguments = [
-  {allowStrs ="\"\"",allowInts="0,1,2"}
+  {allowStrs ="\"\"",allowInts="0,1,2,3,4,5"}
 ]
 [rule.argument-limit]
 arguments = [6]

@@ -77,7 +77,7 @@ func (r *PodAccessRequestReconciler) Reconcile(
 	//
 	// TODO: Validate IsReady().
 	logger.Info("Verifying PodAccessRequest exists")
-	resource, err := v1alpha1.GetPodAccessRequest(ctx, r.APIReader, req.Name, req.Namespace)
+	resource, err := v1alpha1.GetPodAccessRequest(ctx, r.Client, req.Name, req.Namespace)
 	if err != nil {
 		logger.Info(fmt.Sprintf("Failed to find PodAccessRequest %s, perhaps deleted.", req.Name))
 		return ctrl.Result{}, nil
