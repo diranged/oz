@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 var _ = Describe("BaseRequestReconciler", Ordered, func() {
@@ -63,7 +63,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 			// Create the Builder that we'll be testing
 			builder = &FakeBuilder{
-				BaseBuilder: builders.BaseBuilder{
+				BaseBuilder: legacybuilder.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
 					APIReader: fakeClient,
@@ -148,7 +148,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 	Context("isAccessExpired", func() {
 		var (
 			request    *v1alpha1.ExecAccessRequest
-			builder    *builders.BaseBuilder
+			builder    *legacybuilder.BaseBuilder
 			r          *BaseRequestReconciler
 			fakeClient client.Client
 			ctx        = context.Background()
@@ -200,7 +200,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -244,7 +244,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -291,7 +291,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -309,7 +309,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 		var (
 			template   *v1alpha1.ExecAccessTemplate
 			request    *v1alpha1.ExecAccessRequest
-			builder    *builders.BaseBuilder
+			builder    *legacybuilder.BaseBuilder
 			r          *BaseRequestReconciler
 			fakeClient client.Client
 			ctx        = context.Background()
@@ -377,7 +377,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -428,7 +428,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -481,7 +481,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -534,7 +534,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -599,7 +599,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Create the Builder that we'll be testing
-				builder = &builders.BaseBuilder{
+				builder = &legacybuilder.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
 					APIReader: fakeClient,
@@ -663,7 +663,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Create the Builder that we'll be testing
-				builder = &builders.BaseBuilder{
+				builder = &legacybuilder.BaseBuilder{
 					Client:    fakeClient,
 					Ctx:       ctx,
 					APIReader: fakeClient,
@@ -715,7 +715,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,

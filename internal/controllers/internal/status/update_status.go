@@ -6,8 +6,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/utils"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 // UpdateStatus pushes the client.Object.Status field into Kubernetes if it has been updated, and
@@ -21,7 +21,7 @@ func UpdateStatus(ctx context.Context, rec hasStatusReconciler, res api.ICoreRes
 
 	// Update the status, handle failure.
 	logger.V(2).
-		Info("Pre Obj Json", "resourceVersion", res.GetResourceVersion(), "json", builders.ObjectToJSON(res))
+		Info("Pre Obj Json", "resourceVersion", res.GetResourceVersion(), "json", legacybuilder.ObjectToJSON(res))
 	if err := rec.Status().Update(ctx, res); err != nil {
 		logger.Error(err, "Failed to update status")
 		return err
@@ -34,7 +34,7 @@ func UpdateStatus(ctx context.Context, rec hasStatusReconciler, res api.ICoreRes
 	}
 
 	logger.V(2).
-		Info("Post Obj Json", "resourceVersion", res.GetResourceVersion(), "json", builders.ObjectToJSON(res))
+		Info("Post Obj Json", "resourceVersion", res.GetResourceVersion(), "json", legacybuilder.ObjectToJSON(res))
 
 	return nil
 }

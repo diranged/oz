@@ -8,12 +8,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/legacybuilder"
 	testingutils "github.com/diranged/oz/internal/testing/utils"
 )
 
 type FakeBuilder struct {
-	builders.BaseBuilder
+	legacybuilder.BaseBuilder
 
 	// Flags for faking GenerateAccessResources
 	retStatusString string
@@ -25,8 +25,8 @@ func (b *FakeBuilder) GenerateAccessResources() (statusString string, err error)
 }
 
 var (
-	_ builders.IBuilder = &FakeBuilder{}
-	_ builders.IBuilder = (*FakeBuilder)(nil)
+	_ legacybuilder.IBuilder = &FakeBuilder{}
+	_ legacybuilder.IBuilder = (*FakeBuilder)(nil)
 )
 
 var _ = Describe("BaseReconciler", Ordered, func() {

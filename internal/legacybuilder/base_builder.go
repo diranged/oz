@@ -1,6 +1,6 @@
-// Package builders provides a set of Access Builder structs and methods for dynamically
+// Package legacy_builders provides a set of Access Builder structs and methods for dynamically
 // generating Kubernetes resources for a particular type of Access Request.
-package builders
+package legacybuilder
 
 import (
 	"context"
