@@ -26,6 +26,7 @@ import (
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
@@ -94,7 +95,7 @@ func (r *ExecAccessTemplateReconciler) Reconcile(
 	// VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	// FINAL: Set Status.Ready state
-	err = r.setReadyStatus(ctx, resource)
+	err = status.SetReadyStatus(ctx, r, resource)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

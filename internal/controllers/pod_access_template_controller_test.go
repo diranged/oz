@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -135,7 +135,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Creating the custom resource")
-			template := &api.PodAccessTemplate{}
+			template := &v1alpha1.PodAccessTemplate{}
 			err = k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
 				Namespace: namespace.Name,
@@ -143,23 +143,23 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 			cpuReq, _ := resource.ParseQuantity("1")
 			if err != nil && errors.IsNotFound(err) {
-				template := &api.PodAccessTemplate{
+				template := &v1alpha1.PodAccessTemplate{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      TestName,
 						Namespace: namespace.Name,
 					},
-					Spec: api.PodAccessTemplateSpec{
-						AccessConfig: api.AccessConfig{
+					Spec: v1alpha1.PodAccessTemplateSpec{
+						AccessConfig: v1alpha1.AccessConfig{
 							AllowedGroups:   []string{"testGroupA"},
 							DefaultDuration: "1h",
 							MaxDuration:     "2h",
 						},
-						ControllerTargetRef: &api.CrossVersionObjectReference{
+						ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       deployment.Name,
 						},
-						ControllerTargetMutationConfig: &api.PodTemplateSpecMutationConfig{
+						ControllerTargetMutationConfig: &v1alpha1.PodTemplateSpecMutationConfig{
 							DefaultContainerName: "test",
 							Command:              &[]string{"/bin/sleep"},
 							Args:                 &[]string{"100"},
@@ -181,7 +181,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 			By("Checking if the custom resource was successfully created")
 			Eventually(func() error {
-				found := &api.PodAccessTemplate{}
+				found := &v1alpha1.PodAccessTemplate{}
 				return k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -208,7 +208,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 			By("Verifying the resource became ready")
 			Eventually(func() error {
-				found := &api.PodAccessTemplate{}
+				found := &v1alpha1.PodAccessTemplate{}
 				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -228,20 +228,20 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 		It("Should fail to reconcile a resource with an invalid target", func() {
 			By("Creating the custom resource")
-			template := &api.PodAccessTemplate{}
+			template := &v1alpha1.PodAccessTemplate{}
 			err := k8sClient.Get(ctx, types.NamespacedName{
 				Name:      TestName,
 				Namespace: namespace.Name,
 			}, template)
 
 			if err != nil && errors.IsNotFound(err) {
-				template := &api.PodAccessTemplate{
+				template := &v1alpha1.PodAccessTemplate{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      TestName,
 						Namespace: namespace.Name,
 					},
-					Spec: api.PodAccessTemplateSpec{
-						AccessConfig: api.AccessConfig{
+					Spec: v1alpha1.PodAccessTemplateSpec{
+						AccessConfig: v1alpha1.AccessConfig{
 							// VALID
 							AllowedGroups: []string{"testGroupA"},
 
@@ -251,7 +251,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 						},
 
 						// INVALID: This target does not exist
-						ControllerTargetRef: &api.CrossVersionObjectReference{
+						ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 							APIVersion: "apps/v1",
 							Kind:       "Deployment",
 							Name:       "invalid-name",
@@ -265,7 +265,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 			By("Checking if the custom resource was successfully created")
 			Eventually(func() error {
-				found := &api.PodAccessTemplate{}
+				found := &v1alpha1.PodAccessTemplate{}
 				return k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -292,7 +292,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 			By("Verify that the TargetRefExists condition is False")
 			Eventually(func() error {
-				found := &api.PodAccessTemplate{}
+				found := &v1alpha1.PodAccessTemplate{}
 				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -300,7 +300,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 				if meta.IsStatusConditionPresentAndEqual(
 					*found.GetStatus().GetConditions(),
-					string(ConditionTargetRefExists),
+					string(v1alpha1.ConditionTargetRefExists),
 					metav1.ConditionFalse,
 				) {
 					// If the condition is set, and its set to False, then we can return success. We
@@ -310,14 +310,14 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				// Return a failure. We'll loop over this a few times before giving up.
 				return fmt.Errorf(
 					"Expected %s to be %s",
-					ConditionTargetRefExists,
+					v1alpha1.ConditionTargetRefExists,
 					metav1.ConditionFalse,
 				)
 			}, 10*time.Second, time.Second).Should(Succeed())
 
 			By("Verify that the TargetDuration condition is False")
 			Eventually(func() error {
-				found := &api.PodAccessTemplate{}
+				found := &v1alpha1.PodAccessTemplate{}
 				_ = k8sClient.Get(ctx, types.NamespacedName{
 					Name:      TestName,
 					Namespace: namespace.Name,
@@ -325,7 +325,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 
 				if meta.IsStatusConditionPresentAndEqual(
 					*found.GetStatus().GetConditions(),
-					string(ConditionDurationsValid),
+					string(v1alpha1.ConditionTemplateDurationsValid),
 					metav1.ConditionFalse,
 				) {
 					// If the condition is set, and its set to False, then we can return success. We
@@ -335,7 +335,7 @@ var _ = Describe("PodAccessTemplateController", Ordered, func() {
 				// Return a failure. We'll loop over this a few times before giving up.
 				return fmt.Errorf(
 					"Expected %s to be %s",
-					ConditionTargetRefExists,
+					v1alpha1.ConditionTargetRefExists,
 					metav1.ConditionFalse,
 				)
 			}, 10*time.Second, time.Second).Should(Succeed())

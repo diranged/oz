@@ -8,7 +8,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
 // BaseRequestReconciler provides a base reconciler with common functions for handling our Template CRDs
@@ -40,10 +42,11 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	var requestedDuration time.Duration
 	if requestedDuration, err = builder.GetRequest().GetDuration(); err != nil {
 		// TODO: check err return from updateCondition
-		_ = r.updateCondition(
+		_ = status.UpdateCondition(
 			builder.GetCtx(),
+			r,
 			builder.GetRequest(),
-			ConditionDurationsValid,
+			v1alpha1.ConditionRequestDurationsValid,
 			metav1.ConditionFalse,
 			string(metav1.StatusReasonBadRequest),
 			fmt.Sprintf("spec.duration error: %s", err),
@@ -53,10 +56,11 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	templateDefaultDuration, err := builder.GetTemplate().GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		// TODO: check err return from updateCondition
-		_ = r.updateCondition(
+		_ = status.UpdateCondition(
 			builder.GetCtx(),
+			r,
 			builder.GetRequest(),
-			ConditionDurationsValid,
+			v1alpha1.ConditionRequestDurationsValid,
 			metav1.ConditionFalse,
 			string(metav1.StatusReasonBadRequest),
 			fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err),
@@ -67,10 +71,11 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 	templateMaxDuration, err := builder.GetTemplate().GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		// TODO: check err return from updateCondition
-		_ = r.updateCondition(
+		_ = status.UpdateCondition(
 			builder.GetCtx(),
+			r,
 			builder.GetRequest(),
-			ConditionDurationsValid,
+			v1alpha1.ConditionRequestDurationsValid,
 			metav1.ConditionFalse,
 			string(metav1.StatusReasonBadRequest),
 			fmt.Sprintf("Template Error, spec.maxDuration error: %s", err),
@@ -80,44 +85,65 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 
 	// Now determine which duration is the one we'll use
 	var accessDuration time.Duration
-	var reasonStr string
+	{
+		var reasonStr string
+		if requestedDuration == 0 {
+			// If no requested duration supplied, then default to the template's default duration
+			reasonStr = fmt.Sprintf(
+				"Access request duration defaulting to template duration time (%s)",
+				templateDefaultDuration.String(),
+			)
+			accessDuration = templateDefaultDuration
+		} else if requestedDuration <= templateMaxDuration {
+			// If the requested duration is too long, use the template max
+			reasonStr = fmt.Sprintf("Access requested custom duration (%s)", requestedDuration.String())
+			accessDuration = requestedDuration
+		} else {
+			// Finally, if it's valid, use the supplied duration
+			reasonStr = fmt.Sprintf("Access requested duration (%s) larger than template maximum duration (%s)", requestedDuration.String(), templateMaxDuration.String())
+			accessDuration = templateMaxDuration
+		}
 
-	if requestedDuration == 0 {
-		// If no requested duration supplied, then default to the template's default duration
-		reasonStr = fmt.Sprintf(
-			"Access request duration defaulting to template duration time (%s)",
-			templateDefaultDuration.String(),
+		// Log out the decision, and update the condition
+		logger.Info(reasonStr)
+
+		err = status.UpdateCondition(
+			builder.GetCtx(),
+			r,
+			builder.GetRequest(),
+			v1alpha1.ConditionRequestDurationsValid,
+			metav1.ConditionTrue,
+			string(metav1.StatusSuccess),
+			reasonStr,
 		)
-		accessDuration = templateDefaultDuration
-	} else if requestedDuration <= templateMaxDuration {
-		// If the requested duration is too long, use the template max
-		reasonStr = fmt.Sprintf("Access requested custom duration (%s)", requestedDuration.String())
-		accessDuration = requestedDuration
-	} else {
-		// Finally, if it's valid, use the supplied duration
-		reasonStr = fmt.Sprintf("Access requested duration (%s) larger than template maximum duration (%s)", requestedDuration.String(), templateMaxDuration.String())
-		accessDuration = templateMaxDuration
-	}
-
-	// Log out the decision, and update the condition
-	logger.Info(reasonStr)
-
-	err = r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionDurationsValid,
-		metav1.ConditionTrue, string(metav1.StatusSuccess), reasonStr)
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	// If the accessUptime is greater than the accessDuration, kill it.
 	if builder.GetRequest().GetUptime() > accessDuration {
-		return r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
-			metav1.ConditionFalse, string(metav1.StatusReasonTimeout), "Access expired")
+		return status.UpdateCondition(
+			builder.GetCtx(),
+			r,
+			builder.GetRequest(),
+			v1alpha1.ConditionAccessStillValid,
+			metav1.ConditionFalse,
+			string(metav1.StatusReasonTimeout),
+			"Access expired",
+		)
 	}
 
 	// Update the resource, and let the user know how much time is remaining
-	return r.updateCondition(builder.GetCtx(), builder.GetRequest(), ConditionAccessStillValid,
-		metav1.ConditionTrue, string(metav1.StatusSuccess),
-		"Access still valid")
+	return status.UpdateCondition(
+		builder.GetCtx(),
+		r,
+		builder.GetRequest(),
+		v1alpha1.ConditionAccessStillValid,
+		metav1.ConditionTrue,
+		string(metav1.StatusSuccess),
+		"Access still valid",
+	)
 }
 
 // isAccessExpired checks the AccessRequest status for the ConditionAccessStillValid condition. If it is no longer
@@ -133,11 +159,14 @@ func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool
 	logger.Info("Checking if access has expired or not...")
 	cond := meta.FindStatusCondition(
 		*builder.GetRequest().GetStatus().GetConditions(),
-		string(ConditionAccessStillValid),
+		v1alpha1.ConditionAccessStillValid.String(),
 	)
 	if cond == nil {
 		logger.Info(
-			fmt.Sprintf("Missing Condition %s, skipping deletion", ConditionAccessStillValid),
+			fmt.Sprintf(
+				"Missing Condition %s, skipping deletion",
+				v1alpha1.ConditionAccessStillValid,
+			),
 		)
 		return false, nil
 	}
@@ -146,7 +175,7 @@ func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool
 		logger.Info(
 			fmt.Sprintf(
 				"Found Condition %s in state %s, terminating rqeuest",
-				ConditionAccessStillValid,
+				v1alpha1.ConditionAccessStillValid,
 				cond.Status,
 			),
 		)
@@ -156,7 +185,7 @@ func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool
 	logger.Info(
 		fmt.Sprintf(
 			"Found Condition %s in state %s, leaving alone",
-			ConditionAccessStillValid,
+			v1alpha1.ConditionAccessStillValid,
 			cond.Status,
 		),
 	)
@@ -175,17 +204,21 @@ func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
 	statusString, err := builder.GenerateAccessResources()
 	if err != nil {
 		// TODO: check err return from updateCondition
-		_ = r.updateCondition(
-			builder.GetCtx(), builder.GetRequest(),
-			ConditionAccessResourcesCreated,
+		_ = status.UpdateCondition(
+			builder.GetCtx(),
+			r,
+			builder.GetRequest(),
+			v1alpha1.ConditionAccessResourcesCreated,
 			metav1.ConditionFalse,
 			string(metav1.StatusFailure),
 			fmt.Sprintf("ERROR: %s", err))
 		return err
 	}
-	return r.updateCondition(
-		builder.GetCtx(), builder.GetRequest(),
-		ConditionAccessResourcesCreated,
+	return status.UpdateCondition(
+		builder.GetCtx(),
+		r,
+		builder.GetRequest(),
+		v1alpha1.ConditionAccessResourcesCreated,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		statusString)
@@ -203,18 +236,22 @@ func (r *BaseRequestReconciler) verifyAccessResourcesReady(
 	statusString, err := builder.VerifyAccessResources()
 	if err != nil {
 		// TODO: check err return from updateCondition
-		_ = r.updateCondition(
-			builder.GetCtx(), builder.GetRequest(),
-			ConditionAccessResourcesReady,
+		_ = status.UpdateCondition(
+			builder.GetCtx(),
+			r,
+			builder.GetRequest(),
+			v1alpha1.ConditionAccessResourcesReady,
 			metav1.ConditionFalse,
 			"NotYetReady",
 			fmt.Sprintf("%s", err))
 		return err
 	}
 
-	return r.updateCondition(
-		builder.GetCtx(), builder.GetRequest(),
-		ConditionAccessResourcesReady,
+	return status.UpdateCondition(
+		builder.GetCtx(),
+		r,
+		builder.GetRequest(),
+		v1alpha1.ConditionAccessResourcesReady,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		statusString)

@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
 )
 
@@ -22,7 +22,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 	Context("VerifyTargetRef", func() {
 		var (
 			deployment *appsv1.Deployment
-			template   *api.ExecAccessTemplate
+			template   *v1alpha1.ExecAccessTemplate
 			builder    builders.IBuilder
 			r          *BaseTemplateReconciler
 			fakeClient client.Client
@@ -81,18 +81,18 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 
 		It("Should work if the deployment target is valid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "targetDeployment",
@@ -119,24 +119,24 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set as True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionTargetRefExists),
+				string(v1alpha1.ConditionTargetRefExists),
 				metav1.ConditionTrue)).To(BeTrue())
 		})
 
 		It("Should set condition if the target is invalid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -172,14 +172,14 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionTargetRefExists),
+				string(v1alpha1.ConditionTargetRefExists),
 				metav1.ConditionFalse)).To(BeTrue())
 		})
 	})
 
 	Context("VerifyMiscSettings", func() {
 		var (
-			template   *api.ExecAccessTemplate
+			template   *v1alpha1.ExecAccessTemplate
 			builder    *builders.BaseBuilder
 			r          *BaseTemplateReconciler
 			fakeClient client.Client
@@ -206,18 +206,18 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 		})
 		It("Should Update Conditions to true if settings are valid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -244,29 +244,29 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 			)
 			Expect(cond.Message).To(Equal("spec.defaultDuration and spec.maxDuration valid"))
 		})
 
 		It("Should Update Condition to False if DefaultDuration is invalid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1invalidtimeframe",
 						MaxDuration:     "2h",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -293,11 +293,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 			)
 			Expect(
 				cond.Message,
@@ -306,18 +306,18 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 
 		It("Should Update Condition to False if MaxDuration is invalid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "1invalidtimeframe",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -344,11 +344,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 			)
 			Expect(
 				cond.Message,
@@ -357,18 +357,18 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 
 		It("Should Update Condition to False if DefaultDuration > MaxDuration", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "1m",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "invalidDeploymentName",
@@ -395,11 +395,11 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			// Now check that the condition was set though
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 				metav1.ConditionFalse)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				template.Status.Conditions,
-				string(ConditionDurationsValid),
+				string(v1alpha1.ConditionTemplateDurationsValid),
 			)
 			Expect(
 				cond.Message,

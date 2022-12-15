@@ -15,14 +15,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
 )
 
 var _ = Describe("BaseRequestReconciler", Ordered, func() {
 	Context("verifyAccessResources", func() {
 		var (
-			request    *api.ExecAccessRequest
+			request    *v1alpha1.ExecAccessRequest
 			builder    *FakeBuilder
 			r          *BaseRequestReconciler
 			fakeClient client.Client
@@ -44,16 +44,16 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			}
 
 			// Create an empty request to test against
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "expiredRequest",
 					Namespace: "namespace",
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "bogus",
 				},
-				Status: api.ExecAccessRequestStatus{
-					CoreStatus: api.CoreStatus{
+				Status: v1alpha1.ExecAccessRequestStatus{
+					CoreStatus: v1alpha1.CoreStatus{
 						Conditions:    []metav1.Condition{},
 						Ready:         false,
 						AccessMessage: "",
@@ -78,7 +78,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should return clean access message set condition to true", func() {
 			// Configure FakeBuilder to return success
-			builder.retAccessString = "here you go"
 			builder.retErr = nil
 			builder.retStatusString = "success"
 
@@ -91,11 +90,11 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: the conditions in the request object were updated
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionAccessResourcesCreated),
+				v1alpha1.ConditionAccessResourcesCreated.String(),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionAccessResourcesCreated),
+				v1alpha1.ConditionAccessResourcesCreated.String(),
 			)
 			Expect(cond.Message).To(Equal("success"))
 		})
@@ -104,7 +103,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			"Should return access message set condition to false if error creating resources",
 			func() {
 				// Configure FakeBuilder to return success
-				builder.retAccessString = "an error happened"
 				builder.retErr = errors.New("i failed")
 				builder.retStatusString = "failure"
 
@@ -117,11 +115,11 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				// VERIFY: the conditions in the request object were updated
 				Expect(meta.IsStatusConditionPresentAndEqual(
 					request.Status.Conditions,
-					string(ConditionAccessResourcesCreated),
+					v1alpha1.ConditionAccessResourcesCreated.String(),
 					metav1.ConditionFalse)).To(BeTrue())
 				cond := meta.FindStatusCondition(
 					request.Status.Conditions,
-					string(ConditionAccessResourcesCreated),
+					v1alpha1.ConditionAccessResourcesCreated.String(),
 				)
 				Expect(cond.Message).To(Equal("ERROR: i failed"))
 			},
@@ -129,7 +127,6 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should return an error if the UpdateCondition fails on success", func() {
 			// Configure FakeBuilder to return success
-			builder.retAccessString = "here you go"
 			builder.retErr = nil
 			builder.retStatusString = "success"
 
@@ -150,7 +147,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 	Context("isAccessExpired", func() {
 		var (
-			request    *api.ExecAccessRequest
+			request    *v1alpha1.ExecAccessRequest
 			builder    *builders.BaseBuilder
 			r          *BaseRequestReconciler
 			fakeClient client.Client
@@ -174,19 +171,19 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should return False if the access valid condition is True", func() {
 			// Create a fake request with a condition already populated that indicates we've been expired
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "expiredRequest",
 					Namespace: "namespace",
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "bogus",
 				},
-				Status: api.ExecAccessRequestStatus{
-					CoreStatus: api.CoreStatus{
+				Status: v1alpha1.ExecAccessRequestStatus{
+					CoreStatus: v1alpha1.CoreStatus{
 						Conditions: []metav1.Condition{
 							{
-								Type:    string(ConditionAccessStillValid),
+								Type:    v1alpha1.ConditionAccessStillValid.String(),
 								Status:  metav1.ConditionTrue,
 								Reason:  "Valid",
 								Message: "Valid",
@@ -218,19 +215,19 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should return True if the access valid condition is false", func() {
 			// Create a fake request with a condition already populated that indicates we've been expired
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "expiredRequest",
 					Namespace: "namespace",
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "bogus",
 				},
-				Status: api.ExecAccessRequestStatus{
-					CoreStatus: api.CoreStatus{
+				Status: v1alpha1.ExecAccessRequestStatus{
+					CoreStatus: v1alpha1.CoreStatus{
 						Conditions: []metav1.Condition{
 							{
-								Type:    string(ConditionAccessStillValid),
+								Type:    v1alpha1.ConditionAccessStillValid.String(),
 								Status:  metav1.ConditionFalse,
 								Reason:  "Expired",
 								Message: "Expired",
@@ -260,7 +257,7 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			Expect(isExpired).To(BeTrue())
 
 			// VERIFY: the AccessRequest is deleted
-			found := &api.ExecAccessRequest{}
+			found := &v1alpha1.ExecAccessRequest{}
 			err = fakeClient.Get(ctx, types.NamespacedName{
 				Name:      request.Name,
 				Namespace: request.Namespace,
@@ -272,16 +269,16 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should return False if the AccessValid condition is missing", func() {
 			// Create a fake request with a condition already populated that indicates we've been expired
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "expiredRequest",
 					Namespace: "namespace",
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "bogus",
 				},
-				Status: api.ExecAccessRequestStatus{
-					CoreStatus: api.CoreStatus{
+				Status: v1alpha1.ExecAccessRequestStatus{
+					CoreStatus: v1alpha1.CoreStatus{
 						Conditions:    []metav1.Condition{},
 						Ready:         false,
 						AccessMessage: "",
@@ -310,8 +307,8 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 	Context("verifyDuration", func() {
 		var (
-			template   *api.ExecAccessTemplate
-			request    *api.ExecAccessRequest
+			template   *v1alpha1.ExecAccessTemplate
+			request    *v1alpha1.ExecAccessRequest
 			builder    *builders.BaseBuilder
 			r          *BaseRequestReconciler
 			fakeClient client.Client
@@ -326,18 +323,18 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			fakeClient = fake.NewClientBuilder().WithRuntimeObjects().Build()
 
 			// Create a common ExecAccessTemplate used to test the request against
-			template = &api.ExecAccessTemplate{
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingTemplate",
 					Namespace: "fake",
 				},
-				Spec: api.ExecAccessTemplateSpec{
-					AccessConfig: api.AccessConfig{
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
 						AllowedGroups:   []string{"foo", "bar"},
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
-					ControllerTargetRef: &api.CrossVersionObjectReference{
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
 						Name:       "targetDeployment",
@@ -362,14 +359,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should update conditions to True in success", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingRequest",
 					Namespace: "fake",
 					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 					CreationTimestamp: metav1.NewTime(time.Now()),
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "testingTemplate",
 					Duration:     "30m",
 				},
@@ -392,35 +389,35 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			err = r.verifyDuration(builder)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// VERIFY: The ConditionDurationsValid is True
+			// VERIFY: The ConditionRequestDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access requested custom duration (30m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
 			cond = meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionAccessStillValid),
+				v1alpha1.ConditionAccessStillValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
 		It("Should use template default duration if none is supplied", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingRequest",
 					Namespace: "fake",
 					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 					CreationTimestamp: metav1.NewTime(time.Now()),
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "testingTemplate",
 					// Duration:     "30m",
 				},
@@ -443,14 +440,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			err = r.verifyDuration(builder)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// VERIFY: The ConditionDurationsValid is True
+			// VERIFY: The ConditionRequestDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 			)
 			Expect(
 				cond.Message,
@@ -459,21 +456,21 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The conditionAccessStillValid is True
 			cond = meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionAccessStillValid),
+				v1alpha1.ConditionAccessStillValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
 		It("Should use template max duration if requested duration is too long", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingRequest",
 					Namespace: "fake",
 					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 					CreationTimestamp: metav1.NewTime(time.Now()),
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "testingTemplate",
 					Duration:     "24h",
 				},
@@ -496,14 +493,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			err = r.verifyDuration(builder)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// VERIFY: The ConditionDurationsValid is True
+			// VERIFY: The ConditionRequestDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 			)
 			Expect(
 				cond.Message,
@@ -512,21 +509,21 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			// VERIFY: The conditionAccessStillValid is True
 			cond = meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionAccessStillValid),
+				v1alpha1.ConditionAccessStillValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access still valid"))
 		})
 
 		It("Should set condition if the spec.Duration is invalid", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingRequest",
 					Namespace: "fake",
 					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 					CreationTimestamp: metav1.NewTime(time.Now()),
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "testingTemplate",
 					Duration:     "30minutes",
 				},
@@ -554,16 +551,16 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				err.Error(),
 			).To(Equal("time: unknown unit \"minutes\" in duration \"30minutes\""))
 
-			// VERIFY: The ConditionDurationsValid is False
+			// VERIFY: The ConditionRequestDurationsValid is False
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 				metav1.ConditionFalse)).To(BeTrue())
 
 			// VERIFY: The Condition was updated properly in the object even though an error was returned
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 			)
 			Expect(
 				cond.Message,
@@ -584,14 +581,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Create the ExecAccessTemplate object that points to the valid Deployment
-				request = &api.ExecAccessRequest{
+				request = &v1alpha1.ExecAccessRequest{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "testingRequest",
 						Namespace: "fake",
 						// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 						CreationTimestamp: metav1.NewTime(time.Now()),
 					},
-					Spec: api.ExecAccessRequestSpec{
+					Spec: v1alpha1.ExecAccessRequestSpec{
 						TemplateName: "testingTemplate",
 						Duration:     "30m",
 					},
@@ -617,16 +614,16 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
 
-				// VERIFY: The ConditionDurationsValid is False
+				// VERIFY: The ConditionRequestDurationsValid is False
 				Expect(meta.IsStatusConditionPresentAndEqual(
 					request.Status.Conditions,
-					string(ConditionDurationsValid),
+					v1alpha1.ConditionRequestDurationsValid.String(),
 					metav1.ConditionFalse)).To(BeTrue())
 
 				// VERIFY: The Condition was updated properly in the object even though an error was returned
 				cond := meta.FindStatusCondition(
 					request.Status.Conditions,
-					string(ConditionDurationsValid),
+					v1alpha1.ConditionRequestDurationsValid.String(),
 				)
 				Expect(
 					cond.Message,
@@ -648,14 +645,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Create the ExecAccessTemplate object that points to the valid Deployment
-				request = &api.ExecAccessRequest{
+				request = &v1alpha1.ExecAccessRequest{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "testingRequest",
 						Namespace: "fake",
 						// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 						CreationTimestamp: metav1.NewTime(time.Now()),
 					},
-					Spec: api.ExecAccessRequestSpec{
+					Spec: v1alpha1.ExecAccessRequestSpec{
 						TemplateName: "testingTemplate",
 						Duration:     "30m",
 					},
@@ -681,16 +678,16 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("time: unknown unit \"hour\" in duration \"1hour\""))
 
-				// VERIFY: The ConditionDurationsValid is False
+				// VERIFY: The ConditionRequestDurationsValid is False
 				Expect(meta.IsStatusConditionPresentAndEqual(
 					request.Status.Conditions,
-					string(ConditionDurationsValid),
+					v1alpha1.ConditionRequestDurationsValid.String(),
 					metav1.ConditionFalse)).To(BeTrue())
 
 				// VERIFY: The Condition was updated properly in the object even though an error was returned
 				cond := meta.FindStatusCondition(
 					request.Status.Conditions,
-					string(ConditionDurationsValid),
+					v1alpha1.ConditionRequestDurationsValid.String(),
 				)
 				Expect(
 					cond.Message,
@@ -700,14 +697,14 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 
 		It("Should set access expired if uptime > duration", func() {
 			// Create the ExecAccessTemplate object that points to the valid Deployment
-			request = &api.ExecAccessRequest{
+			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "testingRequest",
 					Namespace: "fake",
 					// Set the creation timestamp so that the verification works, the fake kubeclient doesn't do that.
 					CreationTimestamp: metav1.NewTime(time.Now().Add(time.Minute * -5)),
 				},
-				Spec: api.ExecAccessRequestSpec{
+				Spec: v1alpha1.ExecAccessRequestSpec{
 					TemplateName: "testingTemplate",
 					Duration:     "1m",
 				},
@@ -730,21 +727,21 @@ var _ = Describe("BaseRequestReconciler", Ordered, func() {
 			err = r.verifyDuration(builder)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// VERIFY: The ConditionDurationsValid is True
+			// VERIFY: The ConditionRequestDurationsValid is True
 			Expect(meta.IsStatusConditionPresentAndEqual(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 				metav1.ConditionTrue)).To(BeTrue())
 			cond := meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionDurationsValid),
+				v1alpha1.ConditionRequestDurationsValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access requested custom duration (1m0s)"))
 
 			// VERIFY: The conditionAccessStillValid is True
 			cond = meta.FindStatusCondition(
 				request.Status.Conditions,
-				string(ConditionAccessStillValid),
+				v1alpha1.ConditionAccessStillValid.String(),
 			)
 			Expect(cond.Message).To(Equal("Access expired"))
 		})

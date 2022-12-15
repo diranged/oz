@@ -14,7 +14,7 @@ import (
 	//nolint:revive
 	. "github.com/onsi/gomega"
 
-	"github.com/diranged/oz/internal/controllers"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -24,22 +24,22 @@ var _ = Describe("oz-controller", Ordered, func() {
 	var (
 		err error
 
-		templateSuccessConditions = []controllers.OzResourceConditionTypes{
-			controllers.ConditionDurationsValid,
-			controllers.ConditionTargetRefExists,
+		templateSuccessConditions = []v1alpha1.TemplateConditionTypes{
+			v1alpha1.ConditionTemplateDurationsValid,
+			v1alpha1.ConditionTargetRefExists,
 		}
-		execRequestSuccessConditions = []controllers.OzResourceConditionTypes{
-			controllers.ConditionDurationsValid,
-			controllers.ConditionTargetTemplateExists,
-			controllers.ConditionAccessStillValid,
-			controllers.ConditionAccessResourcesCreated,
+		execRequestSuccessConditions = []v1alpha1.RequestConditionTypes{
+			v1alpha1.ConditionRequestDurationsValid,
+			v1alpha1.ConditionTargetTemplateExists,
+			v1alpha1.ConditionAccessStillValid,
+			v1alpha1.ConditionAccessResourcesCreated,
 		}
-		podRequestSuccessConditions = []controllers.OzResourceConditionTypes{
-			controllers.ConditionDurationsValid,
-			controllers.ConditionTargetTemplateExists,
-			controllers.ConditionAccessStillValid,
-			controllers.ConditionAccessResourcesCreated,
-			controllers.ConditionAccessResourcesReady,
+		podRequestSuccessConditions = []v1alpha1.RequestConditionTypes{
+			v1alpha1.ConditionRequestDurationsValid,
+			v1alpha1.ConditionTargetTemplateExists,
+			v1alpha1.ConditionAccessStillValid,
+			v1alpha1.ConditionAccessResourcesCreated,
+			v1alpha1.ConditionAccessResourcesReady,
 		}
 
 		deploymentTemplate = filepath.Join(projectDir, "examples/deployment.yaml")
