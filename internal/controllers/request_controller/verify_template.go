@@ -15,8 +15,10 @@ import (
 // exists. We update the request condition accordingly and return. Any error
 // returned should trigger the end of the reconciliation loop and for it to
 // requeue.
-func (r *RequestReconciler) verifyTemplate(rctx *RequestContext) error {
-	err := r.Builder.VerifyTemplate(rctx.Context, r.Client, rctx.obj)
+func (r *RequestReconciler) verifyTemplate(
+	rctx *RequestContext,
+) (v1alpha1.ITemplateResource, error) {
+	tmpl, err := r.Builder.GetTemplate(rctx.Context, r.Client, rctx.obj)
 	if err != nil {
 		rctx.log.Error(err, "Unable to verify template")
 
@@ -32,7 +34,7 @@ func (r *RequestReconciler) verifyTemplate(rctx *RequestContext) error {
 				metav1.ConditionFalse,
 				"TemplateNotFound",
 				fmt.Sprintf("Error: %s", err)); err != nil {
-				return err
+				return nil, err
 			}
 		default:
 			// Update the condition. If this fails, return that error which will
@@ -43,21 +45,25 @@ func (r *RequestReconciler) verifyTemplate(rctx *RequestContext) error {
 				metav1.ConditionFalse,
 				"Unknown",
 				fmt.Sprintf("Error: %s", err)); err != nil {
-				return err
+				return nil, err
 			}
 		}
 
 		// Return the original error now to fail reconciliation.
-		return err
+		return nil, err
 	}
 
 	// Update the condition and return. Any failure on updating this condition
 	// will fail reconciliation.
-	return status.UpdateCondition(
+	if err := status.UpdateCondition(
 		rctx.Context, r, rctx.obj,
 		v1alpha1.ConditionTargetTemplateExists,
 		metav1.ConditionTrue,
 		string(metav1.StatusSuccess),
 		"Found Target Template",
-	)
+	); err != nil {
+		return nil, err
+	}
+
+	return tmpl, nil
 }

@@ -10,8 +10,15 @@ import (
 
 // IBuilder defines an interface that our RequestController can use to manage Access Request resources
 type IBuilder interface {
-	// VerifyTemplate checks whether or not the TargetTemplate actually exists
-	VerifyTemplate(ctx context.Context, client client.Client, req v1alpha1.IRequestResource) error
+	// GetTemplate checks whether or not the TargetTemplate actually exists
+	GetTemplate(
+		ctx context.Context,
+		client client.Client,
+		req v1alpha1.IRequestResource,
+	) (v1alpha1.ITemplateResource, error)
+
+	// VerifyDuration checks the durations of the Access Request against the Template.
+	VerifyDuration(req v1alpha1.IRequestResource, tmpl v1alpha1.ITemplateResource) error
 
 	// SetOwnerReference ensures that if the TargetTemplate is ever deleted,
 	// that all of the Access Requests pointing to it are also automatically
@@ -23,5 +30,6 @@ type IBuilder interface {
 		ctx context.Context,
 		client client.Client,
 		req v1alpha1.IRequestResource,
+		tmpl v1alpha1.ITemplateResource,
 	) error
 }

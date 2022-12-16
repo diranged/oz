@@ -76,15 +76,16 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 
 			By("Calling the SetOwnerReference() function")
 			builder := ExecAccessBuilder{}
-			err = builder.SetOwnerReference(ctx, k8sClient, request)
+			err = builder.SetOwnerReference(ctx, k8sClient, request, template)
 			Expect(err).ToNot(HaveOccurred())
 
 			// VERIFY: The owner reference got set?
 			Expect(len(request.ObjectMeta.OwnerReferences)).To(Equal(1))
 		})
 
-		It("SetOwnerReference() should fail if the template is missing", func() {
+		It("SetOwnerReference() should fail if the template is invalid", func() {
 			By("Creating an ExecAccessRequest object")
+			invalidtemplate := &v1alpha1.ExecAccessTemplate{}
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      utils.RandomString(8),
@@ -99,9 +100,9 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 
 			By("Calling the SetOwnerReference() function")
 			builder := ExecAccessBuilder{}
-			err = builder.SetOwnerReference(ctx, k8sClient, request)
+			err = builder.SetOwnerReference(ctx, k8sClient, request, invalidtemplate)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(MatchRegexp("not found"))
+			Expect(err.Error()).To(MatchRegexp("uid must not be empty"))
 		})
 	})
 })

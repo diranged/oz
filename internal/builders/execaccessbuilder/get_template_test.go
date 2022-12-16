@@ -15,7 +15,7 @@ import (
 )
 
 var _ = Describe("ExecAccessBuilder", Ordered, func() {
-	Context("VerifyTemplate()", func() {
+	Context("GetTemplate()", func() {
 		var (
 			ctx      = context.Background()
 			ns       *v1.Namespace
@@ -61,7 +61,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("VerifyTemplate() should work", func() {
+		It("GetTemplate() should work", func() {
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "verifytemplate-test",
@@ -72,11 +72,12 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 				},
 			}
 			builder := ExecAccessBuilder{}
-			err := builder.VerifyTemplate(ctx, k8sClient, request)
+			tmpl, err := builder.GetTemplate(ctx, k8sClient, request)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(tmpl.GetName()).To(Equal(template.GetName()))
 		})
 
-		It("VerifyTemplate() should throw TemplateDoesNotExist", func() {
+		It("GetTemplate() should throw TemplateDoesNotExist", func() {
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "verifytemplate-test",
@@ -87,11 +88,11 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 				},
 			}
 			builder := ExecAccessBuilder{}
-			err := builder.VerifyTemplate(ctx, k8sClient, request)
+			_, err := builder.GetTemplate(ctx, k8sClient, request)
 			Expect(err).To(Equal(builders.ErrTemplateDoesNotExist))
 		})
 
-		It("VerifyTemplate() should throw unexpected errors", func() {
+		It("GetTemplate() should throw unexpected errors", func() {
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "verifytemplate-missing",
@@ -100,7 +101,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 				Spec: v1alpha1.ExecAccessRequestSpec{},
 			}
 			builder := ExecAccessBuilder{}
-			err := builder.VerifyTemplate(ctx, k8sClient, request)
+			_, err := builder.GetTemplate(ctx, k8sClient, request)
 			Expect(err.Error()).To(Equal("resource name may not be empty"))
 		})
 	})

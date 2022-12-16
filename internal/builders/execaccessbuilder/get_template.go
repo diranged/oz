@@ -10,18 +10,18 @@ import (
 	"github.com/diranged/oz/internal/builders"
 )
 
-// VerifyTemplate implements the IBuilder interface
-func (b *ExecAccessBuilder) VerifyTemplate(
+// GetTemplate implements the IBuilder interface
+func (b *ExecAccessBuilder) GetTemplate(
 	ctx context.Context,
 	client client.Client,
 	req v1alpha1.IRequestResource,
-) error {
-	_, err := req.GetTemplate(ctx, client)
+) (v1alpha1.ITemplateResource, error) {
+	tmpl, err := req.GetTemplate(ctx, client)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return builders.ErrTemplateDoesNotExist
+			return nil, builders.ErrTemplateDoesNotExist
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return tmpl, nil
 }

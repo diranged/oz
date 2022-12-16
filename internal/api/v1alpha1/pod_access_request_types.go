@@ -51,7 +51,7 @@ type PodAccessRequestSpec struct {
 
 // PodAccessRequestStatus defines the observed state of AccessRequest
 type PodAccessRequestStatus struct {
-	CoreStatus `json:",inline"`
+	RequestStatus `json:",inline"`
 
 	// The Target Pod Name where access has been granted
 	PodName string `json:"podName,omitempty"`
@@ -79,13 +79,19 @@ var (
 	_ IPodRequestResource = (*PodAccessRequest)(nil)
 )
 
-// GetStatus returns the core Status field for this resource.
-//
-// Returns:
-//
-//	AccessRequestStatus
-func (r *PodAccessRequest) GetStatus() ICoreStatus {
-	return &r.Status
+// GetConditions implements the ICoreResource Interface
+func (r *PodAccessRequest) GetConditions() *[]metav1.Condition {
+	return &r.Status.Conditions
+}
+
+// IsReady implements the ICoreResource Interface
+func (r *PodAccessRequest) IsReady() bool {
+	return r.Status.Ready
+}
+
+// SetReady implements the ICoreResource Interface
+func (r *PodAccessRequest) SetReady(ready bool) {
+	r.Status.Ready = ready
 }
 
 // GetTemplate returns a populated PodAccessTemplate that this PodAccessRequest is referencing.

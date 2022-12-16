@@ -83,7 +83,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 		It("Should Reconcile", func() {
 			// Make the Mock return success on VerifyTemplate()
-			builder.verifyTemplateResp = nil
+			builder.getTemplateResp = nil
 
 			_, err := reconciler.Reconcile(
 				ctx,

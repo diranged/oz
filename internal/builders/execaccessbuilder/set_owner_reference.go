@@ -14,12 +14,8 @@ func (b *ExecAccessBuilder) SetOwnerReference(
 	ctx context.Context,
 	client client.Client,
 	req v1alpha1.IRequestResource,
+	tmpl v1alpha1.ITemplateResource,
 ) error {
-	// Get the template object... this should be fast, it's likely cached by now.
-	tmpl, err := req.GetTemplate(ctx, client)
-	if err != nil {
-		return err
-	}
 	// Set the controller owner reference
 	if err := ctrl.SetControllerReference(tmpl, req, client.Scheme()); err != nil {
 		return err

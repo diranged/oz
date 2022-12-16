@@ -69,7 +69,7 @@ type PodAccessTemplateSpec struct {
 
 // PodAccessTemplateStatus defines the observed state of PodAccessTemplate
 type PodAccessTemplateStatus struct {
-	CoreStatus `json:",inline"`
+	TemplateStatus `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -93,13 +93,19 @@ var (
 	_ ITemplateResource = (*PodAccessTemplate)(nil)
 )
 
-// GetStatus returns the core Status field for this resource.
-//
-// Returns:
-//
-//	PodAccessRequestStatus
-func (t *PodAccessTemplate) GetStatus() ICoreStatus {
-	return &t.Status
+// GetConditions implements the ICoreResource Interface
+func (t *PodAccessTemplate) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
+// IsReady implements the ICoreResource Interface
+func (t *PodAccessTemplate) IsReady() bool {
+	return t.Status.Ready
+}
+
+// SetReady implements the ICoreResource Interface
+func (t *PodAccessTemplate) SetReady(ready bool) {
+	t.Status.Ready = ready
 }
 
 // GetTargetRef conforms to the controllers.OzTemplateResource interface.

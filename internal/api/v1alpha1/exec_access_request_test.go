@@ -65,12 +65,12 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 					Namespace: template.Namespace,
 				}, request)
 				Expect(err).To(Not(HaveOccurred()))
-				if request.GetStatus().IsReady() {
+				if request.IsReady() {
 					return nil
 				}
 				return fmt.Errorf(
 					"Failed to reconcile resource: %s",
-					strconv.FormatBool(request.GetStatus().IsReady()),
+					strconv.FormatBool(request.IsReady()),
 				)
 			}, time.Minute, time.Second).Should(HaveOccurred())
 		})
@@ -315,12 +315,12 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 			}, template)
 			Expect(err).To(Not(HaveOccurred()))
 
-			if template.GetStatus().IsReady() {
+			if template.IsReady() {
 				return nil
 			}
 			return fmt.Errorf(
 				"Failed to reconcile resource: %s",
-				strconv.FormatBool(template.GetStatus().IsReady()),
+				strconv.FormatBool(template.IsReady()),
 			)
 		}, time.Minute, time.Second).Should(HaveOccurred())
 	})

@@ -39,7 +39,7 @@ type ExecAccessTemplateSpec struct {
 // ExecAccessTemplateStatus is the core set of status fields that we expect to be in each and every one of
 // our template (AccessTemplate, ExecAccessTemplate, etc) resources.
 type ExecAccessTemplateStatus struct {
-	CoreStatus `json:",inline"`
+	TemplateStatus `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -62,13 +62,19 @@ var (
 	_ ITemplateResource = (*ExecAccessTemplate)(nil)
 )
 
-// GetStatus returns the core Status field for this resource.
-//
-// Returns:
-//
-//	AccessRequestStatus
-func (t *ExecAccessTemplate) GetStatus() ICoreStatus {
-	return &t.Status
+// GetConditions implements the ICoreResource Interface
+func (t *ExecAccessTemplate) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
+// IsReady implements the ICoreResource Interface
+func (t *ExecAccessTemplate) IsReady() bool {
+	return t.Status.Ready
+}
+
+// SetReady implements the ICoreResource Interface
+func (t *ExecAccessTemplate) SetReady(ready bool) {
+	t.Status.Ready = ready
 }
 
 // GetAccessConfig returns the Spec.accessConfig field for this resource in an AccessConfig object form.
