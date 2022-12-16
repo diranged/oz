@@ -69,7 +69,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			By("Should have an ExecAccessRequest built to test against")
 			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "verifytemplate-test",
+					Name:      "verifyduration-test",
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessRequestSpec{

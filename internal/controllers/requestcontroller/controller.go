@@ -92,8 +92,13 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	}
 
 	// VERIFICATION: Check the durations on the request and make sure the request has not expired
-	if shouldReturn, requeue, err := r.verifyDuration(rctx, tmpl); shouldReturn == true {
-		return requeue, err
+	if shouldReturn, result, err := r.verifyDuration(rctx, tmpl); shouldReturn == true {
+		return result, err
+	}
+
+	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
+	if shouldReturn, result, err := r.isAccessExpired(rctx); shouldReturn == true {
+		return result, err
 	}
 
 	//
