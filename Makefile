@@ -99,9 +99,9 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
-.PHONY: lint
-lint: ## Run golangci-lint against code.
-	golangci-lint run
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
 
 .PHONY: test
 test: manifests generate envtest ## Run tests.

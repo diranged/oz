@@ -39,10 +39,6 @@ type RequestReconciler struct {
 	//
 	APIReader client.Reader
 
-	// Storage of our logger object - so we don't have to keep getting it from the context. Set by the
-	// GetLogger() method.
-	logger logr.Logger
-
 	// Frequency to re-reconcile successfully reconciled requests
 	ReconcilliationInterval time.Duration
 }
