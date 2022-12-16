@@ -86,21 +86,17 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	rctx.log.V(2).Info("Found request", "request", rctx.obj)
 
 	// VERIFICATION: Check that the Builder can find the template the Request references
-	tmpl, err := r.verifyTemplate(rctx)
-	if err != nil {
+	if err := r.verifyTemplate(rctx); err != nil {
 		rctx.log.Error(err, "Error - will requeue")
 		return ctrlrequeue.RequeueError(err)
 	}
 
 	// UPDATE: Set the OwnerReference for the request - so if the template is
 	// deleted, all requests are deleted.
-	if err := r.Builder.SetOwnerReference(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
+	if err := r.Builder.SetOwnerReference(rctx.Context, r.Client, rctx.obj); err != nil {
 		rctx.log.Error(err, "Error setting owner reference - will requeue")
 		return ctrlrequeue.RequeueError(err)
 	}
-
-	// VERIFICATION: Is the access request duration valid? Is the access
-	// request still valid, or has it expired?
 
 	//
 	return ctrlrequeue.RequeueAfter(r.ReconcilliationInterval)

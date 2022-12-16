@@ -18,10 +18,8 @@ type ICoreResource interface {
 	metav1.Object
 	runtime.Object
 
-	// Common methods used during reconciliation for setting conditions and general status
-	IsReady() bool
-	SetReady(bool)
-	GetConditions() *[]metav1.Condition
+	// Returns back a Status object that matches our OzResourceStatus interface.
+	GetStatus() ICoreStatus
 }
 
 // ITemplateResource represents a common "AccessTemplate" resource for the Oz Controller. These
@@ -31,9 +29,6 @@ type ICoreResource interface {
 //
 // +kubebuilder:object:generate=false
 type ITemplateResource interface {
-	// Common client.Object stuff
-	metav1.Object
-	runtime.Object
 	ICoreResource
 
 	// Returns a CrossVersionObjectReference to the controller target for the template. Eg Deployment, StatefulSet, etc.
@@ -48,9 +43,6 @@ type ITemplateResource interface {
 //
 // +kubebuilder:object:generate=false
 type IRequestResource interface {
-	// Common client.Object stuff
-	metav1.Object
-	runtime.Object
 	ICoreResource
 
 	// Returns a populated ITemplateResource that this IRequestResource points to

@@ -93,9 +93,8 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			"verifyTemplate() should requeue if verifyTemplate() returns TemplateDoesNotExist",
 			func() {
 				// Make the Mock return an unexpected error on VerifyTemplate()
-				builder.getTemplateResp = nil
-				builder.getTemplateErr = builders.ErrTemplateDoesNotExist
-				_, err := reconciler.verifyTemplate(rctx)
+				builder.verifyTemplateResp = builders.ErrTemplateDoesNotExist
+				err := reconciler.verifyTemplate(rctx)
 
 				// VERIFY: Error returned
 				Expect(err).To(HaveOccurred())
@@ -123,9 +122,8 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 		It("Reconcile() should requeue if verifyTemplate() surprise error occurs", func() {
 			// Make the Mock return an unexpected error on VerifyTemplate()
-			builder.getTemplateResp = nil
-			builder.getTemplateErr = errors.New("unexpected failure")
-			_, err := reconciler.verifyTemplate(rctx)
+			builder.verifyTemplateResp = errors.New("unexpected failure")
+			err := reconciler.verifyTemplate(rctx)
 
 			// VERIFY: Error returned
 			Expect(err).To(HaveOccurred())

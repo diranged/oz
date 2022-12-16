@@ -90,10 +90,8 @@ var _ = AfterSuite(func() {
 })
 
 type mockBuilder struct {
-	getTemplateResp      v1alpha1.ITemplateResource
-	getTemplateErr       error
-	verifyTemplateErr    error
-	setOwnerReferenceErr error
+	verifyTemplateResp    error
+	setOwnerReferenceResp error
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
@@ -102,26 +100,18 @@ var (
 	_ builders.IBuilder = (*mockBuilder)(nil)
 )
 
-func (b *mockBuilder) GetTemplate(
+func (b *mockBuilder) VerifyTemplate(
 	_ context.Context,
 	_ client.Client,
 	_ v1alpha1.IRequestResource,
-) (v1alpha1.ITemplateResource, error) {
-	return b.getTemplateResp, b.getTemplateErr
-}
-
-func (b *mockBuilder) VerifyDuration(
-	_ v1alpha1.IRequestResource,
-	_ v1alpha1.ITemplateResource,
 ) error {
-	return b.verifyTemplateErr
+	return b.verifyTemplateResp
 }
 
 func (b *mockBuilder) SetOwnerReference(
 	_ context.Context,
 	_ client.Client,
 	_ v1alpha1.IRequestResource,
-	_ v1alpha1.ITemplateResource,
 ) error {
-	return b.setOwnerReferenceErr
+	return b.setOwnerReferenceResp
 }
