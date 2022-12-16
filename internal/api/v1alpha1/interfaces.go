@@ -9,6 +9,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// ICoreStatus is used to define the core common status functions that all Status structs in this
+// API must adhere to. These common functions simplify the reconciler() functions so that they can
+// easily get/set status on the resources in a common way.
+//
+// +kubebuilder:object:generate=false
+type ICoreStatus interface {
+	IsReady() bool
+	SetReady(bool)
+	GetConditions() *[]metav1.Condition
+	SetAccessMessage(string)
+	GetAccessMessage() string
+}
+
 // The ICoreResource interface wraps a standard client.Object resource (metav1.Object + runtime.Object)
 // with a few additional requirements for common methods that we use throughout our reconciliation process.
 //
