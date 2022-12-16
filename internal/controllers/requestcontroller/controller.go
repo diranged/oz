@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/diranged/oz/internal/controllers/internal/ctrlrequeue"
 )
