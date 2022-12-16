@@ -18,11 +18,11 @@ type IBuilder interface {
 		req v1alpha1.IRequestResource,
 	) (v1alpha1.ITemplateResource, error)
 
-	// VerifyDuration checks the durations of the Access Request against the Template.
-	VerifyDuration(
+	// GetAccessDuration checks the durations of the Access Request against the Template.
+	GetAccessDuration(
 		req v1alpha1.IRequestResource,
 		tmpl v1alpha1.ITemplateResource,
-	) (time.Time, error)
+	) (duration time.Duration, decision string, err error)
 
 	// SetOwnerReference ensures that if the TargetTemplate is ever deleted,
 	// that all of the Access Requests pointing to it are also automatically

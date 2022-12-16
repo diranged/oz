@@ -2,7 +2,6 @@ package requestcontroller
 
 import (
 	"context"
-	"errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -113,8 +112,8 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 		It("verifyTemplate() should return TemplateNotFound if missing template", func() {
 			// Make the Mock return an unexpected error on VerifyTemplate()
-			builder.verifyTemplateResp = nil
-			builder.verifyTemplateErr = builders.ErrTemplateDoesNotExist
+			builder.getTemplateResp = nil
+			builder.getTemplateErr = builders.ErrTemplateDoesNotExist
 			_, err := reconciler.verifyTemplate(rctx)
 
 			// VERIFY: Error returned
@@ -137,42 +136,13 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			)
 			Expect(cond).ToNot(BeNil())
 			Expect(cond.Status).To(Equal(metav1.ConditionFalse))
-			Expect(cond.Reason).To(Equal("TemplateNotFound"))
-		})
-
-		It("verifyTemplate() should fail if surprise error occurs", func() {
-			// Make the Mock return an unexpected error on VerifyTemplate()
-			builder.verifyTemplateResp = nil
-			builder.verifyTemplateErr = errors.New("unexpected failure")
-			_, err := reconciler.verifyTemplate(rctx)
-
-			// VERIFY: Error returned
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unexpected failure"))
-
-			// Refetch our Request object... reconiliation has mutated its
-			// .Status fields.
-			By("Refetching our Request...")
-			err = k8sClient.Get(ctx, types.NamespacedName{
-				Name:      request.Name,
-				Namespace: request.Namespace,
-			}, request)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// VERIFY: The condition was updated appropriately
-			cond := meta.FindStatusCondition(
-				*request.GetStatus().GetConditions(),
-				v1alpha1.ConditionTargetTemplateExists.String(),
-			)
-			Expect(cond).ToNot(BeNil())
-			Expect(cond.Status).To(Equal(metav1.ConditionFalse))
-			Expect(cond.Reason).To(Equal("Unknown"))
+			Expect(cond.Reason).To(Equal("NotFound"))
 		})
 
 		It("verifyTemplate() should succeed", func() {
 			// Make the Mock return successfully if the template was valid
-			builder.verifyTemplateResp = &v1alpha1.ExecAccessTemplate{}
-			builder.verifyTemplateErr = nil
+			builder.getTemplateResp = &v1alpha1.ExecAccessTemplate{}
+			builder.getTemplateErr = nil
 
 			_, err := reconciler.verifyTemplate(rctx)
 

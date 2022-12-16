@@ -85,10 +85,15 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	rctx.log.V(2).Info("Found request", "request", rctx.obj)
 
 	// VERIFICATION: Check that the Builder can find the template the Request references
-	_, err := r.verifyTemplate(rctx)
+	tmpl, err := r.verifyTemplate(rctx)
 	if err != nil {
 		rctx.log.Error(err, "Error - will requeue")
 		return ctrlrequeue.RequeueError(err)
+	}
+
+	// VERIFICATION: Check the durations on the request and make sure the request has not expired
+	if shouldReturn, requeue, err := r.verifyDuration(rctx, tmpl); shouldReturn == true {
+		return requeue, err
 	}
 
 	//

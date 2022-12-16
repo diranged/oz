@@ -94,11 +94,11 @@ var _ = AfterSuite(func() {
 // builders - this lets us test failures and really focus only on the
 // reconciler logic itself.
 type mockBuilder struct {
-	verifyTemplateResp v1alpha1.ITemplateResource
-	verifyTemplateErr  error
+	getTemplateResp v1alpha1.ITemplateResource
+	getTemplateErr  error
 
-	verifyDurationResp time.Time
-	verifyDurationErr  error
+	getDurationResp time.Duration
+	getDurationErr  error
 
 	setOwnerReferenceErr error
 }
@@ -114,14 +114,14 @@ func (b *mockBuilder) GetTemplate(
 	_ client.Client,
 	_ v1alpha1.IRequestResource,
 ) (v1alpha1.ITemplateResource, error) {
-	return b.verifyTemplateResp, b.verifyTemplateErr
+	return b.getTemplateResp, b.getTemplateErr
 }
 
-func (b *mockBuilder) VerifyDuration(
+func (b *mockBuilder) GetAccessDuration(
 	_ v1alpha1.IRequestResource,
 	_ v1alpha1.ITemplateResource,
-) (time.Time, error) {
-	return b.verifyDurationResp, b.verifyDurationErr
+) (time.Duration, string, error) {
+	return b.getDurationResp, "test", b.getDurationErr
 }
 
 func (b *mockBuilder) SetOwnerReference(

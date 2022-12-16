@@ -2,6 +2,8 @@ package requestcontroller
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -13,6 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -60,7 +63,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 				APIReader:               k8sClient,
 				RequestType:             &v1alpha1.ExecAccessRequest{},
 				Builder:                 builder,
-				ReconcilliationInterval: 0,
+				ReconcilliationInterval: time.Minute,
 			}
 		})
 
@@ -81,11 +84,16 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(result.Requeue).To(BeFalse())
 		})
 
-		It("Should Reconcile", func() {
-			// Make the Mock return success on VerifyTemplate()
-			builder.verifyTemplateResp = nil
+		It("Reconcile() should work", func() {
+			// Make the Mock return success on GetTemplate()
+			builder.getTemplateErr = nil
+			builder.getTemplateResp = &v1alpha1.ExecAccessTemplate{}
 
-			_, err := reconciler.Reconcile(
+			// Make the Mock return success on GetAccessDuration()
+			builder.getDurationErr = nil
+			builder.getDurationResp = time.Hour
+
+			result, err := reconciler.Reconcile(
 				ctx,
 				reconcile.Request{
 					NamespacedName: types.NamespacedName{
@@ -94,6 +102,8 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 					},
 				},
 			)
+			// VERIFY: The result is that we WILL requeue in a few minutes
+			Expect(result.RequeueAfter).To(Equal(reconciler.ReconcilliationInterval))
 			Expect(err).ToNot(HaveOccurred())
 
 			// Refetch our Request object... reconiliation has mutated its
@@ -106,14 +116,64 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// VERIFY: The condition was updated appropriately
+			By("Checking the resulting conditions")
+
+			// ConditionRequestDurationsValid = True
 			cond := meta.FindStatusCondition(
+				*request.GetStatus().GetConditions(),
+				v1alpha1.ConditionRequestDurationsValid.String(),
+			)
+			Expect(cond).ToNot(BeNil())
+			Expect(cond.Status).To(Equal(metav1.ConditionTrue))
+			Expect(cond.Reason).To(Equal(string(metav1.StatusSuccess)))
+
+			// ConditionTargetTemplateExists = True
+			cond = meta.FindStatusCondition(
 				*request.GetStatus().GetConditions(),
 				v1alpha1.ConditionTargetTemplateExists.String(),
 			)
 			Expect(cond).ToNot(BeNil())
 			Expect(cond.Status).To(Equal(metav1.ConditionTrue))
-			Expect(cond.Reason).To(Equal(metav1.StatusSuccess))
-			Expect(cond.Message).To(Equal("Found Target Template"))
+			Expect(cond.Reason).To(Equal(string(metav1.StatusSuccess)))
+		})
+
+		It("Reconcile() should not requeue if verifyDuration returns an error", func() {
+			// Make the Mock return success on GetAccessDuration()
+			builder.getDurationErr = fmt.Errorf("Failed: %w", builders.ErrRequestDurationInvalid)
+			builder.getDurationResp = time.Duration(0)
+
+			result, err := reconciler.Reconcile(
+				ctx,
+				reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      request.GetName(),
+						Namespace: request.GetNamespace(),
+					},
+				},
+			)
+			// VERIFY: The result is that we will NOT requeue
+			Expect(result.Requeue).To(BeFalse())
+			Expect(err).ToNot(HaveOccurred())
+
+			// Refetch our Request object... reconiliation has mutated its
+			// .Status fields.
+			By("Refetching our Request...")
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      request.Name,
+				Namespace: request.Namespace,
+			}, request)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: The condition was updated appropriately
+			By("Checking the resulting conditions")
+			cond := meta.FindStatusCondition(
+				*request.GetStatus().GetConditions(),
+				v1alpha1.ConditionRequestDurationsValid.String(),
+			)
+			Expect(cond).ToNot(BeNil())
+			Expect(cond.Status).To(Equal(metav1.ConditionFalse))
+			Expect(cond.Reason).To(Equal(string(metav1.StatusReasonBadRequest)))
+			Expect(cond.Message).To(Equal("Failed: access request duration invalid"))
 		})
 	})
 })
