@@ -1,4 +1,4 @@
-package request_controller
+package requestcontroller
 
 import (
 	"context"
@@ -27,6 +27,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			ctx        = context.Background()
 			ns         *v1.Namespace
 			request    *v1alpha1.ExecAccessRequest
+			template   *v1alpha1.ExecAccessTemplate
 			reconciler *RequestReconciler
 			builder    = &mockBuilder{}
 			rctx       *RequestContext
@@ -42,6 +43,28 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			err := k8sClient.Create(ctx, ns)
 			Expect(err).ToNot(HaveOccurred())
 
+			By("Should have an ExecAccessTemplate to test against")
+			template = &v1alpha1.ExecAccessTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      utils.RandomString(8),
+					Namespace: ns.GetName(),
+				},
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
+						AllowedGroups:   []string{"foo"},
+						DefaultDuration: "1h",
+						MaxDuration:     "2h",
+					},
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
+						APIVersion: "apps/v1",
+						Kind:       "Deployment",
+						Name:       "fake",
+					},
+				},
+			}
+			err = k8sClient.Create(ctx, template)
+			Expect(err).ToNot(HaveOccurred())
+
 			By("Should have an ExecAccessRequest built to test against")
 			request = &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
@@ -49,8 +72,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessRequestSpec{
-					// Our mockBuilder will ignore this
-					TemplateName: "bogus",
+					TemplateName: template.GetName(),
 				},
 			}
 			err = k8sClient.Create(ctx, request)
@@ -89,41 +111,40 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It(
-			"verifyTemplate() should requeue if verifyTemplate() returns TemplateDoesNotExist",
-			func() {
-				// Make the Mock return an unexpected error on VerifyTemplate()
-				builder.verifyTemplateResp = builders.ErrTemplateDoesNotExist
-				err := reconciler.verifyTemplate(rctx)
-
-				// VERIFY: Error returned
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(builders.ErrTemplateDoesNotExist))
-
-				// Refetch our Request object... reconiliation has mutated its
-				// .Status fields.
-				By("Refetching our Request...")
-				err = k8sClient.Get(ctx, types.NamespacedName{
-					Name:      request.Name,
-					Namespace: request.Namespace,
-				}, request)
-				Expect(err).To(Not(HaveOccurred()))
-
-				// VERIFY: The condition was updated appropriately
-				cond := meta.FindStatusCondition(
-					*request.GetStatus().GetConditions(),
-					v1alpha1.ConditionTargetTemplateExists.String(),
-				)
-				Expect(cond).ToNot(BeNil())
-				Expect(cond.Status).To(Equal(metav1.ConditionFalse))
-				Expect(cond.Reason).To(Equal("TemplateNotFound"))
-			},
-		)
-
-		It("Reconcile() should requeue if verifyTemplate() surprise error occurs", func() {
+		It("verifyTemplate() should return TemplateNotFound if missing template", func() {
 			// Make the Mock return an unexpected error on VerifyTemplate()
-			builder.verifyTemplateResp = errors.New("unexpected failure")
-			err := reconciler.verifyTemplate(rctx)
+			builder.verifyTemplateResp = nil
+			builder.verifyTemplateErr = builders.ErrTemplateDoesNotExist
+			_, err := reconciler.verifyTemplate(rctx)
+
+			// VERIFY: Error returned
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(Equal(builders.ErrTemplateDoesNotExist))
+
+			// Refetch our Request object... reconiliation has mutated its
+			// .Status fields.
+			By("Refetching our Request...")
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      request.Name,
+				Namespace: request.Namespace,
+			}, request)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: The condition was updated appropriately
+			cond := meta.FindStatusCondition(
+				*request.GetStatus().GetConditions(),
+				v1alpha1.ConditionTargetTemplateExists.String(),
+			)
+			Expect(cond).ToNot(BeNil())
+			Expect(cond.Status).To(Equal(metav1.ConditionFalse))
+			Expect(cond.Reason).To(Equal("TemplateNotFound"))
+		})
+
+		It("verifyTemplate() should fail if surprise error occurs", func() {
+			// Make the Mock return an unexpected error on VerifyTemplate()
+			builder.verifyTemplateResp = nil
+			builder.verifyTemplateErr = errors.New("unexpected failure")
+			_, err := reconciler.verifyTemplate(rctx)
 
 			// VERIFY: Error returned
 			Expect(err).To(HaveOccurred())
@@ -146,6 +167,36 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(cond).ToNot(BeNil())
 			Expect(cond.Status).To(Equal(metav1.ConditionFalse))
 			Expect(cond.Reason).To(Equal("Unknown"))
+		})
+
+		It("verifyTemplate() should succeed", func() {
+			// Make the Mock return successfully if the template was valid
+			builder.verifyTemplateResp = &v1alpha1.ExecAccessTemplate{}
+			builder.verifyTemplateErr = nil
+
+			_, err := reconciler.verifyTemplate(rctx)
+
+			// VERIFY: Error not returned
+			Expect(err).ToNot(HaveOccurred())
+
+			// Refetch our Request object... reconiliation has mutated its
+			// .Status fields.
+			By("Refetching our Request...")
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      request.Name,
+				Namespace: request.Namespace,
+			}, request)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: The condition was updated appropriately
+			cond := meta.FindStatusCondition(
+				*request.GetStatus().GetConditions(),
+				v1alpha1.ConditionTargetTemplateExists.String(),
+			)
+			Expect(cond).ToNot(BeNil())
+			Expect(cond.Status).To(Equal(metav1.ConditionTrue))
+			Expect(cond.Reason).To(Equal("Success"))
+			Expect(cond.Message).To(Equal("Found Target Template"))
 		})
 	})
 })

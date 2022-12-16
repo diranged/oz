@@ -1,4 +1,6 @@
-package request_controller
+// Package requestcontroller implements a RequestReconciler that can handle
+// Access Requests in a general sense.
+package requestcontroller
 
 import (
 	"context"
@@ -13,6 +15,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// RequestReconciler is configured watch for a particular type (RequestType) of
+// Access Requests, and execute the reconciler logic against them with a
+// particular Builder (Builder). The business logic of what happens in any type
+// of Access Request as far as resource creation is all handled inside the
+// Builder.
 type RequestReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme

@@ -1,4 +1,4 @@
-package request_controller
+package requestcontroller
 
 import (
 	"context"

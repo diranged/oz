@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package request_controller
+package requestcontroller
 
 import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -89,9 +90,17 @@ var _ = AfterSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
+// mockBuilder is used to test our reconciler logic without using real resource
+// builders - this lets us test failures and really focus only on the
+// reconciler logic itself.
 type mockBuilder struct {
-	verifyTemplateResp    error
-	setOwnerReferenceResp error
+	verifyTemplateResp v1alpha1.ITemplateResource
+	verifyTemplateErr  error
+
+	verifyDurationResp time.Time
+	verifyDurationErr  error
+
+	setOwnerReferenceErr error
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
@@ -100,18 +109,26 @@ var (
 	_ builders.IBuilder = (*mockBuilder)(nil)
 )
 
-func (b *mockBuilder) VerifyTemplate(
+func (b *mockBuilder) GetTemplate(
 	_ context.Context,
 	_ client.Client,
 	_ v1alpha1.IRequestResource,
-) error {
-	return b.verifyTemplateResp
+) (v1alpha1.ITemplateResource, error) {
+	return b.verifyTemplateResp, b.verifyTemplateErr
+}
+
+func (b *mockBuilder) VerifyDuration(
+	_ v1alpha1.IRequestResource,
+	_ v1alpha1.ITemplateResource,
+) (time.Time, error) {
+	return b.verifyDurationResp, b.verifyDurationErr
 }
 
 func (b *mockBuilder) SetOwnerReference(
 	_ context.Context,
 	_ client.Client,
 	_ v1alpha1.IRequestResource,
+	_ v1alpha1.ITemplateResource,
 ) error {
-	return b.setOwnerReferenceResp
+	return b.setOwnerReferenceErr
 }

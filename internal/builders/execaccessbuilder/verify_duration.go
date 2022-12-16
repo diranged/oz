@@ -21,15 +21,27 @@ func (b *ExecAccessBuilder) VerifyDuration(
 	// from lasting indefinitely.
 	var requestedDuration time.Duration
 	if requestedDuration, err = req.GetDuration(); err != nil {
-		return "", fmt.Errorf("request error: %w: %w", builders.ErrRequestDurationInvalid, err)
+		return time.Now(), fmt.Errorf(
+			"request error: %w: %w",
+			builders.ErrRequestDurationInvalid,
+			err,
+		)
 	}
 	templateDefaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		return "", fmt.Errorf("template error: %w: %w", builders.ErrRequestDurationInvalid, err)
+		return time.Now(), fmt.Errorf(
+			"template error: %w: %w",
+			builders.ErrRequestDurationInvalid,
+			err,
+		)
 	}
 	templateMaxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		return "", fmt.Errorf("template error: %w: %w", builders.ErrRequestDurationInvalid, err)
+		return time.Now(), fmt.Errorf(
+			"template error: %w: %w",
+			builders.ErrRequestDurationInvalid,
+			err,
+		)
 	}
 
 	// Now determine which duration is the one we'll use
@@ -40,8 +52,10 @@ func (b *ExecAccessBuilder) VerifyDuration(
 	)
 
 	if req.GetUptime() > accessDuration {
-		return "", builders.ErrRequestExpired
+		return time.Now(), builders.ErrRequestExpired
 	}
+
+	return time.Now(), nil
 }
 
 func (b *ExecAccessBuilder) getAccessDuration(
@@ -67,5 +81,5 @@ func (b *ExecAccessBuilder) getAccessDuration(
 	}
 
 	// Log out the decision, and update the condition
-	return accessDuration, reason
+	return accessDuration
 }

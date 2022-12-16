@@ -35,7 +35,7 @@ import (
 	"github.com/diranged/oz/internal/builders/execaccessbuilder"
 	"github.com/diranged/oz/internal/controllers"
 	"github.com/diranged/oz/internal/controllers/podwatcher"
-	"github.com/diranged/oz/internal/controllers/request_controller"
+	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -172,7 +172,7 @@ func Main() {
 		os.Exit(1)
 	}
 
-	if err = (&request_controller.RequestReconciler{
+	if err = (&requestcontroller.RequestReconciler{
 		Client:                  mgr.GetClient(),
 		Scheme:                  mgr.GetScheme(),
 		APIReader:               mgr.GetAPIReader(),
