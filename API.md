@@ -598,6 +598,12 @@ for storing references to specific Pods that the requestor is being granted acce
 <p>IRequestResource represents a common &ldquo;AccesRequest&rdquo; resource for the Oz Controller. These requests
 have a common set of required methods that are used by the OzRequestReconciler.</p>
 </div>
+<h3 id="crds.wizardofoz.co/v1alpha1.IRequestStatus">IRequestStatus
+</h3>
+<div>
+<p>IRequestStatus is a more specific Status interface that enables getting and
+setting access instruction methods.</p>
+</div>
 <h3 id="crds.wizardofoz.co/v1alpha1.ITemplateResource">ITemplateResource
 </h3>
 <div>
@@ -605,6 +611,12 @@ have a common set of required methods that are used by the OzRequestReconciler.<
 templates provide different types of access into resources (eg, &ldquo;Exec&rdquo; vs &ldquo;Debug&rdquo; vs &ldquo;launch me a
 dedicated pod&rdquo;). A set of common methods are required though that are used by the
 OzTemplateReconciler.</p>
+</div>
+<h3 id="crds.wizardofoz.co/v1alpha1.ITemplateStatus">ITemplateStatus
+</h3>
+<div>
+<p>ITemplateStatus provides a more specific Status interface for Access
+Templates. Functionality to come in the future.</p>
 </div>
 <h3 id="crds.wizardofoz.co/v1alpha1.PodAccessRequest">PodAccessRequest
 </h3>
