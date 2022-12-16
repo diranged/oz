@@ -9,6 +9,35 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// ICoreStatus is used to define the core common status functions that all Status structs in this
+// API must adhere to. These common functions simplify the reconciler() functions so that they can
+// easily get/set status on the resources in a common way.
+//
+// +kubebuilder:object:generate=false
+type ICoreStatus interface {
+	IsReady() bool
+	SetReady(bool)
+	GetConditions() *[]metav1.Condition
+}
+
+// IRequestStatus is a more specific Status interface that enables getting and
+// setting access instruction methods.
+//
+// +kubebuilder:object:generate=false
+type IRequestStatus interface {
+	ICoreStatus
+	SetAccessMessage(string)
+	GetAccessMessage() string
+}
+
+// ITemplateStatus provides a more specific Status interface for Access
+// Templates. Functionality to come in the future.
+//
+// +kubebuilder:object:generate=false
+type ITemplateStatus interface {
+	ICoreStatus
+}
+
 // The ICoreResource interface wraps a standard client.Object resource (metav1.Object + runtime.Object)
 // with a few additional requirements for common methods that we use throughout our reconciliation process.
 //
@@ -18,7 +47,7 @@ type ICoreResource interface {
 	metav1.Object
 	runtime.Object
 
-	// Returns back a Status object that matches our OzResourceStatus interface.
+	// Returns a Status object that matches our ICoreStatus interface.
 	GetStatus() ICoreStatus
 }
 

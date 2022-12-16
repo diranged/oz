@@ -4,19 +4,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ICoreStatus is used to define the core common status functions that all Status structs in this
-// API must adhere to. These common functions simplify the reconciler() functions so that they can
-// easily get/set status on the resources in a common way.
-//
-// +kubebuilder:object:generate=false
-type ICoreStatus interface {
-	IsReady() bool
-	SetReady(bool)
-	GetConditions() *[]metav1.Condition
-	SetAccessMessage(string)
-	GetAccessMessage() string
-}
-
 // CoreStatus provides a common set of .Status fields and functions. The goal is to
 // conform to the interfaces.OzResource interface commonly across all of our core CRDs.
 type CoreStatus struct {
