@@ -77,11 +77,7 @@ var (
 	_ IPodRequestResource = (*ExecAccessRequest)(nil)
 )
 
-// GetStatus returns the core Status field for this resource.
-//
-// Returns:
-//
-//	AccessRequestStatus
+// GetStatus implements the ICoreResource interface
 func (r *ExecAccessRequest) GetStatus() ICoreStatus {
 	return &r.Status
 }

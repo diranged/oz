@@ -22,7 +22,7 @@ func (b *ExecAccessBuilder) VerifyDuration(
 	var requestedDuration time.Duration
 	if requestedDuration, err = req.GetDuration(); err != nil {
 		return time.Now(), fmt.Errorf(
-			"request error: %w: %w",
+			"request error: %q: %w",
 			builders.ErrRequestDurationInvalid,
 			err,
 		)
@@ -30,7 +30,7 @@ func (b *ExecAccessBuilder) VerifyDuration(
 	templateDefaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
 		return time.Now(), fmt.Errorf(
-			"template error: %w: %w",
+			"template error: %q: %w",
 			builders.ErrRequestDurationInvalid,
 			err,
 		)
@@ -38,7 +38,7 @@ func (b *ExecAccessBuilder) VerifyDuration(
 	templateMaxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		return time.Now(), fmt.Errorf(
-			"template error: %w: %w",
+			"template error: %q: %w",
 			builders.ErrRequestDurationInvalid,
 			err,
 		)

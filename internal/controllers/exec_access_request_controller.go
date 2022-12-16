@@ -22,7 +22,6 @@ import (
 	"time"
 
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -171,19 +170,9 @@ func (r *ExecAccessRequestReconciler) getTargetTemplate(
 
 	if tmpl, err = v1alpha1.GetExecAccessTemplate(ctx, r.Client, req.Spec.TemplateName, req.Namespace); err != nil {
 		// On failure: Update the condition, and return.
-		return nil, status.UpdateCondition(
-			ctx, r, req, v1alpha1.ConditionTargetTemplateExists, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
+		return nil, status.SetTargetTemplateNotExists(ctx, r, req, err)
 	}
-	return tmpl, status.UpdateCondition(
-		ctx,
-		r,
-		req,
-		v1alpha1.ConditionTargetTemplateExists,
-		metav1.ConditionTrue,
-		string(metav1.StatusSuccess),
-		"Found Target Template",
-	)
+	return tmpl, status.SetTargetTemplateExists(ctx, r, req)
 }
 
 // SetupWithManager sets up the controller with the Manager.

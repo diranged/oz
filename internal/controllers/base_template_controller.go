@@ -3,10 +3,8 @@ package controllers
 import (
 	"fmt"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/controllers/internal/status"
 	"github.com/diranged/oz/internal/legacybuilder"
 )
@@ -33,15 +31,11 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder legacybuilder.IBuilder)
 
 	targetRef, err := builder.GetTargetRefResource()
 	if err != nil {
-		return status.UpdateCondition(
-			ctx, r, tmpl, v1alpha1.ConditionTargetRefExists, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotFound), fmt.Sprintf("Error: %s", err))
+		return status.SetTargetRefNotExists(ctx, r, tmpl, err)
 	}
 
 	logger.Info(fmt.Sprintf("Returning %s", targetRef.GetObjectKind().GroupVersionKind().Kind))
-	return status.UpdateCondition(
-		ctx, r, tmpl, v1alpha1.ConditionTargetRefExists, metav1.ConditionTrue,
-		string(metav1.StatusSuccess), "Success")
+	return status.SetTargetRefExists(ctx, r, tmpl, "Success")
 }
 
 // VerifyMiscSettings walks through the common required settings for any OzTemplateResource. For
@@ -56,40 +50,21 @@ func (r *BaseTemplateReconciler) VerifyMiscSettings(builder legacybuilder.IBuild
 	// Verify that MaxDuration is greater than DesiredDuration.
 	defaultDuration, err := tmpl.GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		return status.UpdateCondition(
-			ctx,
-			r,
-			tmpl,
-			v1alpha1.ConditionTemplateDurationsValid,
-			metav1.ConditionFalse,
-			string(
-				metav1.StatusReasonNotAcceptable,
-			),
+		return status.SetTemplateDurationsNotValid(ctx, r, tmpl,
 			fmt.Sprintf("Error on spec.defaultDuration: %s", err),
 		)
 	}
 	maxDuration, err := tmpl.GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		return status.UpdateCondition(
-			ctx,
-			r,
-			tmpl,
-			v1alpha1.ConditionTemplateDurationsValid,
-			metav1.ConditionFalse,
-			string(
-				metav1.StatusReasonNotAcceptable,
-			),
+		return status.SetTemplateDurationsNotValid(ctx, r, tmpl,
 			fmt.Sprintf("Error on spec.maxDuration: %s", err),
 		)
 	}
 	if defaultDuration > maxDuration {
-		return status.UpdateCondition(
-			ctx, r, tmpl, v1alpha1.ConditionTemplateDurationsValid, metav1.ConditionFalse,
-			string(metav1.StatusReasonNotAcceptable),
+		return status.SetTemplateDurationsNotValid(ctx, r, tmpl,
 			"Error: spec.defaultDuration can not be greater than spec.maxDuration")
 	}
-	return status.UpdateCondition(
-		ctx, r, tmpl, v1alpha1.ConditionTemplateDurationsValid, metav1.ConditionTrue,
-		string(metav1.StatusSuccess),
-		"spec.defaultDuration and spec.maxDuration valid")
+	return status.SetTemplateDurationsValid(ctx, r, tmpl,
+		"spec.defaultDuration and spec.maxDuration valid",
+	)
 }

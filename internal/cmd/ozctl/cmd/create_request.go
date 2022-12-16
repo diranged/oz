@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
@@ -32,6 +33,9 @@ func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 }
 
 func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
+	// Cast the ICoreStatus interface into an IRequestStatus interface
+	status := req.GetStatus().(v1alpha1.IRequestStatus)
+
 	// Get our Kubernetes Client
 	client, _ := getKubeClient()
 
@@ -56,14 +60,14 @@ func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 		}
 
 		// Check the status
-		if req.GetStatus().IsReady() {
-			cmd.Printf(successMsg, req.GetStatus().GetAccessMessage())
+		if status.IsReady() {
+			cmd.Printf(successMsg, status.GetAccessMessage())
 			break
 		}
 
 		if waitCtx.Err() != nil {
 			fmt.Printf(logError("\nError - timed out waiting for %s to be ready\n"), req.GetName())
-			for _, cond := range *req.GetStatus().GetConditions() {
+			for _, cond := range *status.GetConditions() {
 				cmd.Printf(
 					"Condition %s, State: %s, Reason: %s, Message: %s\n",
 					cond.Type,

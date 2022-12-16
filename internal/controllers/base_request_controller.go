@@ -41,28 +41,18 @@ func (r *BaseRequestReconciler) verifyDuration(builder legacybuilder.IBuilder) e
 	// from lasting indefinitely.
 	var requestedDuration time.Duration
 	if requestedDuration, err = builder.GetRequest().GetDuration(); err != nil {
-		// TODO: check err return from updateCondition
-		_ = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionRequestDurationsValid,
-			metav1.ConditionFalse,
-			string(metav1.StatusReasonBadRequest),
+		// NOTE: Blindly ignoring the error return here because we are already
+		// returning an error which will fail the reconciliation.
+		_ = status.SetRequestDurationsNotValid(builder.GetCtx(), r, builder.GetRequest(),
 			fmt.Sprintf("spec.duration error: %s", err),
 		)
 		return err
 	}
 	templateDefaultDuration, err := builder.GetTemplate().GetAccessConfig().GetDefaultDuration()
 	if err != nil {
-		// TODO: check err return from updateCondition
-		_ = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionRequestDurationsValid,
-			metav1.ConditionFalse,
-			string(metav1.StatusReasonBadRequest),
+		// NOTE: Blindly ignoring the error return here because we are already
+		// returning an error which will fail the reconciliation.
+		_ = status.SetRequestDurationsNotValid(builder.GetCtx(), r, builder.GetRequest(),
 			fmt.Sprintf("Template Error, spec.defaultDuration error: %s", err),
 		)
 		return err
@@ -70,14 +60,9 @@ func (r *BaseRequestReconciler) verifyDuration(builder legacybuilder.IBuilder) e
 
 	templateMaxDuration, err := builder.GetTemplate().GetAccessConfig().GetMaxDuration()
 	if err != nil {
-		// TODO: check err return from updateCondition
-		_ = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionRequestDurationsValid,
-			metav1.ConditionFalse,
-			string(metav1.StatusReasonBadRequest),
+		// NOTE: Blindly ignoring the error return here because we are already
+		// returning an error which will fail the reconciliation.
+		_ = status.SetRequestDurationsNotValid(builder.GetCtx(), r, builder.GetRequest(),
 			fmt.Sprintf("Template Error, spec.maxDuration error: %s", err),
 		)
 		return err
@@ -106,44 +91,18 @@ func (r *BaseRequestReconciler) verifyDuration(builder legacybuilder.IBuilder) e
 
 		// Log out the decision, and update the condition
 		logger.Info(reasonStr)
-
-		err = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionRequestDurationsValid,
-			metav1.ConditionTrue,
-			string(metav1.StatusSuccess),
-			reasonStr,
-		)
-		if err != nil {
+		if err := status.SetRequestDurationsValid(builder.GetCtx(), r, builder.GetRequest(), reasonStr); err != nil {
 			return err
 		}
 	}
 
 	// If the accessUptime is greater than the accessDuration, kill it.
 	if builder.GetRequest().GetUptime() > accessDuration {
-		return status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionAccessStillValid,
-			metav1.ConditionFalse,
-			string(metav1.StatusReasonTimeout),
-			"Access expired",
-		)
+		return status.SetAccessNotValid(builder.GetCtx(), r, builder.GetRequest())
 	}
 
 	// Update the resource, and let the user know how much time is remaining
-	return status.UpdateCondition(
-		builder.GetCtx(),
-		r,
-		builder.GetRequest(),
-		v1alpha1.ConditionAccessStillValid,
-		metav1.ConditionTrue,
-		string(metav1.StatusSuccess),
-		"Access still valid",
-	)
+	return status.SetAccessStillValid(builder.GetCtx(), r, builder.GetRequest())
 }
 
 // isAccessExpired checks the AccessRequest status for the ConditionAccessStillValid condition. If it is no longer
@@ -203,25 +162,12 @@ func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
 
 	statusString, err := builder.GenerateAccessResources()
 	if err != nil {
-		// TODO: check err return from updateCondition
-		_ = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionAccessResourcesCreated,
-			metav1.ConditionFalse,
-			string(metav1.StatusFailure),
-			fmt.Sprintf("ERROR: %s", err))
+		// NOTE: Blindly ignoring the error return here because we are already
+		// returning an error which will fail the reconciliation.
+		_ = status.SetAccessResourcesNotCreated(builder.GetCtx(), r, builder.GetRequest(), err)
 		return err
 	}
-	return status.UpdateCondition(
-		builder.GetCtx(),
-		r,
-		builder.GetRequest(),
-		v1alpha1.ConditionAccessResourcesCreated,
-		metav1.ConditionTrue,
-		string(metav1.StatusSuccess),
-		statusString)
+	return status.SetAccessResourcesCreated(builder.GetCtx(), r, builder.GetRequest(), statusString)
 }
 
 // verifyAccessResourcesReady is a followup to the verifyAccessResources()
@@ -235,26 +181,13 @@ func (r *BaseRequestReconciler) verifyAccessResourcesReady(
 
 	statusString, err := builder.VerifyAccessResources()
 	if err != nil {
-		// TODO: check err return from updateCondition
-		_ = status.UpdateCondition(
-			builder.GetCtx(),
-			r,
-			builder.GetRequest(),
-			v1alpha1.ConditionAccessResourcesReady,
-			metav1.ConditionFalse,
-			"NotYetReady",
-			fmt.Sprintf("%s", err))
+		// NOTE: Blindly ignoring the error return here because we are already
+		// returning an error which will fail the reconciliation.
+		_ = status.SetAccessResourcesNotReady(builder.GetCtx(), r, builder.GetRequest(), err)
 		return err
 	}
 
-	return status.UpdateCondition(
-		builder.GetCtx(),
-		r,
-		builder.GetRequest(),
-		v1alpha1.ConditionAccessResourcesReady,
-		metav1.ConditionTrue,
-		string(metav1.StatusSuccess),
-		statusString)
+	return status.SetAccessResourcesReady(builder.GetCtx(), r, builder.GetRequest(), statusString)
 }
 
 // DeleteResource just deletes the resource immediately
