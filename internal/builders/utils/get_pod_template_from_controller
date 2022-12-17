@@ -1,0 +1,45 @@
+package utils
+
+func GetPodTemplateFromController(
+	ctx context.Context,
+	client client.Client,
+	tmpl v1alpha1.ITemplateResource,
+) (corev1.PodTemplateSpec, error) {
+	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
+	log := logf.FromContext(ctx)
+
+	targetController, err := GetTargetRefResource(ctx, client, tmpl)
+	if err != nil {
+		return corev1.PodTemplateSpec{}, err
+	}
+
+	// TODO: Figure out a more generic way to do this that doesn't involve a bunch of checks like this
+	switch kind := targetController.GetObjectKind().GroupVersionKind().Kind; kind {
+	case "Deployment":
+		controller, err := GetDeployment(ctx, client, targetController)
+		if err != nil {
+			log.Error(err, "Failed to find target Deployment")
+			return corev1.PodTemplateSpec{}, err
+		}
+		return *controller.Spec.Template.DeepCopy(), nil
+
+	case "DaemonSet":
+		controller, err := GetDaemonSet(ctx, client, targetController)
+		if err != nil {
+			log.Error(err, "Failed to find target DaemonSet")
+			return corev1.PodTemplateSpec{}, err
+		}
+		return *controller.Spec.Template.DeepCopy(), nil
+
+	case "StatefulSet":
+		controller, err := GetStatefulSet(ctx, client, targetController)
+		if err != nil {
+			log.Error(err, "Failed to find target StatefulSet")
+			return corev1.PodTemplateSpec{}, err
+		}
+		return *controller.Spec.Template.DeepCopy(), nil
+
+	default:
+		return corev1.PodTemplateSpec{}, errors.New("invalid input")
+	}
+}

@@ -1,10 +1,11 @@
-package builders
+package utils
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/builders"
 )
 
 // GetAccessDuration is a generic function for getting the proper Access
@@ -21,7 +22,7 @@ func GetAccessDuration(
 	if requestedDuration, err = req.GetDuration(); err != nil {
 		return accessDuration, "", fmt.Errorf(
 			"request error: %q: %w",
-			ErrRequestDurationInvalid,
+			builders.ErrRequestDurationInvalid,
 			err,
 		)
 	}
@@ -29,7 +30,7 @@ func GetAccessDuration(
 	if err != nil {
 		return accessDuration, "", fmt.Errorf(
 			"template error: %q: %w",
-			ErrRequestDurationInvalid,
+			builders.ErrRequestDurationInvalid,
 			err,
 		)
 	}
@@ -37,7 +38,7 @@ func GetAccessDuration(
 	if err != nil {
 		return accessDuration, "", fmt.Errorf(
 			"template error: %q: %w",
-			ErrRequestDurationInvalid,
+			builders.ErrRequestDurationInvalid,
 			err,
 		)
 	}

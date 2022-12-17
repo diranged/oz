@@ -18,6 +18,8 @@ func (r *RequestReconciler) verifyDuration(
 	var accessDuration time.Duration
 	var decision string
 
+	rctx.log.V(1).Info("Computing Access Request duration...")
+
 	// Get the accessDuration and decision from the builder
 	accessDuration, decision, err := r.Builder.GetAccessDuration(rctx.obj, tmpl)
 	// If an error is returned, determine whether its something wrong with the

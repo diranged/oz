@@ -1,4 +1,4 @@
-package builders
+package utils
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 func SetOwnerReference(
 	ctx context.Context,
 	client client.Client,
-	req client.Object,
-	tmpl client.Object,
+	owner client.Object,
+	controlled client.Object,
 ) error {
 	// Set the controller owner reference
-	if err := ctrl.SetControllerReference(tmpl, req, client.Scheme()); err != nil {
+	if err := ctrl.SetControllerReference(owner, controlled, client.Scheme()); err != nil {
 		return err
 	}
 	// Push the update back to K8S
-	return client.Update(ctx, req)
+	return client.Update(ctx, controlled)
 }

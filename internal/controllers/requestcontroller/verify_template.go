@@ -13,6 +13,7 @@ import (
 func (r *RequestReconciler) verifyTemplate(
 	rctx *RequestContext,
 ) (v1alpha1.ITemplateResource, error) {
+	rctx.log.V(1).Info("Getting Access Template...")
 	tmpl, err := r.Builder.GetTemplate(rctx.Context, r.Client, rctx.obj)
 	if err != nil {
 		rctx.log.Error(err, "Unable to verify template")

@@ -14,3 +14,15 @@ const (
 	// StatefulSetController maps to APIVersion: apps/v1, Kind: StatfulSet
 	StatefulSetController ControllerKind = "StatefulSet"
 )
+
+const (
+	// FieldSelectorMetadataName refers to the metadata.name field on an
+	// object, and is used during the creation of the K8S API Client as one of
+	// the fields we want to index.
+	FieldSelectorMetadataName string = "metadata.name"
+
+	// FieldSelectorStatusPhase refers to the status.phase field on an
+	// object, and is used during the creation of the K8S API Client as one of
+	// the fields we want to index.
+	FieldSelectorStatusPhase string = "status.phase"
+)

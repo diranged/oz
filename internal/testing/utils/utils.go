@@ -2,6 +2,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,6 +12,9 @@ import (
 
 	//revive:disable:dot-imports
 	. "github.com/onsi/ginkgo/v2"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Run executes the provided command within this context
@@ -85,4 +89,32 @@ func RandomString(length int) string {
 	b := make([]byte, length)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)[:length]
+}
+
+// FindUnstructuredByOwner returns a list of Unstructured Objects based on the
+// OwnerReference supplied. Used to dynamically search for resource types that
+// we expect the to have been created by our Builders, making sure that they
+//
+// NOTE: Unused right now. TODO, Maybe remove.
+func FindUnstructuredByOwner(
+	ctx context.Context,
+	cl client.Client,
+	namespace string,
+	parentUID types.UID,
+	list *unstructured.UnstructuredList,
+) (*unstructured.Unstructured, error) {
+	opts := []client.ListOption{client.InNamespace(namespace)}
+	if err := cl.List(ctx, list, opts...); err != nil {
+		return nil, err
+	}
+	for _, obj := range list.Items {
+		refs := obj.GetOwnerReferences()
+
+		if len(refs) > 0 {
+			if refs[0].UID == parentUID {
+				return &obj, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("Not found")
 }

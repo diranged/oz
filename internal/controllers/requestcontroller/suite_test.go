@@ -101,6 +101,12 @@ type mockBuilder struct {
 	getDurationErr  error
 
 	setOwnerReferenceErr error
+
+	createResourcesResp string
+	createResourcesErr  error
+
+	accessResourcesAreReadyResp bool
+	accessResourcesAreReadyErr  error
 }
 
 // https://stackoverflow.com/questions/33089523/how-to-mark-golang-struct-as-implementing-interface
@@ -131,4 +137,22 @@ func (b *mockBuilder) SetOwnerReference(
 	_ v1alpha1.ITemplateResource,
 ) error {
 	return b.setOwnerReferenceErr
+}
+
+func (b *mockBuilder) CreateAccessResources(
+	_ context.Context,
+	_ client.Client,
+	_ v1alpha1.IRequestResource,
+	_ v1alpha1.ITemplateResource,
+) (string, error) {
+	return b.createResourcesResp, b.createResourcesErr
+}
+
+func (b *mockBuilder) AccessResourcesAreReady(
+	_ context.Context,
+	_ client.Client,
+	_ v1alpha1.IRequestResource,
+	_ v1alpha1.ITemplateResource,
+) (bool, error) {
+	return b.accessResourcesAreReadyResp, b.accessResourcesAreReadyErr
 }

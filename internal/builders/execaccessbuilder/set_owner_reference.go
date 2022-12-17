@@ -3,9 +3,10 @@ package execaccessbuilder
 import (
 	"context"
 
-	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/builders/utils"
 )
 
 // SetOwnerReference implements the IBuilder interface
@@ -15,5 +16,5 @@ func (b *ExecAccessBuilder) SetOwnerReference(
 	req v1alpha1.IRequestResource,
 	tmpl v1alpha1.ITemplateResource,
 ) error {
-	return builders.SetOwnerReference(ctx, client, req, tmpl)
+	return utils.SetOwnerReference(ctx, client, tmpl, req)
 }

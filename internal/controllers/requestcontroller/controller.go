@@ -9,6 +9,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/diranged/oz/internal/controllers/internal/ctrlrequeue"
+	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccessrequests,verbs=get;list;watch;create;update;patch;delete
@@ -92,15 +93,30 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	}
 
 	// VERIFICATION: Check the durations on the request and make sure the request has not expired
-	if shouldReturn, result, err := r.verifyDuration(rctx, tmpl); shouldReturn == true {
+	if shouldReturn, result, err := r.verifyDuration(rctx, tmpl); shouldReturn {
 		return result, err
 	}
 
 	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
-	if shouldReturn, result, err := r.isAccessExpired(rctx); shouldReturn == true {
+	if shouldReturn, result, err := r.isAccessExpired(rctx); shouldReturn {
 		return result, err
 	}
 
+	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
+	// set up a 30 second delay before the next reconciliation attempt.
+	if shouldReturn, result, err := r.verifyAccessResources(rctx, tmpl); shouldReturn {
+		return result, err
+	}
+
+	// FINAL: Set Status.Ready state
 	//
+	// TODO: Implement on the ICoreStatus interface a "AreAllConditionsTrue" function and check that.
+	err = status.SetReadyStatus(rctx, r, rctx.obj)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Exit Reconciliation Loop
+	rctx.log.Info("Ending reconcile loop")
 	return ctrlrequeue.RequeueAfter(r.ReconcilliationInterval)
 }
