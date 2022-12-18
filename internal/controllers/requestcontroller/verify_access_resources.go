@@ -9,10 +9,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var (
-	resourceWaitRequeueInterval    = (5 * time.Second)
-	resourceWaitRequeueInitialWait = (5 * time.Second)
-)
+func (r *RequestReconciler) getVerifyResourcesRequeueInterval() time.Duration {
+	if r.VerifyResourcesRequeueInterval != nil {
+		return *r.VerifyResourcesRequeueInterval
+	}
+	return DefaultVerifyResourcesRequeueInterval
+}
 
 func (r *RequestReconciler) verifyAccessResources(
 	rctx *RequestContext,
@@ -34,17 +36,6 @@ func (r *RequestReconciler) verifyAccessResources(
 		}
 	}
 
-	{ // Sleep a few seconds
-
-		rctx.log.Info(
-			fmt.Sprintf(
-				"Waiting at least %s for them to become ready",
-				resourceWaitRequeueInitialWait,
-			),
-		)
-		time.Sleep(resourceWaitRequeueInitialWait)
-	}
-
 	{ // Check if the resources are ready
 		rctx.log.V(1).Info("Checking if Access Resources are ready")
 		if areReady, err := r.Builder.AccessResourcesAreReady(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
@@ -53,11 +44,12 @@ func (r *RequestReconciler) verifyAccessResources(
 			_ = status.SetAccessResourcesNotReady(rctx.Context, r, rctx.obj, err)
 			return true, result, err
 		} else if !areReady {
+			interval := r.getVerifyResourcesRequeueInterval()
 			// NOTE: Blindly ignoring the error return here because we are already
 			// returning an error which will fail the reconciliation.
 			_ = status.SetAccessResourcesNotReady(rctx.Context, r, rctx.obj,
-				fmt.Errorf("Resources not yet available... will check in %s", resourceWaitRequeueInterval))
-			return true, ctrl.Result{RequeueAfter: resourceWaitRequeueInterval}, nil
+				fmt.Errorf("Resources not yet available... will check in %s", interval))
+			return true, ctrl.Result{RequeueAfter: interval}, nil
 		}
 
 		rctx.log.V(1).Info("Builder indicates Access Resources are ready!")

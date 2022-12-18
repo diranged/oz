@@ -158,7 +158,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(shouldEndReconcile).To(BeTrue())
 
 			// VERIFY: Yes, result{} contains a delay
-			Expect(result.RequeueAfter).To(Equal(resourceWaitRequeueInterval))
+			Expect(result.RequeueAfter).To(Equal(DefaultVerifyResourcesRequeueInterval))
 
 			// VERIFY: No, no error will trigger an immediate requeue
 			Expect(err).ToNot(HaveOccurred())

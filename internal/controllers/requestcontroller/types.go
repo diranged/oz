@@ -15,6 +15,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// DefaultVerifyResourcesRequeueInterval is the time inbetween reconcile
+// attempts used when the resources have been created by the IBuilder
+// CreateAccessResources() method, but the AccessResourcesAreReady() method
+// returns False indicating that the resources have not yet completed their
+// readiness checks.
+var DefaultVerifyResourcesRequeueInterval = (5 * time.Second)
+
 // RequestReconciler is configured watch for a particular type (RequestType) of
 // Access Requests, and execute the reconciler logic against them with a
 // particular Builder (Builder). The business logic of what happens in any type
@@ -41,6 +48,10 @@ type RequestReconciler struct {
 
 	// Frequency to re-reconcile successfully reconciled requests
 	ReconcilliationInterval time.Duration
+
+	// Frequency to re-reconcile when the access resources have not become
+	// available yet for an Access Request.
+	VerifyResourcesRequeueInterval *time.Duration
 }
 
 // GetAPIReader conforms to the internal.status.hasStatusReconciler interface.

@@ -32,9 +32,6 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			builder    = &mockBuilder{}
 		)
 
-		// Patch the sleep timer to 0s
-		resourceWaitRequeueInitialWait = time.Duration(0)
-
 		BeforeAll(func() {
 			By("Should have a namespace to execute tests in")
 			ns = &v1.Namespace{
@@ -235,7 +232,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 				},
 			)
 			// VERIFY: The result is that we will requeue
-			Expect(result.RequeueAfter).To(Equal(resourceWaitRequeueInterval))
+			Expect(result.RequeueAfter).To(Equal(DefaultVerifyResourcesRequeueInterval))
 			Expect(err).ToNot(HaveOccurred())
 
 			// Refetch our Request object... reconiliation has mutated its

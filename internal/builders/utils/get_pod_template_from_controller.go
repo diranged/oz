@@ -1,5 +1,18 @@
 package utils
 
+import (
+	"context"
+	"errors"
+
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+
+	"github.com/diranged/oz/internal/api/v1alpha1"
+)
+
+// GetPodTemplateFromController will return a PodTemplate resource from an
+// understood controller type (Deployment, DaemonSet or StatefulSet).
 func GetPodTemplateFromController(
 	ctx context.Context,
 	client client.Client,
@@ -16,7 +29,7 @@ func GetPodTemplateFromController(
 	// TODO: Figure out a more generic way to do this that doesn't involve a bunch of checks like this
 	switch kind := targetController.GetObjectKind().GroupVersionKind().Kind; kind {
 	case "Deployment":
-		controller, err := GetDeployment(ctx, client, targetController)
+		controller, err := getDeployment(ctx, client, targetController)
 		if err != nil {
 			log.Error(err, "Failed to find target Deployment")
 			return corev1.PodTemplateSpec{}, err
@@ -24,7 +37,7 @@ func GetPodTemplateFromController(
 		return *controller.Spec.Template.DeepCopy(), nil
 
 	case "DaemonSet":
-		controller, err := GetDaemonSet(ctx, client, targetController)
+		controller, err := getDaemonSet(ctx, client, targetController)
 		if err != nil {
 			log.Error(err, "Failed to find target DaemonSet")
 			return corev1.PodTemplateSpec{}, err
@@ -32,7 +45,7 @@ func GetPodTemplateFromController(
 		return *controller.Spec.Template.DeepCopy(), nil
 
 	case "StatefulSet":
-		controller, err := GetStatefulSet(ctx, client, targetController)
+		controller, err := getStatefulSet(ctx, client, targetController)
 		if err != nil {
 			log.Error(err, "Failed to find target StatefulSet")
 			return corev1.PodTemplateSpec{}, err
