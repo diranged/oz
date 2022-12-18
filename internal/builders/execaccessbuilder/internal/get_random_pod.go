@@ -37,7 +37,7 @@ func getRandomPod(
 			Selector: selector,
 		},
 		client.MatchingFields{
-			v1alpha1.FieldSelectorStatusPhase: PodPhaseRunning,
+			v1alpha1.FieldSelectorStatusPhase: string(PodPhaseRunning),
 		},
 	}
 	if err := cl.List(ctx, podList, opts...); err != nil {

@@ -1,4 +1,4 @@
-package legacybuilder
+package utils
 
 import (
 	"context"
@@ -9,32 +9,41 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/testing/utils"
 )
 
-var _ = Describe("PodAccessBuilder", Ordered, func() {
+var _ = Describe("IBuilder / Utils", Ordered, func() {
 	Context("Functions()", func() {
 		var (
-			fakeClient client.Client
+			namespace  *corev1.Namespace
 			deployment *appsv1.Deployment
 			ctx        = context.Background()
 			request    *api.PodAccessRequest
 			template   *api.PodAccessTemplate
-			builder    *PodAccessBuilder
 		)
 
-		BeforeEach(func() {
-			// NOTE: Fake Client used here to make it easier to keep state separate between each It() test.
-			fakeClient = fake.NewClientBuilder().WithRuntimeObjects().Build()
+		// NOTE: We use a real k8sClient for these tests beacuse we need to
+		// verify things like UID generation happening in the backend, as well
+		// as generation spec updates.
+		BeforeAll(func() {
+			By("Creating the Namespace to perform the tests")
+			namespace = &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: utils.RandomString(8),
+				},
+			}
+			err := k8sClient.Create(ctx, namespace)
+			Expect(err).To(Not(HaveOccurred()))
+		})
 
+		BeforeEach(func() {
 			// Create a fake deployment target
 			deployment = &appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-dep",
-					Namespace: "test-ns",
+					Namespace: namespace.GetName(),
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
@@ -45,7 +54,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Annotations: map[string]string{
-								api.DefaultContainerAnnotationKey: "contB",
+								api.DefaultContainerAnnotationKey: "contb",
 								"Foo":                             "bar",
 							},
 							Labels: map[string]string{
@@ -55,11 +64,11 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
 								{
-									Name:  "contA",
+									Name:  "conta",
 									Image: "nginx:latest",
 								},
 								{
-									Name:  "contB",
+									Name:  "contb",
 									Image: "nginx:latest",
 								},
 							},
@@ -67,7 +76,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 					},
 				},
 			}
-			err := fakeClient.Create(ctx, deployment)
+			err := k8sClient.Create(ctx, deployment)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create a default PodAccessTemplate. We'll mutate it for specific tests.
@@ -90,7 +99,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 					ControllerTargetMutationConfig: &api.PodTemplateSpecMutationConfig{},
 				},
 			}
-			err = fakeClient.Create(ctx, template)
+			err = k8sClient.Create(ctx, template)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create a simple PodAccessRequest resource to test the template with
@@ -104,41 +113,27 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 					Duration:     "5m",
 				},
 			}
-			err = fakeClient.Create(ctx, request)
+			err = k8sClient.Create(ctx, request)
 			Expect(err).To(Not(HaveOccurred()))
-
-			// Create the PodAccessBuilder finally - fully populated with the
-			// Request, Template and fake clients.
-			builder = &PodAccessBuilder{
-				BaseBuilder: BaseBuilder{
-					Client:    fakeClient,
-					Ctx:       ctx,
-					APIReader: fakeClient,
-					Request:   request,
-					Template:  template,
-				},
-				Template: template,
-				Request:  request,
-			}
 		})
 
-		// TODO: Write tests that check the builder logic, more than that check the nested api logic
-		It("generatePodTemplateSpec should return unmutated without error", func() {
-			// Get the original pod template spec...
-			podTemplateSpec, err := builder.generatePodTemplateSpec()
+		AfterEach(func() {
+			err := k8sClient.Delete(ctx, deployment)
 			Expect(err).To(Not(HaveOccurred()))
-
-			// Run the PodSpec through the optional mutation config
-			mutator := template.Spec.ControllerTargetMutationConfig
-			ret, err := mutator.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			err = k8sClient.Delete(ctx, request)
 			Expect(err).To(Not(HaveOccurred()))
+			err = k8sClient.Delete(ctx, template)
+			Expect(err).To(Not(HaveOccurred()))
+		})
 
-			// Wipe: metadata.labels (not optional)
-			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
-			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+		It("getShortUID should work", func() {
+			ret := getShortUID(request)
+			Expect(len(ret)).To(Equal(8))
+		})
 
-			// VERIFY: The original spec and new spec are identical
-			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
+		It("generateResourceName should work", func() {
+			ret := GenerateResourceName(request)
+			Expect(len(ret)).To(Equal(17))
 		})
 	})
 })

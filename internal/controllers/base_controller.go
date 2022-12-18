@@ -1,12 +1,9 @@
 package controllers
 
 import (
-	"context"
-
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // BaseReconciler extends the default reconciler behaviors (client.Client+Scheme) and provide some
@@ -46,12 +43,4 @@ func (r *BaseReconciler) SetReconciliationInterval() {
 	if r.ReconcililationInterval == 0 {
 		r.ReconcililationInterval = DefaultReconciliationInterval
 	}
-}
-
-func (r *BaseReconciler) getLogger(ctx context.Context) logr.Logger {
-	if (r.logger == logr.Logger{}) {
-		// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
-		r.logger = log.FromContext(ctx)
-	}
-	return r.logger
 }
