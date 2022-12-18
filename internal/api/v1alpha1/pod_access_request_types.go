@@ -118,7 +118,7 @@ func (r *PodAccessRequest) GetUptime() time.Duration {
 
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *PodAccessRequest) SetPodName(name string) error {
-	if r.Status.PodName != "" {
+	if (r.Status.PodName != "") && (r.Status.PodName != name) {
 		return fmt.Errorf(
 			"immutable field Status.PodName already set (%s), cannot update to %s",
 			r.Status.PodName,

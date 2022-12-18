@@ -22,7 +22,7 @@ func CreateRole(
 ) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      generateResourceName(req),
+			Name:      GenerateResourceName(req),
 			Namespace: req.GetNamespace(),
 		},
 		Rules: rules,

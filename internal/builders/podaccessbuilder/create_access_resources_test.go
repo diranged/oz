@@ -1,4 +1,4 @@
-package execaccessbuilder
+package podaccessbuilder
 
 import (
 	"context"
@@ -9,13 +9,12 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders/execaccessbuilder/internal"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
 	"github.com/diranged/oz/internal/testing/utils"
 )
@@ -26,14 +25,13 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			ctx        = context.Background()
 			ns         *corev1.Namespace
 			deployment *appsv1.Deployment
-			pod        *corev1.Pod
-			request    *v1alpha1.ExecAccessRequest
-			template   *v1alpha1.ExecAccessTemplate
-			builder    = ExecAccessBuilder{}
+			request    *v1alpha1.PodAccessRequest
+			template   *v1alpha1.PodAccessTemplate
+			builder    = PodAccessBuilder{}
 		)
 
 		// For Envtest
-		internal.PodPhaseRunning = "Pending"
+		// internal.PodPhaseRunning = "Pending"
 
 		BeforeAll(func() {
 			By("Should have a namespace to execute tests in")
@@ -48,7 +46,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			By("Creating a Deployment to reference for the test")
 			deployment = &appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(4),
+					Name:      "deployment-test",
 					Namespace: ns.Name,
 				},
 				Spec: appsv1.DeploymentSpec{
@@ -77,50 +75,49 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			err = k8sClient.Create(ctx, deployment)
 			Expect(err).To(Not(HaveOccurred()))
 
-			By("Create a single Pod that should match the Deployment spec above for testing")
-			pod = &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
-					Namespace: ns.GetName(),
-					Labels:    deployment.Spec.Selector.MatchLabels,
-				},
-				Spec: deployment.Spec.Template.Spec,
-				Status: v1.PodStatus{
-					Phase: "Running",
-				},
-			}
-			err = k8sClient.Create(ctx, pod)
-			Expect(err).To(Not(HaveOccurred()))
-
-			By("Should have an ExecAccessTemplate to test against")
-			template = &v1alpha1.ExecAccessTemplate{
+			By("Should have an PodAccessTemplate to test against")
+			cpuReq, _ := resource.ParseQuantity("1")
+			template = &v1alpha1.PodAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      utils.RandomString(8),
 					Namespace: ns.GetName(),
 				},
-				Spec: v1alpha1.ExecAccessTemplateSpec{
+				Spec: v1alpha1.PodAccessTemplateSpec{
 					AccessConfig: v1alpha1.AccessConfig{
-						AllowedGroups:   []string{"foo"},
+						AllowedGroups:   []string{"testGroupA"},
 						DefaultDuration: "1h",
 						MaxDuration:     "2h",
 					},
 					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
 						APIVersion: "apps/v1",
 						Kind:       "Deployment",
-						Name:       deployment.GetName(),
+						Name:       deployment.Name,
+					},
+					ControllerTargetMutationConfig: &v1alpha1.PodTemplateSpecMutationConfig{
+						DefaultContainerName: "test",
+						Command:              &[]string{"/bin/sleep"},
+						Args:                 &[]string{"100"},
+						Env: []corev1.EnvVar{
+							{Name: "FOO", Value: "BAR"},
+						},
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{
+								"cpu": cpuReq,
+							},
+						},
 					},
 				},
 			}
 			err = k8sClient.Create(ctx, template)
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Should have an ExecAccessRequest built to test against")
-			request = &v1alpha1.ExecAccessRequest{
+			By("Should have an PodAccessRequest built to test against")
+			request = &v1alpha1.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "createaccessresource-test",
 					Namespace: ns.GetName(),
 				},
-				Spec: v1alpha1.ExecAccessRequestSpec{
+				Spec: v1alpha1.PodAccessRequestSpec{
 					TemplateName: template.GetName(),
 				},
 			}
@@ -134,54 +131,10 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It(
-			"CreateAccessResources() should return status.podName regardless of requested target pod",
-			func() {
-				request.Status.PodName = "fooPod"
-				request.Spec.TargetPod = pod.GetName()
-
-				// Execute
-				ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
-
-				// VERIFY: No errors
-				Expect(err).ToNot(HaveOccurred())
-				Expect(ret).To(MatchRegexp("Success"))
-
-				// VERIFY: Status string looks roughly right
-				Expect(ret).To(MatchRegexp(fmt.Sprintf(
-					"Success. Role %s-.*, RoleBinding %s.* created",
-					request.GetName(),
-					request.GetName(),
-				)))
-			},
-		)
-
-		It("CreateAccessResources() should succeed with user-specified pod", func() {
+		It("CreateAccessResources() should succeed", func() {
 			request.Status.PodName = ""
-			request.Spec.TargetPod = pod.GetName()
-			ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
-			Expect(err).ToNot(HaveOccurred())
 
-			// VERIFY: Status string looks roughly right
-			Expect(ret).To(MatchRegexp(fmt.Sprintf(
-				"Success. Role %s-.*, RoleBinding %s.* created",
-				request.GetName(),
-				request.GetName(),
-			)))
-		})
-
-		It("CreateAccessResources() should fail if pod is missing", func() {
-			request.Status.PodName = ""
-			request.Spec.TargetPod = "testPod"
-			_, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(MatchRegexp("not found"))
-		})
-
-		It("CreateAccessResources() should succeed with random pod selection", func() {
-			request.Status.PodName = ""
-			request.Spec.TargetPod = ""
-
+			// Execute
 			ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
 
 			// VERIFY: No error returned
@@ -189,10 +142,22 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			// VERIFY: Proper status string returned
 			Expect(ret).To(MatchRegexp(fmt.Sprintf(
-				"Success. Role %s-.*, RoleBinding %s.* created",
+				"Success. Pod %s-.*, Role %s-.*, RoleBinding %s.* created",
+				request.GetName(),
 				request.GetName(),
 				request.GetName(),
 			)))
+
+			// VERIFY: Pod Created as expected
+			foundPod := &corev1.Pod{}
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      bldutil.GenerateResourceName(request),
+				Namespace: ns.GetName(),
+			}, foundPod)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(foundPod.GetOwnerReferences()).ToNot(BeNil())
+			Expect(foundPod.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
+			Expect(foundPod.Spec.Containers[0].Args[0]).To(Equal("100"))
 
 			// VERIFY: Role Created as expected
 			foundRole := &rbacv1.Role{}
@@ -202,8 +167,8 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			}, foundRole)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(foundRole.GetOwnerReferences()).ToNot(BeNil())
-			Expect(foundRole.Rules[0].ResourceNames[0]).To(Equal(pod.GetName()))
-			Expect(foundRole.Rules[1].ResourceNames[0]).To(Equal(pod.GetName()))
+			Expect(foundRole.Rules[0].ResourceNames[0]).To(Equal(foundPod.GetName()))
+			Expect(foundRole.Rules[1].ResourceNames[0]).To(Equal(foundPod.GetName()))
 
 			// VERIFY: RoleBinding Created as expected
 			foundRoleBinding := &rbacv1.RoleBinding{}
@@ -214,7 +179,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(foundRoleBinding.GetOwnerReferences()).ToNot(BeNil())
 			Expect(foundRoleBinding.RoleRef.Name).To(Equal(foundRole.GetName()))
-			Expect(foundRoleBinding.Subjects[0].Name).To(Equal("foo"))
+			Expect(foundRoleBinding.Subjects[0].Name).To(Equal("testGroupA"))
 		})
 	})
 })
