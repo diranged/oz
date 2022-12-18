@@ -9,8 +9,8 @@ import (
 	"github.com/diranged/oz/internal/builders/utils"
 )
 
-// SetOwnerReference implements the IBuilder interface
-func (b *ExecAccessBuilder) SetOwnerReference(
+// SetRequestOwnerReference implements the IBuilder interface
+func (b *ExecAccessBuilder) SetRequestOwnerReference(
 	ctx context.Context,
 	client client.Client,
 	req v1alpha1.IRequestResource,

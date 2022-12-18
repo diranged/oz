@@ -18,10 +18,6 @@ func getRandomPod(
 	cl client.Client,
 	tmpl *v1alpha1.ExecAccessTemplate,
 ) (*corev1.Pod, error) {
-	// Will populate this further down
-	pod := &corev1.Pod{}
-
-	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 	log := logf.FromContext(ctx)
 	log.Info("Finding Pods...")
 
@@ -57,8 +53,8 @@ func getRandomPod(
 	randomIndex := rand.Intn(len(podList.Items))
 
 	// Return the randomly generated Pod
+	pod := &podList.Items[randomIndex]
 	log.Info(fmt.Sprintf("Returning Pod %s", pod.Name))
-	pod = &podList.Items[randomIndex]
 
 	return pod, err
 }

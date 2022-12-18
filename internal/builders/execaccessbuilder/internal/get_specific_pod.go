@@ -18,7 +18,6 @@ func getSpecificPod(
 	podName string,
 	tmpl *v1alpha1.ExecAccessTemplate,
 ) (*corev1.Pod, error) {
-	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/
 	log := logf.FromContext(ctx)
 	log.Info(fmt.Sprintf("Looking for Pod %s", podName))
 

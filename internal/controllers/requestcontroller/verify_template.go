@@ -36,7 +36,7 @@ func (r *RequestReconciler) verifyTemplate(
 
 	// UPDATE: Set the OwnerReference for the request - so if the template is
 	// deleted, all requests are deleted.
-	if err := r.Builder.SetOwnerReference(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
+	if err := r.Builder.SetRequestOwnerReference(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
 		rctx.log.Error(err, "Error setting owner reference")
 		return nil, err
 	}

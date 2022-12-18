@@ -68,12 +68,8 @@ func GetPodName(
 	// only fails if the Status.PodName field has already been set, which would
 	// indicate some kind of a reconcile loop conflict.
 	//
-	// The responsibility of pushing the .Status.PodName field back to
-	// Kubernetes is in the reconciliation loop, where it will call
-	// UpdateCondition (which calls UpdateStatus) at the end of this succesful
-	// method. In this way, we do not update the AccessRequest with a PodName
-	// status until we have confidence that all of the access resources have
-	// indeed been created.
+	// Writing back into the cluster is not handled here - must be handled by
+	// the caller of this method.
 	if err := req.SetPodName(pod.GetName()); err != nil {
 		return "", err
 	}

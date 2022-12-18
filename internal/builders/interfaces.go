@@ -24,13 +24,13 @@ type IBuilder interface {
 		tmpl v1alpha1.ITemplateResource,
 	) (duration time.Duration, decision string, err error)
 
-	// SetOwnerReference ensures that if the TargetTemplate is ever deleted,
+	// SetRequestOwnerReference ensures that if the TargetTemplate is ever deleted,
 	// that all of the Access Requests pointing to it are also automatically
 	// deleted, which automatically cascades down to delete all of the access
 	// resources.
 	//
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
-	SetOwnerReference(
+	SetRequestOwnerReference(
 		ctx context.Context,
 		client client.Client,
 		req v1alpha1.IRequestResource,

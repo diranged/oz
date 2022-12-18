@@ -130,7 +130,7 @@ func (b *mockBuilder) GetAccessDuration(
 	return b.getDurationResp, "test", b.getDurationErr
 }
 
-func (b *mockBuilder) SetOwnerReference(
+func (b *mockBuilder) SetRequestOwnerReference(
 	_ context.Context,
 	_ client.Client,
 	_ v1alpha1.IRequestResource,

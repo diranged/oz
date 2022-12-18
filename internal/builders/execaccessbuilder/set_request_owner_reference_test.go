@@ -76,7 +76,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 
 			By("Calling the SetOwnerReference() function")
 			builder := ExecAccessBuilder{}
-			err = builder.SetOwnerReference(ctx, k8sClient, request, template)
+			err = builder.SetRequestOwnerReference(ctx, k8sClient, request, template)
 			Expect(err).ToNot(HaveOccurred())
 
 			// VERIFY: The owner reference got set?
@@ -100,7 +100,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 
 			By("Calling the SetOwnerReference() function")
 			builder := ExecAccessBuilder{}
-			err = builder.SetOwnerReference(ctx, k8sClient, request, invalidtemplate)
+			err = builder.SetRequestOwnerReference(ctx, k8sClient, request, invalidtemplate)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(MatchRegexp("uid must not be empty"))
 		})
