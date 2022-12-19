@@ -1,4 +1,4 @@
-package requestcontroller
+package templatecontroller
 
 import (
 	"context"
@@ -15,16 +15,13 @@ import (
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
-var _ = Describe("RequestReconciler", Ordered, func() {
-	/*
-		fetchRequestObject() tests
-	*/
+var _ = Describe("TemplateReconciler", Ordered, func() {
 	Context("fetchRequestObject()", func() {
 		var (
 			ctx        = context.Background()
 			ns         *v1.Namespace
-			request    *v1alpha1.ExecAccessRequest
-			reconciler *RequestReconciler
+			template   *v1alpha1.ExecAccessTemplate
+			reconciler *TemplateReconciler
 		)
 
 		BeforeAll(func() {
@@ -37,27 +34,33 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			err := k8sClient.Create(ctx, ns)
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Should have an ExecAccessRequest built to test against")
-			request = &v1alpha1.ExecAccessRequest{
+			By("Should have an ExecAccessTemplate built to test against")
+			template = &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "fetchrequestobject-test",
 					Namespace: ns.GetName(),
 				},
-				Spec: v1alpha1.ExecAccessRequestSpec{
-					// Our mockBuilder will ignore this
-					TemplateName: "bogus",
+				Spec: v1alpha1.ExecAccessTemplateSpec{
+					AccessConfig: v1alpha1.AccessConfig{
+						AllowedGroups:   []string{"foo"},
+						DefaultDuration: "1h",
+						MaxDuration:     "2h",
+					},
+					ControllerTargetRef: &v1alpha1.CrossVersionObjectReference{
+						APIVersion: "apps/v1",
+						Kind:       "Deployment",
+						Name:       "junk",
+					},
 				},
 			}
-			err = k8sClient.Create(ctx, request)
+			err = k8sClient.Create(ctx, template)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Creating the RequestReconciler")
-			reconciler = &RequestReconciler{
+			reconciler = &TemplateReconciler{
 				Client:                 k8sClient,
 				Scheme:                 k8sClient.Scheme(),
-				APIReader:              k8sClient,
-				RequestType:            &v1alpha1.ExecAccessRequest{},
-				Builder:                &mockBuilder{},
+				TemplateType:           &v1alpha1.ExecAccessTemplate{},
 				ReconciliationInterval: 0,
 			}
 		})
@@ -71,11 +74,11 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 		It("fetchRequestObject() should work", func() {
 			rctx := newRequestContext(
 				ctx,
-				reconciler.RequestType,
+				reconciler.TemplateType,
 				reconcile.Request{
 					NamespacedName: types.NamespacedName{
-						Name:      request.GetName(),
-						Namespace: request.GetNamespace(),
+						Name:      template.GetName(),
+						Namespace: template.GetNamespace(),
 					},
 				},
 			)
@@ -83,14 +86,14 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("fetchRequestObject() should fail if invalid request", func() {
+		It("fetchRequestObject() should fail if invalid template", func() {
 			rctx := newRequestContext(
 				ctx,
-				reconciler.RequestType,
+				reconciler.TemplateType,
 				reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "invalid",
-						Namespace: request.GetNamespace(),
+						Namespace: template.GetNamespace(),
 					},
 				},
 			)

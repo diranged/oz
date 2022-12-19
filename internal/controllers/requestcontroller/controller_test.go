@@ -58,12 +58,12 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			By("Creating the RequestReconciler")
 			reconciler = &RequestReconciler{
-				Client:                  k8sClient,
-				Scheme:                  k8sClient.Scheme(),
-				APIReader:               k8sClient,
-				RequestType:             &v1alpha1.ExecAccessRequest{},
-				Builder:                 builder,
-				ReconcilliationInterval: time.Minute,
+				Client:                 k8sClient,
+				Scheme:                 k8sClient.Scheme(),
+				APIReader:              k8sClient,
+				RequestType:            &v1alpha1.ExecAccessRequest{},
+				Builder:                builder,
+				ReconciliationInterval: time.Minute,
 			}
 		})
 
@@ -111,7 +111,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 				},
 			)
 			// VERIFY: The result is that we WILL requeue in a few minutes
-			Expect(result.RequeueAfter).To(Equal(reconciler.ReconcilliationInterval))
+			Expect(result.RequeueAfter).To(Equal(reconciler.ReconciliationInterval))
 			Expect(err).ToNot(HaveOccurred())
 
 			// Refetch our Request object... reconiliation has mutated its
