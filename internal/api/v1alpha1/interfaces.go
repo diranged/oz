@@ -74,7 +74,7 @@ type ITemplateResource interface {
 type IRequestResource interface {
 	ICoreResource
 
-	// Returns an unpopulated ITemplateResource that this IRequestResource points to
+	// Returns a populated ITemplateResource that this IRequestResource points to
 	GetTemplate(context.Context, client.Client) (ITemplateResource, error)
 
 	// Returns the user-supplied Spec.templateName field

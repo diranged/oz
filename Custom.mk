@@ -36,6 +36,8 @@ coverhtml:
 .PHONY: lint
 lint: revive
 	$(REVIVE) -config revive.toml -formatter stylish ./...
+	golangci-lint run
+
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
 test-e2e: cert-manager

@@ -9,8 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 // BaseRequestReconciler provides a base reconciler with common functions for handling our Template CRDs
@@ -30,7 +30,7 @@ type BaseRequestReconciler struct {
 //   - Is the access request duration less than its current age?
 //     yes? approve
 //     no? mark the resource for deletion
-func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error {
+func (r *BaseRequestReconciler) verifyDuration(builder legacybuilder.IBuilder) error {
 	var err error
 	logger := r.getLogger(builder.GetCtx())
 
@@ -113,7 +113,7 @@ func (r *BaseRequestReconciler) verifyDuration(builder builders.IBuilder) error 
 //	true: if the resource is expired, AND has now been deleted
 //	false: if the resource is still valid
 //	error: any error during the checks
-func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool, error) {
+func (r *BaseRequestReconciler) isAccessExpired(builder legacybuilder.IBuilder) (bool, error) {
 	logger := r.getLogger(builder.GetCtx())
 	logger.Info("Checking if access has expired or not...")
 	cond := meta.FindStatusCondition(
@@ -155,7 +155,7 @@ func (r *BaseRequestReconciler) isAccessExpired(builder builders.IBuilder) (bool
 // all of the resources that are required for thie particular access request. The Status.Conditions field is
 // then updated with the ConditionAccessResourcesCreated condition appropriately.
 func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
-	builder builders.IBuilder,
+	builder legacybuilder.IBuilder,
 ) error {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are built")
@@ -174,7 +174,7 @@ func (r *BaseRequestReconciler) verifyAccessResourcesBuilt(
 // function - where we make sure that the .Status.PodName resource has come all
 // the way up and reached the "Running" phase.
 func (r *BaseRequestReconciler) verifyAccessResourcesReady(
-	builder builders.IPodAccessBuilder,
+	builder legacybuilder.IPodAccessBuilder,
 ) error {
 	logger := log.FromContext(builder.GetCtx())
 	logger.Info("Verifying that access resources are ready")
@@ -195,6 +195,6 @@ func (r *BaseRequestReconciler) verifyAccessResourcesReady(
 // Returns:
 //
 //	error: Any error during the deletion
-func (r *BaseRequestReconciler) DeleteResource(builder builders.IBuilder) error {
+func (r *BaseRequestReconciler) DeleteResource(builder legacybuilder.IBuilder) error {
 	return r.Delete(builder.GetCtx(), builder.GetRequest())
 }

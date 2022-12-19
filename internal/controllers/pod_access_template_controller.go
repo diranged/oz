@@ -25,8 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 // PodAccessTemplateReconciler reconciles a AccessTemplate object
@@ -71,8 +71,8 @@ func (r *PodAccessTemplateReconciler) Reconcile(
 	}
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := &builders.PodAccessBuilder{
-		BaseBuilder: builders.BaseBuilder{
+	builder := &legacybuilder.PodAccessBuilder{
+		BaseBuilder: legacybuilder.BaseBuilder{
 			Client:   r.Client,
 			Ctx:      ctx,
 			Template: resource,

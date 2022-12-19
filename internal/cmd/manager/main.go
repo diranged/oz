@@ -20,9 +20,8 @@ package manager
 import (
 	"flag"
 	"os"
+	"time"
 
-	uzap "go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -31,11 +30,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	zaplogfmt "github.com/jsternberg/zap-logfmt"
-
+	"github.com/diranged/oz/internal/api/v1alpha1"
 	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/builders/execaccessbuilder"
 	"github.com/diranged/oz/internal/controllers"
 	"github.com/diranged/oz/internal/controllers/podwatcher"
+	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -92,17 +92,16 @@ func Main() {
 	)
 
 	// Reconfigure the default logger. Get rid of the JSON log and switch to a LogFmt logger
-	configLog := uzap.NewProductionEncoderConfig()
+	// configLog := uzap.NewProductionEncoderConfig()
 
 	// Drop the timestamp field - the operator can use `--timestamps` in kubectl to get the timestamp of when the logs
 	// were created, we don't need to log them out.
-	configLog.TimeKey = zapcore.OmitKey
+	// configLog.TimeKey = zapcore.OmitKey
 
 	// https://sdk.operatorframework.io/docs/building-operators/golang/references/logging/#custom-zap-logger
-	logfmtEncoder := zaplogfmt.NewEncoder(configLog)
+	// logfmtEncoder := zaplogfmt.NewEncoder(configLog)
 	opts := zap.Options{
 		Development: true,
-		Encoder:     logfmtEncoder,
 	}
 
 	// Finish the logger setup - mostly boilerplate below
@@ -173,15 +172,13 @@ func Main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ExecAccessRequestReconciler{
-		BaseRequestReconciler: controllers.BaseRequestReconciler{
-			BaseReconciler: controllers.BaseReconciler{
-				Client:                  mgr.GetClient(),
-				Scheme:                  mgr.GetScheme(),
-				APIReader:               mgr.GetAPIReader(),
-				ReconcililationInterval: requestReconciliationInterval,
-			},
-		},
+	if err = (&requestcontroller.RequestReconciler{
+		Client:                  mgr.GetClient(),
+		Scheme:                  mgr.GetScheme(),
+		APIReader:               mgr.GetAPIReader(),
+		RequestType:             &v1alpha1.ExecAccessRequest{},
+		Builder:                 &execaccessbuilder.ExecAccessBuilder{},
+		ReconcilliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessRequest")
 		os.Exit(1)

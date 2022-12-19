@@ -25,8 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 // ExecAccessTemplateReconciler reconciles a ExecAccessTemplate object
@@ -71,12 +71,10 @@ func (r *ExecAccessTemplateReconciler) Reconcile(
 	}
 
 	// Create an ExecAccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := &builders.ExecAccessBuilder{
-		BaseBuilder: builders.BaseBuilder{
-			Client:   r.Client,
-			Ctx:      ctx,
-			Template: resource,
-		},
+	builder := &legacybuilder.BaseBuilder{
+		Client:   r.Client,
+		Ctx:      ctx,
+		Template: resource,
 	}
 
 	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller

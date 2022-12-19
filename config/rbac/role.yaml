@@ -82,14 +82,6 @@ rules:
 - apiGroups:
   - crds.wizardofoz.co
   resources:
-  - execacesstemplates
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
   - podaccessrequests
   verbs:
   - create

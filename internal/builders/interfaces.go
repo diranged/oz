@@ -2,60 +2,61 @@ package builders
 
 import (
 	"context"
+	"time"
 
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	api "github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/api/v1alpha1"
 )
 
-// IBuilder defines the interface for a particular "access builder". An "access builder" is typically
-// paired with an "access template" struct in the api.v1alpha1 package. Each unique type of access
-// template will have its own access builder that is used to implement the goals of that particular
-// template.
-//
-// Common interface functions are used to keep the reconiliation loop code in the individual
-// controllers package clean.
+// IBuilder defines an interface that our RequestController can use to manage Access Request resources
 type IBuilder interface {
-	// GetClient returns a Kubernetes client.Client object that can be used for making safe and
-	// cached calls to the API.
-	GetClient() client.Client
+	// GetTemplate checks whether or not the TargetTemplate actually exists
+	GetTemplate(
+		ctx context.Context,
+		client client.Client,
+		req v1alpha1.IRequestResource,
+	) (v1alpha1.ITemplateResource, error)
 
-	// GetCtx returns the context.Context object that is used to hand off async API calls to the
-	// system.
-	GetCtx() context.Context
+	// GetAccessDuration checks the durations of the Access Request against the Template.
+	GetAccessDuration(
+		req v1alpha1.IRequestResource,
+		tmpl v1alpha1.ITemplateResource,
+	) (duration time.Duration, decision string, err error)
 
-	// GetScheme returns the runtime.Scheme that is populated for the API client, ensuring that we
-	// understand the local CRDs from this controller.
-	GetScheme() *runtime.Scheme
-
-	// GetRequest returns an Access Request resource that conforms to the api.IPodRequestResource
-	// interface.
+	// SetRequestOwnerReference ensures that if the TargetTemplate is ever deleted,
+	// that all of the Access Requests pointing to it are also automatically
+	// deleted, which automatically cascades down to delete all of the access
+	// resources.
 	//
-	// TODO: Generalize this into just an api.IRequestResource interface, and use a PodRequestResource
-	// more specifically for the PodAccessBuilder.
-	GetRequest() api.IPodRequestResource
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/
+	SetRequestOwnerReference(
+		ctx context.Context,
+		client client.Client,
+		req v1alpha1.IRequestResource,
+		tmpl v1alpha1.ITemplateResource,
+	) error
 
-	// GetTemplate returns an Access Template resouce that conforms to the api.ITemplateResource
-	// interface.
-	GetTemplate() api.ITemplateResource
+	// CreateAccessResources is the heavy lifter in an Access Builder - it is
+	// responsible for creating any access resources required to satisfy the
+	// access request. All resources created by this function must have an
+	// OwnerReference set to the Access Request to ensure proper cleanup.
+	CreateAccessResources(
+		ctx context.Context,
+		client client.Client,
+		req v1alpha1.IRequestResource,
+		tmpl v1alpha1.ITemplateResource,
+	) (string, error)
 
-	// Generates all of the resources required to fulfill the access request.
-	GenerateAccessResources() (statusString string, err error)
-
-	// GetTargetRefResource returns a generic but populated client.Object resource from an Access
-	// Template. Typically this is a Deployment, DaemonSet, etc.
-	GetTargetRefResource() (client.Object, error)
-}
-
-// IPodAccessBuilder is an extended interface from the IBuilder that provides a few additional
-// common methods that are specific to validating Access Templates that provide Pod-level access
-// for developers.
-type IPodAccessBuilder interface {
-	IBuilder
-
-	// Returns back the status of the various access resources. If they are not
-	// ready yet, this stage will prevent the Ozctl tool from thinking the
-	// access request has been fulfilled.
-	VerifyAccessResources() (statusString string, err error)
+	// AccessResourcesAreReady returns an indication of whether the resources
+	// are fully ready. For some this function may just return True right away
+	// (in the case of creating only a Role/RoleBinding). In other cases there
+	// may be work to check if the status of a resource is completed (eg,
+	// waiting for a Pod to become Ready).
+	AccessResourcesAreReady(
+		ctx context.Context,
+		client client.Client,
+		req v1alpha1.IRequestResource,
+		tmpl v1alpha1.ITemplateResource,
+	) (bool, error)
 }

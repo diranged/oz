@@ -1,11 +1,6 @@
 package controllers
 
 const (
-	fieldSelectorMetadataName string = "metadata.name"
-	fieldSelectorStatusPhase  string = "status.phase"
-)
-
-const (
 	// DefaultReconciliationInterval defines the number of minutes inbetween regular scheduled
 	// checks of the target resources that our controllers are managing.
 	DefaultReconciliationInterval int = 5

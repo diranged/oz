@@ -128,7 +128,7 @@ func (r *ExecAccessRequest) GetPodName() string {
 // the reconciler loop, or returns back an error.
 func GetExecAccessRequest(
 	ctx context.Context,
-	cl client.Reader,
+	cl client.Client,
 	name string,
 	namespace string,
 ) (*ExecAccessRequest, error) {

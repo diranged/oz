@@ -5,8 +5,8 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 // BaseTemplateReconciler provides a base reconciler with common functions for handling our Template CRDs
@@ -20,8 +20,8 @@ type BaseTemplateReconciler struct {
 // being set to False.
 //
 // Returns:
-//   - An "error" only if the SetTargetRefNotExists() function fails
-func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IBuilder) error {
+//   - An "error" only if the UpdateCondition function fails
+func (r *BaseTemplateReconciler) VerifyTargetRef(builder legacybuilder.IBuilder) error {
 	var err error
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
@@ -42,8 +42,8 @@ func (r *BaseTemplateReconciler) VerifyTargetRef(builder builders.IBuilder) erro
 // each setting we will update an appropriate Condition within the resource.
 //
 // Returns:
-//   - An "error" only if the SetTemplateDurationsNotValid/Valid functions fail
-func (r *BaseTemplateReconciler) VerifyMiscSettings(builder builders.IBuilder) error {
+//   - An "error" only if the UpdateCondition function fails
+func (r *BaseTemplateReconciler) VerifyMiscSettings(builder legacybuilder.IBuilder) error {
 	ctx := builder.GetCtx()
 	tmpl := builder.GetTemplate()
 

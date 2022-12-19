@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/legacybuilder"
 )
 
 var _ = Describe("BaseTemplateReconciler", Ordered, func() {
@@ -23,7 +23,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 		var (
 			deployment *appsv1.Deployment
 			template   *v1alpha1.ExecAccessTemplate
-			builder    builders.IBuilder
+			builder    legacybuilder.IBuilder
 			r          *BaseTemplateReconciler
 			fakeClient client.Client
 			ctx        = context.Background()
@@ -105,7 +105,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -158,7 +158,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			}
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -180,7 +180,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 	Context("VerifyMiscSettings", func() {
 		var (
 			template   *v1alpha1.ExecAccessTemplate
-			builder    *builders.BaseBuilder
+			builder    *legacybuilder.BaseBuilder
 			r          *BaseTemplateReconciler
 			fakeClient client.Client
 			ctx        = context.Background()
@@ -230,7 +230,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -279,7 +279,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -330,7 +330,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
@@ -381,7 +381,7 @@ var _ = Describe("BaseTemplateReconciler", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Create the Builder that we'll be testing
-			builder = &builders.BaseBuilder{
+			builder = &legacybuilder.BaseBuilder{
 				Client:    fakeClient,
 				Ctx:       ctx,
 				APIReader: fakeClient,
