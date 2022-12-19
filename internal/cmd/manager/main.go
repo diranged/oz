@@ -18,14 +18,17 @@ limitations under the License.
 package manager
 
 import (
+	"context"
 	"flag"
 	"os"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -33,6 +36,7 @@ import (
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders/execaccessbuilder"
+	"github.com/diranged/oz/internal/builders/podaccessbuilder"
 	"github.com/diranged/oz/internal/controllers"
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
@@ -66,6 +70,7 @@ func Main() {
 	var probeAddr string
 	var enableLeaderElection bool
 	var requestReconciliationInterval int
+
 	// Boilerplate
 	flag.StringVar(
 		&metricsAddr,
@@ -151,6 +156,27 @@ func Main() {
 		&webhook.Admission{Handler: &podwatcher.PodExecWatcher{Client: mgr.GetClient()}},
 	)
 
+	// Provide a searchable index in the cached kubernetes client for "metadata.name" - the pod name.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{}, v1alpha1.FieldSelectorMetadataName, func(rawObj client.Object) []string {
+		// grab the job object, extract the name...
+		pod := rawObj.(*corev1.Pod)
+		name := pod.GetName()
+		return []string{name}
+	}); err != nil {
+		panic(err)
+	}
+
+	// Provide a searchable index in the cached kubernetes client for "status.phase", allowing us to
+	// search for Running Pods.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{}, v1alpha1.FieldSelectorStatusPhase, func(rawObj client.Object) []string {
+		// grab the job object, extract the phase...
+		pod := rawObj.(*corev1.Pod)
+		phase := string(pod.Status.Phase)
+		return []string{phase}
+	}); err != nil {
+		panic(err)
+	}
+
 	// Set Up the Reconcilers
 	//
 	// These are the core components that are "watching" the custom resource
@@ -198,17 +224,15 @@ func Main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.PodAccessRequestReconciler{
-		BaseRequestReconciler: controllers.BaseRequestReconciler{
-			BaseReconciler: controllers.BaseReconciler{
-				Client:                  mgr.GetClient(),
-				Scheme:                  mgr.GetScheme(),
-				APIReader:               mgr.GetAPIReader(),
-				ReconcililationInterval: requestReconciliationInterval,
-			},
-		},
+	if err = (&requestcontroller.RequestReconciler{
+		Client:                  mgr.GetClient(),
+		Scheme:                  mgr.GetScheme(),
+		APIReader:               mgr.GetAPIReader(),
+		RequestType:             &v1alpha1.PodAccessRequest{},
+		Builder:                 &podaccessbuilder.PodAccessBuilder{},
+		ReconcilliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessRequest")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "PodAccessRequest")
 		os.Exit(1)
 	}
 

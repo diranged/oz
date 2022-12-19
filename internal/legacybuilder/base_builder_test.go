@@ -9,7 +9,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/testing/utils"
@@ -146,62 +145,10 @@ var _ = Describe("BaseBuilder", Ordered, func() {
 			Expect(builder.GetRequest()).To(Equal(request))
 		})
 
-		It("getShortUID should work", func() {
-			ret := getShortUID(request)
-			Expect(len(ret)).To(Equal(8))
-		})
-
-		It("generateResourceName should work", func() {
-			ret := generateResourceName(request)
-			Expect(len(ret)).To(Equal(17))
-		})
-
 		It("GetTargetRefResource() should return a valid Client.Object", func() {
 			ret, err := builder.GetTargetRefResource()
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(ret.GetName()).To(Equal("test-dep"))
-		})
-
-		It("createPod() should work sanely", func() {
-			// Get the PodTemplateSpec
-			pts, err := builder.getPodTemplateFromController()
-			Expect(err).To(Not(HaveOccurred()))
-
-			// First, we should create the pod and return it.
-			pod, err := builder.createPod(pts)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Store the original resourceVersino
-			origResourceVersion := pod.ResourceVersion
-
-			// Mutate the pod ourslves. This simulates a third party resource,
-			// eg, "istio", mutating the pod.
-			pod.ObjectMeta.SetAnnotations(map[string]string{
-				"MyAnnotation":      "bar",
-				"MyOtherAnnotation": "baz",
-			})
-			err = k8sClient.Update(ctx, pod)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// VERIFY: The resourceVersion should have changed
-			postAnnotationUpdateVersion := pod.ResourceVersion
-			Expect(origResourceVersion).To(Not(Equal(postAnnotationUpdateVersion)))
-
-			// Next, re-run the createPod function. We want this function to
-			// never re-create the Pod object once it's been created, or update
-			// it.
-			_, err = builder.createPod(pts)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Re-get the pod from the API
-			err = k8sClient.Get(ctx, types.NamespacedName{
-				Name:      pod.Name,
-				Namespace: pod.Namespace,
-			}, pod)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// VERIFY: The Pod resourceVersion has not changed
-			Expect(pod.ObjectMeta.ResourceVersion).To(Equal(postAnnotationUpdateVersion))
 		})
 	})
 })

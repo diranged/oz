@@ -12,6 +12,8 @@
     "gopls": {
     	"formatting.gofumpt": true
     },
+    // https://github.com/golang/vscode-go/wiki/features#analyze-vulnerabilities-in-dependencies
+    "go.diagnostic.vulncheck": "Imports",
 
     // https://github.com/segmentio/golines#visual-studio-code
     "emeraldwalk.runonsave": {

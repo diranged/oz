@@ -22,7 +22,7 @@ func CreateRoleBinding(
 ) (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      generateResourceName(req),
+			Name:      GenerateResourceName(req),
 			Namespace: req.GetNamespace(),
 		},
 		RoleRef: rbacv1.RoleRef{

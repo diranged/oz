@@ -71,12 +71,10 @@ func (r *PodAccessTemplateReconciler) Reconcile(
 	}
 
 	// Create an AccessBuilder resource for this particular template, which we'll use to then verify the resource.
-	builder := &legacybuilder.PodAccessBuilder{
-		BaseBuilder: legacybuilder.BaseBuilder{
-			Client:   r.Client,
-			Ctx:      ctx,
-			Template: resource,
-		},
+	builder := &legacybuilder.BaseBuilder{
+		Client:   r.Client,
+		Ctx:      ctx,
+		Template: resource,
 	}
 
 	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
