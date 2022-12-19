@@ -1327,7 +1327,7 @@ used throughout the AccessTemplate reconcilers and written to the ITemplateResou
 <td><p>ConditionTargetRefExists indicates whether or not an AccessTemplate is
 pointing to a valid Controller.</p>
 </td>
-</tr><tr><td><p>&#34;AccessDurationsValid&#34;</p></td>
+</tr><tr><td><p>&#34;TemplateDurationsValid&#34;</p></td>
 <td><p>ConditionTemplateDurationsValid is used by both AccessTemplate and
 AccessRequest resources. It indicates whether or not the various
 duration fields are valid.</p>

@@ -1,4 +1,4 @@
-package requestcontroller
+package templatecontroller
 
 import (
 	"context"
@@ -12,19 +12,22 @@ import (
 	"github.com/diranged/oz/internal/controllers/internal/status"
 )
 
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccessrequests/finalizers,verbs=update
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=execaccesstemplates/finalizers,verbs=update
+
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;statefulsets,verbs=get;list;watch
-//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 
 // Reconcile is a high level entrypoint triggered by Watches on particular
 // Custom Resources within the cluster. This wrapper handles a few common
 // startup behaviors, and introduces reconcile timing logging.
 //
 // The real business-logic is in the reconcile() (lowercased) function.
-func (r *RequestReconciler) Reconcile(
+func (r *TemplateReconciler) Reconcile(
 	ctx context.Context,
 	req ctrl.Request,
 ) (ctrl.Result, error) {
@@ -32,7 +35,7 @@ func (r *RequestReconciler) Reconcile(
 	var err error
 
 	// Build a RequestContext for this reconciliation loop
-	rctx := newRequestContext(ctx, r.RequestType, req)
+	rctx := newRequestContext(ctx, r.TemplateType, req)
 
 	// Boilerplate. Report back on every reconcile how long it took.
 	start := time.Now()
@@ -60,7 +63,7 @@ func (r *RequestReconciler) Reconcile(
 // reconcile() manages the state for a Component through the generic Installers package.
 //
 // revive:disable:confusing-naming
-func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error) {
+func (r *TemplateReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error) {
 	rctx.log.Info("Starting reconcile loop")
 
 	// First make sure we use the ApiReader (non-cached) client to go and
@@ -81,35 +84,31 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	}
 	rctx.log.V(2).Info("Found request", "request", rctx.obj)
 
-	// VERIFICATION: Check that the Builder can find the template the Request references
-	tmpl, err := r.verifyTemplate(rctx)
+	// VERIFICATION: Make sure that the TargetRef is valid and points to an active controller
+	//
+	// An error is only returned if the conditions update fails. Otherwise we
+	// continue to move on.
+	err := r.verifyTargetRef(rctx)
 	if err != nil {
-		rctx.log.Error(err, "Error - will requeue")
 		return ctrlrequeue.RequeueError(err)
 	}
 
-	// VERIFICATION: Check the durations on the request and make sure the request has not expired
-	if shouldReturn, result, err := r.verifyDuration(rctx, tmpl); shouldReturn {
-		return result, err
+	// VERIFICATION: Make sure the DefaultDuration and MaxDuration settings are valid.
+	//
+	// An error is only returned if the conditions update fails. Otherwise we
+	// continue to move on.
+	err = r.verifyDuration(rctx)
+	if err != nil {
+		return ctrlrequeue.RequeueError(err)
 	}
 
-	// VERIFICATION: Handle whether or not the access is expired at this point! If so, delete it.
-	if shouldReturn, result, err := r.isAccessExpired(rctx); shouldReturn {
-		return result, err
-	}
-
-	// VERIFICATION: Make sure all of the access resources are built properly. On any failure,
-	// set up a 30 second delay before the next reconciliation attempt.
-	if shouldReturn, result, err := r.verifyAccessResources(rctx, tmpl); shouldReturn {
-		return result, err
-	}
+	// TODO:
+	// VERIFICATION: Ensure that the allowedGroups match valid group name strings
 
 	// FINAL: Set Status.Ready state
-	//
-	// TODO: Implement on the ICoreStatus interface a "AreAllConditionsTrue" function and check that.
 	err = status.SetReadyStatus(rctx, r, rctx.obj)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrlrequeue.RequeueError(err)
 	}
 
 	// Exit Reconciliation Loop

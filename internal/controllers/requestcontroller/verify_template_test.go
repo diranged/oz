@@ -79,12 +79,12 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			By("Creating the RequestReconciler")
 			reconciler = &RequestReconciler{
-				Client:                  k8sClient,
-				Scheme:                  k8sClient.Scheme(),
-				APIReader:               k8sClient,
-				RequestType:             &v1alpha1.ExecAccessRequest{},
-				Builder:                 builder,
-				ReconcilliationInterval: 0,
+				Client:                 k8sClient,
+				Scheme:                 k8sClient.Scheme(),
+				APIReader:              k8sClient,
+				RequestType:            &v1alpha1.ExecAccessRequest{},
+				Builder:                builder,
+				ReconciliationInterval: 0,
 			}
 
 			By("Creating the RequestContext")

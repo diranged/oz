@@ -47,7 +47,7 @@ type RequestReconciler struct {
 	APIReader client.Reader
 
 	// Frequency to re-reconcile successfully reconciled requests
-	ReconcilliationInterval time.Duration
+	ReconciliationInterval time.Duration
 
 	// Frequency to re-reconcile when the access resources have not become
 	// available yet for an Access Request.

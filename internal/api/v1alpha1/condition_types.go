@@ -51,7 +51,7 @@ const (
 	// ConditionTemplateDurationsValid is used by both AccessTemplate and
 	// AccessRequest resources. It indicates whether or not the various
 	// duration fields are valid.
-	ConditionTemplateDurationsValid TemplateConditionTypes = "AccessDurationsValid"
+	ConditionTemplateDurationsValid TemplateConditionTypes = "TemplateDurationsValid"
 
 	// ConditionTargetRefExists indicates whether or not an AccessTemplate is
 	// pointing to a valid Controller.

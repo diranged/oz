@@ -37,9 +37,9 @@ import (
 	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders/execaccessbuilder"
 	"github.com/diranged/oz/internal/builders/podaccessbuilder"
-	"github.com/diranged/oz/internal/controllers"
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
+	"github.com/diranged/oz/internal/controllers/templatecontroller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -70,6 +70,7 @@ func Main() {
 	var probeAddr string
 	var enableLeaderElection bool
 	var requestReconciliationInterval int
+	var templateReconciliationInterval int
 
 	// Boilerplate
 	flag.StringVar(
@@ -94,6 +95,12 @@ func Main() {
 		"request-reconciliation-interval",
 		defaultReconciliationInterval,
 		"Access Request reconciliation interval (in minutes)",
+	)
+	flag.IntVar(
+		&templateReconciliationInterval,
+		"template-reconciliation-interval",
+		defaultReconciliationInterval,
+		"Access Template reconciliation interval (in minutes)",
 	)
 
 	// Reconfigure the default logger. Get rid of the JSON log and switch to a LogFmt logger
@@ -184,53 +191,47 @@ func Main() {
 	// depend on some information having been injected by the Webhooks we
 	// registered above.
 	//
-	if err = (&controllers.ExecAccessTemplateReconciler{
-		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
-			BaseReconciler: controllers.BaseReconciler{
-				Client:                  mgr.GetClient(),
-				Scheme:                  mgr.GetScheme(),
-				APIReader:               mgr.GetAPIReader(),
-				ReconcililationInterval: requestReconciliationInterval,
-			},
-		},
+	if err = (&templatecontroller.TemplateReconciler{
+		Client:                 mgr.GetClient(),
+		Scheme:                 mgr.GetScheme(),
+		APIReader:              mgr.GetAPIReader(),
+		TemplateType:           &v1alpha1.ExecAccessTemplate{},
+		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessTemplate")
 		os.Exit(1)
 	}
 
 	if err = (&requestcontroller.RequestReconciler{
-		Client:                  mgr.GetClient(),
-		Scheme:                  mgr.GetScheme(),
-		APIReader:               mgr.GetAPIReader(),
-		RequestType:             &v1alpha1.ExecAccessRequest{},
-		Builder:                 &execaccessbuilder.ExecAccessBuilder{},
-		ReconcilliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
+		Client:                 mgr.GetClient(),
+		Scheme:                 mgr.GetScheme(),
+		APIReader:              mgr.GetAPIReader(),
+		RequestType:            &v1alpha1.ExecAccessRequest{},
+		Builder:                &execaccessbuilder.ExecAccessBuilder{},
+		ReconciliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessRequest")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.PodAccessTemplateReconciler{
-		BaseTemplateReconciler: controllers.BaseTemplateReconciler{
-			BaseReconciler: controllers.BaseReconciler{
-				Client:                  mgr.GetClient(),
-				Scheme:                  mgr.GetScheme(),
-				APIReader:               mgr.GetAPIReader(),
-				ReconcililationInterval: requestReconciliationInterval,
-			},
-		},
+	if err = (&templatecontroller.TemplateReconciler{
+		Client:                 mgr.GetClient(),
+		Scheme:                 mgr.GetScheme(),
+		APIReader:              mgr.GetAPIReader(),
+		TemplateType:           &v1alpha1.PodAccessTemplate{},
+		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, unableToCreateMsg, controllerKey, "AccessTemplate")
+		setupLog.Error(err, unableToCreateMsg, controllerKey, "PodAccessTemplate")
 		os.Exit(1)
 	}
 
 	if err = (&requestcontroller.RequestReconciler{
-		Client:                  mgr.GetClient(),
-		Scheme:                  mgr.GetScheme(),
-		APIReader:               mgr.GetAPIReader(),
-		RequestType:             &v1alpha1.PodAccessRequest{},
-		Builder:                 &podaccessbuilder.PodAccessBuilder{},
-		ReconcilliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
+		Client:                 mgr.GetClient(),
+		Scheme:                 mgr.GetScheme(),
+		APIReader:              mgr.GetAPIReader(),
+		RequestType:            &v1alpha1.PodAccessRequest{},
+		Builder:                &podaccessbuilder.PodAccessBuilder{},
+		ReconciliationInterval: time.Duration(requestReconciliationInterval) * time.Minute,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "PodAccessRequest")
 		os.Exit(1)
