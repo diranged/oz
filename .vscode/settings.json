@@ -1,26 +1,26 @@
 {
-    "markdown.extension.preview.autoShowPreviewToSide": true,
-    "go.lintOnSave": "workspace",
-    "go.lintTool": "revive",
-    "go.lintFlags": ["-config","./revive.toml"],
+  "markdown.extension.preview.autoShowPreviewToSide": true,
+  "go.lintOnSave": "workspace",
+  "go.lintTool": "revive",
+  "go.lintFlags": ["-config", "./revive.toml"],
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go"
+  },
 
-    // https://github.com/golang/vscode-go/wiki/features#inlay-hints
-    "editor.inlayHints.enabled": "on",
+  // https://github.com/golang/vscode-go/wiki/features#inlay-hints
+  "editor.inlayHints.enabled": "on",
 
-    // https://github.com/mvdan/gofumpt#visual-studio-code
-    "go.useLanguageServer": true,
-    "gopls": {
-    	"formatting.gofumpt": true
-    },
-    // https://github.com/golang/vscode-go/wiki/features#analyze-vulnerabilities-in-dependencies
-    "go.diagnostic.vulncheck": "Imports",
+  // https://github.com/mvdan/gofumpt#visual-studio-code
+  "go.useLanguageServer": true,
+  "gopls": {
+    "formatting.gofumpt": true
+  },
+  // https://github.com/golang/vscode-go/wiki/features#analyze-vulnerabilities-in-dependencies
+  "go.diagnostic.vulncheck": "Imports",
 
-    // https://github.com/segmentio/golines#visual-studio-code
-    "emeraldwalk.runonsave": {
-      "commands": [
-        { "match": "\\.go$",
-          "cmd": "golines ${file} -w"
-        }
-      ]
-    }
+  // https://github.com/segmentio/golines#visual-studio-code
+  "emeraldwalk.runonsave": {
+    "commands": [{ "match": "\\.go$", "cmd": "golines ${file} -w" }]
+  }
 }

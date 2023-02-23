@@ -9,6 +9,7 @@ import (
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders"
+	"github.com/diranged/oz/internal/controllers"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -57,7 +58,7 @@ func NewTemplateReconciler(
 		Client:                 mgr.GetClient(),
 		Scheme:                 mgr.GetScheme(),
 		APIReader:              mgr.GetAPIReader(),
-		recorder:               mgr.GetEventRecorderFor("Oz"),
+		recorder:               mgr.GetEventRecorderFor(controllers.EventRecorderName),
 		TemplateType:           res,
 		ReconciliationInterval: time.Duration(interval) * time.Minute,
 	}

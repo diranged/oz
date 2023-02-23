@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -27,6 +28,14 @@ type CrossVersionObjectReference struct {
 	// Defines the "metadata.Name" of the target resource.
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+}
+
+// String implements the Stringer interface
+func (r *CrossVersionObjectReference) String() string {
+	return fmt.Sprintf("%s %s",
+		r.GetGroupVersionKind().Kind,
+		r.GetName(),
+	)
 }
 
 // GetGroup returns the APIGroup name only (eg "apps")

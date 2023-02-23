@@ -8,4 +8,7 @@ const (
 	// PodWaitReconciliationInterval is how long between attemps to check
 	// whether or not a Target Pod has come up.
 	PodWaitReconciliationInterval int = 5
+
+	// EventRecorderName is the name of the Conroller used during Event recording
+	EventRecorderName string = "Oz"
 )

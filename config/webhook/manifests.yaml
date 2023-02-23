@@ -114,4 +114,5 @@ webhooks:
     - CONNECT
     resources:
     - pods/exec
+    - pods/attach
   sideEffects: None
