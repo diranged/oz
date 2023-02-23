@@ -11,8 +11,10 @@ import (
 	"github.com/diranged/oz/internal/builders"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // TemplateReconciler is configured to watch for a particular type
@@ -23,7 +25,8 @@ import (
 // enough validation logic that they warrant their own IBuilder class.
 type TemplateReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	recorder record.EventRecorder
 
 	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object.
 	// This is used for certain Get() calls where we need to ensure we are getting the latest
@@ -42,6 +45,22 @@ type TemplateReconciler struct {
 
 	// Frequency to re-reconcile successfully reconciled templates
 	ReconciliationInterval time.Duration
+}
+
+// NewTemplateReconciler returns a pointer to a TemplateReconciler.
+func NewTemplateReconciler(
+	mgr manager.Manager,
+	res v1alpha1.ITemplateResource,
+	interval int,
+) *TemplateReconciler {
+	return &TemplateReconciler{
+		Client:                 mgr.GetClient(),
+		Scheme:                 mgr.GetScheme(),
+		APIReader:              mgr.GetAPIReader(),
+		recorder:               mgr.GetEventRecorderFor("Oz"),
+		TemplateType:           res,
+		ReconciliationInterval: time.Duration(interval) * time.Minute,
+	}
 }
 
 // GetAPIReader conforms to the internal.status.hasStatusReconciler interface.

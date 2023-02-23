@@ -191,13 +191,9 @@ func Main() {
 	// depend on some information having been injected by the Webhooks we
 	// registered above.
 	//
-	if err = (&templatecontroller.TemplateReconciler{
-		Client:                 mgr.GetClient(),
-		Scheme:                 mgr.GetScheme(),
-		APIReader:              mgr.GetAPIReader(),
-		TemplateType:           &v1alpha1.ExecAccessTemplate{},
-		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
-	}).SetupWithManager(mgr); err != nil {
+	if err = templatecontroller.NewTemplateReconciler(
+		mgr, &v1alpha1.ExecAccessTemplate{}, templateReconciliationInterval,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessTemplate")
 		os.Exit(1)
 	}
@@ -214,13 +210,9 @@ func Main() {
 		os.Exit(1)
 	}
 
-	if err = (&templatecontroller.TemplateReconciler{
-		Client:                 mgr.GetClient(),
-		Scheme:                 mgr.GetScheme(),
-		APIReader:              mgr.GetAPIReader(),
-		TemplateType:           &v1alpha1.PodAccessTemplate{},
-		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
-	}).SetupWithManager(mgr); err != nil {
+	if err = templatecontroller.NewTemplateReconciler(
+		mgr, &v1alpha1.PodAccessTemplate{}, templateReconciliationInterval,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "PodAccessTemplate")
 		os.Exit(1)
 	}
