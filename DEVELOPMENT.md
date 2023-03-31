@@ -56,7 +56,7 @@ First, spin up the target workload - a [`Deployment`](./examples/deployment.yaml
 ```sh
 $ kubectl apply -f examples/deployment.yaml
 deployment.apps/example created
-$ kubectl apply -f k apply -f examples/access_template.yaml
+$ kubectl apply -f examples/access_template.yaml
 accesstemplate.crds.wizardofoz.co/deployment-example created
 ```
 

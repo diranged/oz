@@ -18,7 +18,7 @@ $ ozctl create PodAccessRequest <existing template>
 ...
 Success, your access request is ready! Here are your access instructions:
 
-kubectl exec -ti -n default user-vd9r9-a217f263 -- /bin/sh
+kubectl exec -ti -n default user-vd9r9-a217f263 -- /bin/bash
 `
 
 // createPodAccessRequestCmd represents the create command

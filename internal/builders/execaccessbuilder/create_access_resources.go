@@ -66,7 +66,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	// TODO: Templatize this into the ExecAccessTemplate in some way
 	//
 	accessString := fmt.Sprintf(
-		"kubectl exec -ti -n %s %s -- /bin/sh",
+		"kubectl exec -ti -n %s %s -- /bin/bash",
 		req.GetNamespace(),
 		targetPodName,
 	)
