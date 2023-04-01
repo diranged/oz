@@ -25,7 +25,7 @@ type PodExecWatcher struct {
 	decoder *admission.Decoder
 }
 
-// +kubebuilder:webhook:path=/watch-v1-pod,mutating=false,failurePolicy=fail,sideEffects=None,groups="",resources=pods/exec;pods/attach,verbs=create;update;connect,versions=v1,name=vpod.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/watch-v1-pod,mutating=false,failurePolicy=fail,sideEffects=None,groups="",resources=pods/exec,verbs=create;update;connect,versions=v1,name=vpod.kb.io,admissionReviewVersions=v1
 
 // Handle logs out each time an Exec/Attach call is made on a pod.
 //
