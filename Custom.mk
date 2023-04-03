@@ -82,7 +82,7 @@ build: $(GORELEASER)
 
 .PHONY: docker-load
 docker-load:
-	kind load docker-image $(IMG) -n $(KIND_CLUSTER_NAME)
+	kind load docker-image $(IMG)
 
 gen-crd-api-reference-docs: $(GEN_CRD_API_DOCS)
 $(GEN_CRD_API_DOCS):
