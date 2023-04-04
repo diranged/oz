@@ -67,7 +67,7 @@ type ITemplateResource interface {
 	GetAccessConfig() *AccessConfig
 }
 
-// IRequestResource represents a common "AccesRequest" resource for the Oz Controller. These requests
+// IRequestResource represents a common "AccessRequest" resource for the Oz Controller. These requests
 // have a common set of required methods that are used by the OzRequestReconciler.
 //
 // +kubebuilder:object:generate=false
@@ -85,6 +85,9 @@ type IRequestResource interface {
 
 	// Returns the uptime in time.Duration() format
 	GetUptime() time.Duration
+
+	// Returns the access command, used to descirbe to user how they can make use of temporary access
+	GetAccessCommand() string
 }
 
 // IPodRequestResource is a Pod-access specific request interface that exposes a few more functions

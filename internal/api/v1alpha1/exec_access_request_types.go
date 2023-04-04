@@ -110,6 +110,11 @@ func (r *ExecAccessRequest) GetUptime() time.Duration {
 	return now.Sub(creation)
 }
 
+// GetAccessCommand conforms to the interfaces.OzRequestResource interface
+func (r *ExecAccessRequest) GetAccessCommand() string {
+	return r.Status.AccessMessage
+}
+
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) SetPodName(name string) error {
 	if r.Status.PodName != "" {

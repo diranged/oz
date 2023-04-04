@@ -61,14 +61,11 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 		return statusString, err
 	}
 
-	// Generate the user-friendly information for how to access the pod
-	//
-	// TODO: Templatize this into the ExecAccessTemplate in some way
-	//
 	accessString := fmt.Sprintf(
-		"kubectl exec -ti -n %s %s -- /bin/sh",
+		"kubectl exec -ti -n %s %s -- %s",
 		req.GetNamespace(),
 		targetPodName,
+		execTmpl.Spec.AccessConfig.AccessCommand,
 	)
 	execReq.Status.SetAccessMessage(accessString)
 

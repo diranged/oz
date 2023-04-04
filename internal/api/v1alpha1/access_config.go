@@ -29,11 +29,22 @@ type AccessConfig struct {
 	//
 	// +kubebuilder:default:="24h"
 	MaxDuration string `json:"maxDuration"`
+
+	// AccessCommand is used to describe to the user how they can make use of their temporary access
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:="/bin/sh"
+	AccessCommand string `json:"accessCommand"`
 }
 
 // GetAllowedGroups returns the Spec.AllowedGroups for this particular template
 func (a *AccessConfig) GetAllowedGroups() []string {
 	return a.AllowedGroups
+}
+
+// GetAccessCommand returns the Spec.AccessCommand for this particular template
+func (a *AccessConfig) GetAccessCommand() string {
+	return a.AccessCommand
 }
 
 // GetDefaultDuration parses the Spec.defaultDuration field into a time.Duration struct.

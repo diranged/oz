@@ -81,15 +81,13 @@ func (b *PodAccessBuilder) CreateAccessResources(
 		return statusString, err
 	}
 
-	// Generate the user-friendly information for how to access the pod
-	//
-	// TODO: Templatize this into the PodAccessTemplate in some way
-	//
 	accessString := fmt.Sprintf(
-		"kubectl exec -ti -n %s %s -- /bin/sh",
+		"kubectl exec -ti -n %s %s -- %s",
 		req.GetNamespace(),
 		pod.GetName(),
+		podTmpl.Spec.AccessConfig.AccessCommand,
 	)
+
 	podReq.Status.SetAccessMessage(accessString)
 
 	// Set the podName (note, just in the local object). If this fails (for

@@ -16,7 +16,7 @@ type CoreStatus struct {
 	// AccessMessage is used to describe to the user how they can make use of their temporary access
 	// request. Eg, for a PodAccessTemplate the value set here would be something like:
 	//
-	//   "Access Graned, connect to your pod with: kubectl exec -ti -n namespace pod-xyz -- /bin/bash"
+	//   "Access Granted, connect to your pod with: kubectl exec -ti -n namespace pod-xyz -- /bin/bash"
 	//
 	AccessMessage string `json:"accessMessage,omitempty"`
 }
