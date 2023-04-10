@@ -31,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
@@ -157,11 +156,7 @@ func Main() {
 
 	// These special Webhooks are registered for the purpose of event-logging
 	// user-actions.
-	hookServer := mgr.GetWebhookServer()
-	hookServer.Register(
-		"/watch-v1-pod",
-		&webhook.Admission{Handler: &podwatcher.PodExecWatcher{Client: mgr.GetClient()}},
-	)
+	podwatcher.NewPodWatcherRegistration(mgr, "/watch-v1-pod")
 
 	// Provide a searchable index in the cached kubernetes client for "metadata.name" - the pod name.
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{}, v1alpha1.FieldSelectorMetadataName, func(rawObj client.Object) []string {
@@ -191,13 +186,9 @@ func Main() {
 	// depend on some information having been injected by the Webhooks we
 	// registered above.
 	//
-	if err = (&templatecontroller.TemplateReconciler{
-		Client:                 mgr.GetClient(),
-		Scheme:                 mgr.GetScheme(),
-		APIReader:              mgr.GetAPIReader(),
-		TemplateType:           &v1alpha1.ExecAccessTemplate{},
-		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
-	}).SetupWithManager(mgr); err != nil {
+	if err = templatecontroller.NewTemplateReconciler(
+		mgr, &v1alpha1.ExecAccessTemplate{}, templateReconciliationInterval,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "ExecAccessTemplate")
 		os.Exit(1)
 	}
@@ -214,13 +205,9 @@ func Main() {
 		os.Exit(1)
 	}
 
-	if err = (&templatecontroller.TemplateReconciler{
-		Client:                 mgr.GetClient(),
-		Scheme:                 mgr.GetScheme(),
-		APIReader:              mgr.GetAPIReader(),
-		TemplateType:           &v1alpha1.PodAccessTemplate{},
-		ReconciliationInterval: time.Duration(templateReconciliationInterval) * time.Minute,
-	}).SetupWithManager(mgr); err != nil {
+	if err = templatecontroller.NewTemplateReconciler(
+		mgr, &v1alpha1.PodAccessTemplate{}, templateReconciliationInterval,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, unableToCreateMsg, controllerKey, "PodAccessTemplate")
 		os.Exit(1)
 	}

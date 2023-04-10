@@ -7,8 +7,11 @@ GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
 endif
 
 ## Tool Binaries
-REVIVE_VER ?= v1.2.4
+REVIVE_VER ?= v1.3.1
 REVIVE     ?= $(LOCALBIN)/revive
+
+GOLANGCI_VER ?= v1.52.2
+GOLANGCI    ?= $(LOCALBIN)/golangci-lint
 
 GOFUMPT_VER ?= v0.4.0
 GOFUMPT     ?= $(LOCALBIN)/gofumpt
@@ -34,9 +37,9 @@ coverhtml:
 	go tool cover -html cover.out
 
 .PHONY: lint
-lint: revive
+lint: revive golangci-lint
 	$(REVIVE) -config revive.toml -formatter stylish ./...
-	golangci-lint run
+	$(GOLANGCI) run
 
 
 .PHONY: test-e2e  # you will need to have a Kind cluster up and running to run this target
@@ -71,6 +74,11 @@ fmt: $(GOFUMPT) $(GOLINES) ## Run go fmt against code.
 revive: $(REVIVE) ## Download revive locally if necessary.
 $(REVIVE): $(LOCALBIN) Custom.mk
 	GOBIN=$(LOCALBIN) go install github.com/mgechev/revive@$(REVIVE_VER)
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI)
+$(GOLANGCI): $(LOCALBIN) Custom.mk
+	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_VER)
 
 .PHONY: release
 release: $(GORELEASER)

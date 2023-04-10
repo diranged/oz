@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
@@ -42,6 +43,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 				APIReader:              k8sClient,
 				Scheme:                 k8sClient.Scheme(),
 				TemplateType:           &v1alpha1.ExecAccessTemplate{},
+				recorder:               record.NewFakeRecorder(50),
 				ReconciliationInterval: 0,
 			}
 
