@@ -197,7 +197,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(
 					message,
-				).To(MatchRegexp("kubectl exec -ti -n oz-system deployment-example-.* -- /bin/sh"))
+				).To(MatchRegexp("kubectl exec -it -n oz-system deployment-example-.* -- /bin/bash"))
 			})
 		})
 	})

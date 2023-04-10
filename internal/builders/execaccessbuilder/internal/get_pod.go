@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +12,7 @@ import (
 	"github.com/diranged/oz/internal/api/v1alpha1"
 )
 
-// GetPodName is used to discover the target pod that the user is going to have access to. This
+// GetPod is used to discover the target pod that the user is going to have access to. This
 // function is designed to be idempotent - so once a podName has been selected, it will be used on
 // each and every reconcile going forward.
 //
@@ -25,14 +26,14 @@ import (
 //
 //	podname: A string with the pod name (or an empty string in a failure)
 //	error: Any errors generating the podName.
-func GetPodName(
+func GetPod(
 	ctx context.Context,
 	client client.Client,
 	req *v1alpha1.ExecAccessRequest,
 	tmpl *v1alpha1.ExecAccessTemplate,
-) (podName string, err error) {
+) (pod *corev1.Pod, err error) {
 	log := logf.FromContext(ctx)
-	var pod *corev1.Pod
+	var p *corev1.Pod
 
 	// If this resource already has a status.podName field set, then we respect
 	// that no matter what. We never mutate the pod that this access request
@@ -40,26 +41,26 @@ func GetPodName(
 	// status field.
 	if req.GetPodName() != "" {
 		log.Info(fmt.Sprintf("Pod already assigned - %s", req.GetPodName()))
-		return req.GetPodName(), nil
+		return nil, errors.New("Pod is already assigned")
 	}
 
 	// If the user supplied their own Pod, then get that Pod back to make sure
 	// it exists. Otherwise, randomly select a pod.
 	switch req.Spec.TargetPod {
 	case "":
-		pod, err = getRandomPod(ctx, client, tmpl)
+		p, err = getRandomPod(ctx, client, tmpl)
 		if err != nil {
 			log.Error(err, "Failed to retrieve Pod from ExecAccessTemplate")
-			return "", err
+			return nil, err
 		}
 	default:
-		pod, err = getSpecificPod(ctx, client, req.Spec.TargetPod, tmpl)
+		p, err = getSpecificPod(ctx, client, req.Spec.TargetPod, tmpl)
 
 		// Informative for the operator for now. The verification step below
 		// truly let the user know about the problem.
 		if err != nil {
 			log.Info("Error looking up Pod")
-			return "", err
+			return nil, err
 		}
 	}
 
@@ -70,10 +71,10 @@ func GetPodName(
 	//
 	// Writing back into the cluster is not handled here - must be handled by
 	// the caller of this method.
-	if err := req.SetPodName(pod.GetName()); err != nil {
-		return "", err
+	if err := req.SetPodName(p.GetName()); err != nil {
+		return p, err
 	}
 
-	// Return the podName string.
-	return pod.Name, nil
+	// Return the pod string.
+	return p, nil
 }
