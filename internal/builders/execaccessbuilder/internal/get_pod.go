@@ -13,7 +13,7 @@ import (
 )
 
 // GetPod is used to discover the target pod that the user is going to have access to. This
-// function is designed to be idempotent - so once a podName has been selected, it will be used on
+// function is designed to be idempotent - so once a pod name has been selected, it will be used on
 // each and every reconcile going forward.
 //
 //   - If status.podName is set? Return that value Else? Continue.
@@ -24,7 +24,7 @@ import (
 //
 // Returns:
 //
-//	podname: A string with the pod name (or an empty string in a failure)
+//	pod: *corev1.Pod of an existing pod (or an empty string in a failure)
 //	error: Any errors generating the podName.
 func GetPod(
 	ctx context.Context,
@@ -75,6 +75,5 @@ func GetPod(
 		return p, err
 	}
 
-	// Return the pod string.
 	return p, nil
 }
