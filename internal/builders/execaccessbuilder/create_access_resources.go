@@ -27,10 +27,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 
 	// Get the target Pod Name that the user is going to have access to
 	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
-	if err != nil {
-		return statusString, err
-	}
-	if targetPod == nil {
+	if err != nil || targetPod == nil {
 		return statusString, fmt.Errorf("targetPod not found %s", execReq.GetName())
 	}
 

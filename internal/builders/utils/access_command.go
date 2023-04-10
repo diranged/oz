@@ -8,7 +8,7 @@ import (
 )
 
 // CreateAccessCommand templates an access command string,
-// evaluates data from Pod/ExecAccessTemplates Metadata field
+// evaluates data from a pod.ObjectMeta
 func CreateAccessCommand(cmdString string, resource metav1.ObjectMeta) (string, error) {
 	type md struct {
 		Metadata metav1.ObjectMeta
