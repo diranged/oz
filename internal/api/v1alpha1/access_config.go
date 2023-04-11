@@ -31,7 +31,7 @@ type AccessConfig struct {
 	MaxDuration string `json:"maxDuration"`
 
 	// AccessCommand is used to describe to the user how they can make use of their temporary access.
-	// The AccessCommand can be data templated by a Exec/PodAccessTemplate' metadata field
+	// The AccessCommand can reference data from a Pod ObjectMeta.
 	//
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default:="kubectl exec -it -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh"
