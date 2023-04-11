@@ -125,80 +125,79 @@ var _ = Describe("oz-controller", Ordered, func() {
 				}, time.Minute, time.Second).Should(Succeed())
 			}
 		})
+	})
+	Context("PodAccessTemplate / PodAccessRequest", func() {
+		template := filepath.Join(projectDir, "examples/pod_access_template.yaml")
+		request := filepath.Join(projectDir, "examples/pod_access_request.yaml")
 
-		Context("PodAccessTemplate / PodAccessRequest", func() {
-			template := filepath.Join(projectDir, "examples/pod_access_template.yaml")
-			request := filepath.Join(projectDir, "examples/pod_access_request.yaml")
+		//
+		// Initial tests - create the PodAccessTemplate and PodAccessTemplates.
+		// Wait until they have had their various Conditions marked True, indicating that the Oz
+		// Controller has processed them properly.
+		//
+		It("Should allow creating the Access Templates", func() {
+			By("Creating PodAccessTemplate")
+			// Create the Resource
+			EventuallyWithOffset(1, func() error {
+				cmd := exec.Command("kubectl", "apply", "-f", template, "-n", namespace)
+				_, err = utils.Run(cmd)
+				return err
+			}, time.Minute, time.Second).Should(Succeed())
 
-			//
-			// Initial tests - create the PodAccessTemplate and PodAccessTemplates.
-			// Wait until they have had their various Conditions marked True, indicating that the Oz
-			// Controller has processed them properly.
-			//
-			It("Should allow creating the Access Templates", func() {
-				By("Creating PodAccessTemplate")
-				// Create the Resource
+			// Verify it is Ready
+			for _, cond := range templateSuccessConditions {
 				EventuallyWithOffset(1, func() error {
-					cmd := exec.Command("kubectl", "apply", "-f", template, "-n", namespace)
+					cmd := exec.Command(
+						"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
+						fmt.Sprintf("--for=condition=%s", cond),
+					)
 					_, err = utils.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
+			}
+		})
 
-				// Verify it is Ready
-				for _, cond := range templateSuccessConditions {
-					EventuallyWithOffset(1, func() error {
-						cmd := exec.Command(
-							"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
-							fmt.Sprintf("--for=condition=%s", cond),
-						)
-						_, err = utils.Run(cmd)
-						return err
-					}, time.Minute, time.Second).Should(Succeed())
-				}
-			})
+		//
+		// AccessRequest tests are next - create the PodAccessRquest and wait until they have had
+		// their various Conditions marked True, indicating that the Oz Controller has processed
+		// them properly.
+		//
+		It("Should allow creating the Access Request", func() {
+			By("Creating PodAccessRequest")
+			// Create the Resource
+			EventuallyWithOffset(1, func() error {
+				cmd := exec.Command("kubectl", "apply", "-f", request, "-n", namespace)
+				_, err = utils.Run(cmd)
+				return err
+			}, time.Minute, time.Second).Should(Succeed())
 
-			//
-			// AccessRequest tests are next - create the PodAccessRquest and wait until they have had
-			// their various Conditions marked True, indicating that the Oz Controller has processed
-			// them properly.
-			//
-			It("Should allow creating the Access Request", func() {
-				By("Creating PodAccessRequest")
-				// Create the Resource
+			// Verify it is Ready
+			for _, cond := range podRequestSuccessConditions {
 				EventuallyWithOffset(1, func() error {
-					cmd := exec.Command("kubectl", "apply", "-f", request, "-n", namespace)
+					cmd := exec.Command(
+						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
+						fmt.Sprintf("--for=condition=%s", cond),
+					)
 					_, err = utils.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
+			}
 
-				// Verify it is Ready
-				for _, cond := range podRequestSuccessConditions {
-					EventuallyWithOffset(1, func() error {
-						cmd := exec.Command(
-							"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
-							fmt.Sprintf("--for=condition=%s", cond),
-						)
-						_, err = utils.Run(cmd)
-						return err
-					}, time.Minute, time.Second).Should(Succeed())
-				}
-
-				By("Checking AccessMessage is valid and not empty")
-				cmd := exec.Command(
-					"kubectl",
-					"get",
-					"-f",
-					request,
-					"-n",
-					namespace,
-					"-o=jsonpath={.status.accessMessage}",
-				)
-				message, err := utils.Run(cmd)
-				Expect(err).To(Not(HaveOccurred()))
-				Expect(
-					message,
-				).To(MatchRegexp("kubectl exec -it -n oz-system deployment-example-.* -- /bin/bash"))
-			})
+			By("Checking AccessMessage is valid and not empty")
+			cmd := exec.Command(
+				"kubectl",
+				"get",
+				"-f",
+				request,
+				"-n",
+				namespace,
+				"-o=jsonpath={.status.accessMessage}",
+			)
+			message, err := utils.Run(cmd)
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(
+				message,
+			).To(MatchRegexp("kubectl exec -ti -n oz-system deployment-example-.* -- /bin/bash"))
 		})
 	})
 })

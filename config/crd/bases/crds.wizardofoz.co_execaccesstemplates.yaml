@@ -50,7 +50,8 @@ spec:
                     default: kubectl exec -it -n {{ .Metadata.Namespace }} {{ .Metadata.Name
                       }} -- /bin/sh
                     description: AccessCommand is used to describe to the user how
-                      they can make use of their temporary access
+                      they can make use of their temporary access. The AccessCommand
+                      can reference data from a Pod ObjectMeta.
                     type: string
                   allowedGroups:
                     description: AllowedGroups lists out the groups (in string name
