@@ -47,7 +47,7 @@ spec:
                   have access, etc.
                 properties:
                   accessCommand:
-                    default: kubectl exec -it -n {{ .Metadata.Namespace }} {{ .Metadata.Name
+                    default: kubectl exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name
                       }} -- /bin/sh
                     description: AccessCommand is used to describe to the user how
                       they can make use of their temporary access. The AccessCommand

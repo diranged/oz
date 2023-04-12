@@ -34,7 +34,7 @@ type AccessConfig struct {
 	// The AccessCommand can reference data from a Pod ObjectMeta.
 	//
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:default:="kubectl exec -it -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh"
+	// +kubebuilder:default:="kubectl exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh"
 	AccessCommand string `json:"accessCommand"`
 }
 

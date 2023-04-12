@@ -21,7 +21,7 @@ func TestCreateAccessCommand(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				cmdString: "kubectl exec -it -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh",
+				cmdString: "kubectl exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh",
 				resource: &v1alpha1.ExecAccessTemplate{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podName",
@@ -29,7 +29,7 @@ func TestCreateAccessCommand(t *testing.T) {
 					},
 				},
 			},
-			want:    "kubectl exec -it -n namespace podName -- /bin/sh",
+			want:    "kubectl exec -ti -n namespace podName -- /bin/sh",
 			wantErr: false,
 		},
 	}
