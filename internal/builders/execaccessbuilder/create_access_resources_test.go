@@ -134,6 +134,22 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It(
+			"CreateAccessResources() should return status.podName regardless of requested target pod",
+			func() {
+				request.Status.PodName = "fooPod"
+				request.Spec.TargetPod = pod.GetName()
+
+				// Execute
+				ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
+
+				// VERIFY: No errors, ensure that we do not modify the pod after SetPodName
+				// was
+				Expect(err).ToNot(HaveOccurred())
+				Expect(ret).To(MatchRegexp("Pod already assigned"))
+			},
+		)
+
 		It("CreateAccessResources() should succeed with user-specified pod", func() {
 			request.Status.PodName = ""
 			request.Spec.TargetPod = pod.GetName()
