@@ -29,7 +29,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	// that no matter what. We never mutate the pod that this access request
 	// was originally created for. Otherwise, pick a Pod and populate that
 	// status field.
-	if execReq.GetName() != "" {
+	if execReq.Status.PodName != "" {
 		return fmt.Sprintf("Pod already assigned -%s", execReq.GetName()), nil
 	}
 
