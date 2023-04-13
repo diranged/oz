@@ -4,6 +4,7 @@ import (
 	"context"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -27,6 +28,21 @@ func GetPod(
 	log := logf.FromContext(ctx)
 	var p *corev1.Pod
 
+	// If this resource already has a status.podName field set, then we respect
+	// that no matter what. We never mutate the pod that this access request
+	// was originally created for. Otherwise, pick a Pod and populate that
+	// status field.
+	if req.GetPodName() != "" {
+		err := client.Get(ctx, types.NamespacedName{
+			Name:      req.GetPodName(),
+			Namespace: req.GetNamespace(),
+		}, p)
+		if err != nil {
+			return nil, err
+		}
+		return p, nil
+	}
+
 	// If the user supplied their own Pod, then get that Pod back to make sure
 	// it exists. Otherwise, randomly select a pod.
 	switch req.Spec.TargetPod {
@@ -45,6 +61,17 @@ func GetPod(
 			log.Info("Error looking up Pod")
 			return nil, err
 		}
+	}
+
+	// Set the podName (note, just in the local object). If this fails (for
+	// example, its already set on the object), then we also bail out. This
+	// only fails if the Status.PodName field has already been set, which would
+	// indicate some kind of a reconcile loop conflict.
+	//
+	// Writing back into the cluster is not handled here - must be handled by
+	// the caller of this method.
+	if err := req.SetPodName(pod.GetName()); err != nil {
+		return nil, err
 	}
 
 	return p, nil

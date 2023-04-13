@@ -137,16 +137,36 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 		It(
 			"CreateAccessResources() should return status.podName regardless of requested target pod",
 			func() {
-				request.Status.PodName = "fooPod"
-				request.Spec.TargetPod = pod.GetName()
+				p := &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      utils.RandomString(8),
+						Namespace: ns.GetName(),
+						Labels:    deployment.Spec.Selector.MatchLabels,
+					},
+					Spec: deployment.Spec.Template.Spec,
+					Status: v1.PodStatus{
+						Phase: "Running",
+					},
+				}
+				err := k8sClient.Create(ctx, p)
+				Expect(err).ToNot(HaveOccurred())
+
+				request.Status.PodName = p.GetName()
+				request.Spec.TargetPod = p.GetName()
 
 				// Execute
 				ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
 
-				// VERIFY: No errors, ensure that we do not modify the pod after SetPodName
-				// was
+				// VERIFY: No errors
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ret).To(MatchRegexp("Pod already assigned"))
+				Expect(ret).To(MatchRegexp("Success"))
+
+				// // VERIFY: Status string looks roughly right
+				Expect(ret).To(MatchRegexp(fmt.Sprintf(
+					"Success. Role %s-.*, RoleBinding %s.* created",
+					request.GetName(),
+					request.GetName(),
+				)))
 			},
 		)
 
