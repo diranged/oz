@@ -13,6 +13,8 @@ spec:
       - admins
       - devs
 
+    accessCommand: 'kubectl exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/bash'
+
   controllerTargetRef:
     apiVersion: apps/v1
     kind: Deployment

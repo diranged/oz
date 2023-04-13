@@ -17,8 +17,8 @@ import (
 // actions in the short term, and in the long term provide a more granular
 // layer of security for Pod Exec access.
 type PodWatcher struct {
-	Client  client.Client
-	decoder *admission.Decoder
+	Client   client.Client
+	decoder  *admission.Decoder
 	recorder record.EventRecorder
 }
 
@@ -42,10 +42,9 @@ func NewPodWatcherRegistration(
 		path,
 		&webhook.Admission{
 			Handler: &PodWatcher{
-				Client: mgr.GetClient(),
+				Client:   mgr.GetClient(),
 				recorder: mgr.GetEventRecorderFor(controllers.EventRecorderName),
 			},
 		},
 	)
-
 }

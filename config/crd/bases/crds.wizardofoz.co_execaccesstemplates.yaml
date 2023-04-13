@@ -46,6 +46,13 @@ spec:
                   has access to the resources this template controls, how long they
                   have access, etc.
                 properties:
+                  accessCommand:
+                    default: kubectl exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name
+                      }} -- /bin/sh
+                    description: AccessCommand is used to describe to the user how
+                      they can make use of their temporary access. The AccessCommand
+                      can reference data from a Pod ObjectMeta.
+                    type: string
                   allowedGroups:
                     description: AllowedGroups lists out the groups (in string name
                       form) that will be allowed to Exec into the target pod.
@@ -107,7 +114,7 @@ spec:
               accessMessage:
                 description: "AccessMessage is used to describe to the user how they
                   can make use of their temporary access request. Eg, for a PodAccessTemplate
-                  the value set here would be something like: \n \"Access Graned,
+                  the value set here would be something like: \n \"Access Granted,
                   connect to your pod with: kubectl exec -ti -n namespace pod-xyz
                   -- /bin/bash\""
                 type: string

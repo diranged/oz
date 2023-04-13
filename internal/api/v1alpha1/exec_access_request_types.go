@@ -113,7 +113,7 @@ func (r *ExecAccessRequest) GetUptime() time.Duration {
 // SetPodName conforms to the interfaces.OzRequestResource interface
 func (r *ExecAccessRequest) SetPodName(name string) error {
 	if r.Status.PodName != "" {
-		return fmt.Errorf("Status.PodName arlready set: %s", r.Status.PodName)
+		return fmt.Errorf("Status.PodName already set: %s", r.Status.PodName)
 	}
 	r.Status.PodName = name
 	return nil

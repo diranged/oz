@@ -66,6 +66,18 @@ stick around.</p>
 <p>Valid time units are &ldquo;ns&rdquo;, &ldquo;us&rdquo; (or &ldquo;µs&rdquo;), &ldquo;ms&rdquo;, &ldquo;s&rdquo;, &ldquo;m&rdquo;, &ldquo;h&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>accessCommand</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>AccessCommand is used to describe to the user how they can make use of their temporary access.
+The AccessCommand can reference data from a Pod ObjectMeta.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="crds.wizardofoz.co/v1alpha1.ControllerKind">ControllerKind
@@ -146,7 +158,7 @@ string
 <td>
 <p>AccessMessage is used to describe to the user how they can make use of their temporary access
 request. Eg, for a PodAccessTemplate the value set here would be something like:</p>
-<p>&ldquo;Access Graned, connect to your pod with: kubectl exec -ti -n namespace pod-xyz &ndash; /bin/bash&rdquo;</p>
+<p>&ldquo;Access Granted, connect to your pod with: kubectl exec -ti -n namespace pod-xyz &ndash; /bin/bash&rdquo;</p>
 </td>
 </tr>
 </tbody>

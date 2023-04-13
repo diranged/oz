@@ -26,7 +26,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	execTmpl := tmpl.(*v1alpha1.ExecAccessTemplate)
 
 	// Get the target Pod Name that the user is going to have access to
-	targetPodName, err := internal.GetPodName(ctx, client, execReq, execTmpl)
+	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
 	if err != nil {
 		return statusString, err
 	}
@@ -38,13 +38,13 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 		{
 			APIGroups:     []string{corev1.GroupName},
 			Resources:     []string{"pods"},
-			ResourceNames: []string{targetPodName},
+			ResourceNames: []string{targetPod.Name},
 			Verbs:         []string{"get", "list", "watch"},
 		},
 		{
 			APIGroups:     []string{corev1.GroupName},
 			Resources:     []string{"pods/exec"},
-			ResourceNames: []string{targetPodName},
+			ResourceNames: []string{targetPod.Name},
 			Verbs:         []string{"create", "update", "delete", "get", "list"},
 		},
 	}
@@ -61,15 +61,10 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 		return statusString, err
 	}
 
-	// Generate the user-friendly information for how to access the pod
-	//
-	// TODO: Templatize this into the ExecAccessTemplate in some way
-	//
-	accessString := fmt.Sprintf(
-		"kubectl exec -ti -n %s %s -- /bin/sh",
-		req.GetNamespace(),
-		targetPodName,
-	)
+	accessString, err := utils.CreateAccessCommand(execTmpl.Spec.AccessConfig.AccessCommand, targetPod.ObjectMeta)
+	if err != nil {
+		return "", err
+	}
 	execReq.Status.SetAccessMessage(accessString)
 
 	// We've been mutating the execReq Status throughout this build. Need to

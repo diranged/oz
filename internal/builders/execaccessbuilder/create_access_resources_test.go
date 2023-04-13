@@ -137,8 +137,26 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 		It(
 			"CreateAccessResources() should return status.podName regardless of requested target pod",
 			func() {
-				request.Status.PodName = "fooPod"
-				request.Spec.TargetPod = pod.GetName()
+				// Create a test pod that we're going to slide in as the
+				// already-assigned pod for the access request.
+				p := &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      utils.RandomString(8),
+						Namespace: ns.GetName(),
+					},
+					Spec: deployment.Spec.Template.Spec,
+					Status: v1.PodStatus{
+						Phase: "Running",
+					},
+				}
+				err := k8sClient.Create(ctx, p)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Now hack the request and override its assigned pod
+				request.Status.PodName = p.GetName()
+
+				// But set the TargetPod to some arbitrary string
+				request.Spec.TargetPod = "junkPod"
 
 				// Execute
 				ret, err := builder.CreateAccessResources(ctx, k8sClient, request, template)
