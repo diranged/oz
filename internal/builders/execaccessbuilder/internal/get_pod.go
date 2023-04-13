@@ -2,8 +2,10 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -26,6 +28,23 @@ func GetPod(
 ) (pod *corev1.Pod, err error) {
 	log := logf.FromContext(ctx)
 	var p *corev1.Pod
+
+	// If this resource already has a status.podName field set, then we respect
+	// that no matter what. We never mutate the pod that this access request
+	// was originally created for. Otherwise, pick a Pod and populate that
+	// status field.
+	if req.GetPodName() != "" {
+		log.Info(fmt.Sprintf("Pod already assigned - %s", req.GetPodName()))
+		pod := &corev1.Pod{}
+		err := client.Get(ctx, types.NamespacedName{
+			Name:      req.GetPodName(),
+			Namespace: req.GetNamespace(),
+		}, pod)
+		if err != nil {
+			return nil, err
+		}
+		return pod, nil
+	}
 
 	// If the user supplied their own Pod, then get that Pod back to make sure
 	// it exists. Otherwise, randomly select a pod.

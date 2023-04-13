@@ -25,18 +25,10 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	// Cast the Template into an ExecAccessTemplate.
 	execTmpl := tmpl.(*v1alpha1.ExecAccessTemplate)
 
-	// If this resource already has a status.podName field set, then we respect
-	// that no matter what. We never mutate the pod that this access request
-	// was originally created for. Otherwise, pick a Pod and populate that
-	// status field.
-	if execReq.Status.PodName != "" {
-		return fmt.Sprintf("Pod already assigned -%s", execReq.GetName()), nil
-	}
-
 	// Get the target Pod Name that the user is going to have access to
 	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
-	if err != nil || targetPod == nil {
-		return statusString, fmt.Errorf("targetPod not found %s", execReq.GetName())
+	if err != nil {
+		return statusString, err
 	}
 
 	// Define the permissions the access request will grant.
@@ -79,14 +71,6 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	// push the update back to the cluster here.
 	if err := client.Status().Update(ctx, execReq); err != nil {
 		return "", err
-	}
-
-	// Set the status podName (note, just in the local object). If this fails (for
-	// example, its already set on the object), then we also bail out. This
-	// only fails if the Status.PodName field has already been set, which would
-	// indicate some kind of a reconcile loop conflict.
-	if err := execReq.SetPodName(targetPod.GetName()); err != nil {
-		return statusString, err
 	}
 
 	statusString = fmt.Sprintf("Success. Role %s, RoleBinding %s created", role.Name, rb.Name)
