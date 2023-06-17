@@ -86,7 +86,7 @@ release: $(GORELEASER)
 
 .PHONY: build
 build: $(GORELEASER)
-	PUBLISH=false $(MAKE) release
+	PUBLISH=false $(MAKE) release dist/docker.tar
 
 .PHONY: docker-load
 docker-load:
