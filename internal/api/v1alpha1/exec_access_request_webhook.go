@@ -62,15 +62,18 @@ var _ webhook.IContextuallyValidatableObject = &ExecAccessRequest{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *ExecAccessRequest) ValidateCreate(req admission.Request) (admission.Warnings, error) {
+	warnings := admission.Warnings{}
 	if req.UserInfo.Username != "" {
 		execaccessrequestlog.Info(
 			fmt.Sprintf("Create ExecAccessRequest from %s", req.UserInfo.Username),
 		)
 	} else {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
-		execaccessrequestlog.Info("WARNING - Create ExecAccessRequest with missing user identity")
+		w := "WARNING - Create ExecAccessRequest with missing user identity"
+		warnings = append(warnings, w)
+		execaccessrequestlog.Info(w)
 	}
-	return nil, nil
+	return warnings, nil
 }
 
 // ValidateUpdate prevents immutable updates to the ExecAccessRequest.

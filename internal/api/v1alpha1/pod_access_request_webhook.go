@@ -62,28 +62,34 @@ var _ webhook.IContextuallyValidatableObject = &PodAccessRequest{}
 
 // ValidateCreate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
 func (r *PodAccessRequest) ValidateCreate(req admission.Request) (admission.Warnings, error) {
+	warnings := admission.Warnings{}
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
 			fmt.Sprintf("Create PodAccessRequest from %s", req.UserInfo.Username),
 		)
 	} else {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
-		podaccessrequestlog.Info("WARNING - Create ExecAccessRequest with missing user identity")
+		w := "WARNING - Create ExecAccessRequest with missing user identity"
+		warnings = append(warnings, w)
+		podaccessrequestlog.Info(w)
 	}
-	return nil, nil
+	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
 func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Object) (admission.Warnings, error) {
+	warnings := admission.Warnings{}
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
 			fmt.Sprintf("Update PodAccessRequest from %s", req.UserInfo.Username),
 		)
 	} else {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
-		podaccessrequestlog.Info("WARNING - Update ExecAccessRequest with missing user identity")
+		w := "WARNING - Update ExecAccessRequest with missing user identity"
+		warnings = append(warnings, w)
+		podaccessrequestlog.Info(w)
 	}
-	return nil, nil
+	return warnings, nil
 }
 
 // ValidateDelete implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
