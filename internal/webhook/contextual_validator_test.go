@@ -18,7 +18,7 @@ import (
 var _ = Describe("Validator Handler", func() {
 	It("validateCreate with username matching request should succeed", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -39,7 +39,7 @@ var _ = Describe("Validator Handler", func() {
 	})
 	It("validateCreate with non-matching request should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -61,7 +61,7 @@ var _ = Describe("Validator Handler", func() {
 
 	It("validateUpdate with username matching request should succeed", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -85,7 +85,7 @@ var _ = Describe("Validator Handler", func() {
 	})
 	It("validateUpdate with non-matching request should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -107,7 +107,7 @@ var _ = Describe("Validator Handler", func() {
 	})
 	It("validateUpdate with invalid object should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -128,7 +128,7 @@ var _ = Describe("Validator Handler", func() {
 	})
 	It("validateUpdate with invalid oldObject should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -150,7 +150,7 @@ var _ = Describe("Validator Handler", func() {
 
 	It("validateDelete with username should succeed", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -168,7 +168,7 @@ var _ = Describe("Validator Handler", func() {
 	})
 	It("validateDelete without username should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -187,7 +187,7 @@ var _ = Describe("Validator Handler", func() {
 
 	It("validateDelete with invalid oldObject should fail", func() {
 		obj := &TestValidator{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &validatorForType{object: obj, decoder: decoder},
 		}
@@ -207,7 +207,7 @@ var _ = Describe("Validator Handler", func() {
 	It("should fail if decode() fails", func() {
 		obj := &TestValidator{}
 		handler := &admission.Webhook{
-			Handler: &validatorForType{object: obj},
+			Handler: &validatorForType{object: obj, decoder: admission.NewDecoder(scheme.Scheme)},
 		}
 
 		resp := handler.Handle(context.TODO(), admission.Request{

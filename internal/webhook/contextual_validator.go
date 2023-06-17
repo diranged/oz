@@ -14,14 +14,14 @@ import (
 )
 
 // IContextuallyValidatableObject implements a similar pattern to the
-// [`controller-runtime`](https://github.com/kubernetes-sigs/controller-runtime/tree/v0.13.1/pkg/webhook)
+// [`controller-runtime`](https://github.com/kubernetes-sigs/controller-runtime/tree/v0.15.0/pkg/webhook)
 // webhook pattern. The difference is that the `Default()` function is not only
 // supplied the request resource, but also the request context in the form of
 // an
-// [`admission.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/webhook.go#L43-L66)
+// [`admission.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/webhook.go#L42C1-L65)
 // object.
 //
-// Modified from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go#L29-L32
+// Modified from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L31-L34
 type IContextuallyValidatableObject interface {
 	runtime.Object
 	ValidateCreate(req admission.Request) error
@@ -45,7 +45,7 @@ func RegisterContextualValidator(
 
 	// Create a Webhook{} resource with our Handler.
 	mwh := &admission.Webhook{
-		Handler: &validatorForType{object: obj},
+		Handler: &validatorForType{object: obj, decoder: admission.NewDecoder(mgr.GetScheme())},
 	}
 
 	// Insert the path into the webhook server and point it at our mutating
@@ -57,24 +57,14 @@ func RegisterContextualValidator(
 }
 
 // A validatorForType mimics the
-// [`validatorForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go)
+// [`validatorForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go)
 // code, but understands to pass the `admission.Request` object into the `Default()` function.
 //
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go#L41-L45
+// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L43-L47
 type validatorForType struct {
 	object  IContextuallyValidatableObject
 	decoder *admission.Decoder
 }
-
-// InjectDecoder injects the decoder into a mutatingHandler.
-//
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/inject.go
-func (h *validatorForType) InjectDecoder(d *admission.Decoder) error {
-	h.decoder = d
-	return nil
-}
-
-var _ admission.DecoderInjector = &validatorForType{}
 
 // Handle manages the inbound request from the API server. It's responsible for
 // decoding the request into an
@@ -85,7 +75,10 @@ var _ admission.DecoderInjector = &validatorForType{}
 //
 // revive:disable:cyclomatic Replication of existing code in Controller-Runtime
 func (h *validatorForType) Handle(_ context.Context, req admission.Request) admission.Response {
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/validator.go#L59-L62
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/validator.go#L69-L74
+	if h.decoder == nil {
+		panic("decoder should never be nil")
+	}
 	if h.object == nil {
 		panic("object should never be nil")
 	}

@@ -46,7 +46,7 @@ func RegisterContextualDefaulter(
 
 	// Create a Webhook{} resource with our Handler.
 	mwh := &admission.Webhook{
-		Handler: &defaulterForType{object: obj},
+		Handler: &defaulterForType{object: obj, decoder: admission.NewDecoder(mgr.GetScheme())},
 	}
 
 	// Insert the path into the webhook server and point it at our mutating
@@ -67,23 +67,15 @@ type defaulterForType struct {
 	decoder *admission.Decoder
 }
 
-// InjectDecoder injects the decoder into a mutatingHandler.
-//
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/inject.go
-func (h *defaulterForType) InjectDecoder(d *admission.Decoder) error {
-	h.decoder = d
-	return nil
-}
-
-var _ admission.DecoderInjector = &defaulterForType{}
-
-// Handle manages the inbound request from the API server. It's responsible for
 // decoding the request into an
 // [`admission.Request`](https://pkg.go.dev/k8s.io/api/admission/v1#AdmissionRequest)
 // object, calling the `Default()` function on that object, and then returning
 // back the patched response to the API server.
 func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admission.Response {
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L57-L59
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter.go#L49-L54
+	if h.decoder == nil {
+		panic("decoder should never be nil")
+	}
 	if h.object == nil {
 		panic("object should never be nil")
 	}
