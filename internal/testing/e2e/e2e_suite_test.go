@@ -27,12 +27,8 @@ func TestE2E(t *testing.T) {
 var _ = BeforeSuite(func() {
 	_ = exec.Command("kubectl", "create", "ns", namespace)
 
-	cmdRelease := exec.Command("make", "release")
-	_, err := utils.Run(cmdRelease)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
 	cmdDockerLoad := exec.Command("make", "docker-load")
-	_, err = utils.Run(cmdDockerLoad)
+	_, err := utils.Run(cmdDockerLoad)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	cmdDeploy := exec.Command("make", "deploy")
