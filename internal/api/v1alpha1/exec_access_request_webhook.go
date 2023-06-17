@@ -61,7 +61,7 @@ func (r *ExecAccessRequest) Default(_ admission.Request) error {
 var _ webhook.IContextuallyValidatableObject = &ExecAccessRequest{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *ExecAccessRequest) ValidateCreate(req admission.Request) error {
+func (r *ExecAccessRequest) ValidateCreate(req admission.Request) (admission.Warnings, error) {
 	if req.UserInfo.Username != "" {
 		execaccessrequestlog.Info(
 			fmt.Sprintf("Create ExecAccessRequest from %s", req.UserInfo.Username),
@@ -70,27 +70,27 @@ func (r *ExecAccessRequest) ValidateCreate(req admission.Request) error {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
 		execaccessrequestlog.Info("WARNING - Create ExecAccessRequest with missing user identity")
 	}
-	return nil
+	return nil, nil
 }
 
 // ValidateUpdate prevents immutable updates to the ExecAccessRequest.
-func (r *ExecAccessRequest) ValidateUpdate(_ admission.Request, old runtime.Object) error {
+func (r *ExecAccessRequest) ValidateUpdate(_ admission.Request, old runtime.Object) (admission.Warnings, error) {
 	execaccessrequestlog.Info("validate update", "name", r.Name)
 
 	// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
 	oldRequest, _ := old.(*ExecAccessRequest)
 	if r.Spec.TargetPod != oldRequest.Spec.TargetPod {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead",
 		)
 	}
-	return nil
+	return nil, nil
 }
 
 // ValidateDelete implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *ExecAccessRequest) ValidateDelete(req admission.Request) error {
+func (r *ExecAccessRequest) ValidateDelete(req admission.Request) (admission.Warnings, error) {
 	execaccessrequestlog.Info(
 		fmt.Sprintf("Delete ExecAccessRequest from %s", req.UserInfo.Username),
 	)
-	return nil
+	return nil, nil
 }

@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	v1 "k8s.io/api/admission/v1"
@@ -24,9 +25,20 @@ import (
 // Modified from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L31-L34
 type IContextuallyValidatableObject interface {
 	runtime.Object
-	ValidateCreate(req admission.Request) error
-	ValidateUpdate(req admission.Request, old runtime.Object) error
-	ValidateDelete(req admission.Request) error
+	// ValidateCreate validates the object on creation.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateCreate(req admission.Request) (warnings admission.Warnings, err error)
+
+	// ValidateUpdate validates the object on update. The oldObj is the object before the update.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateUpdate(req admission.Request, old runtime.Object) (warnings admission.Warnings, err error)
+
+	// ValidateDelete validates the object on deletion.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateDelete(req admission.Request) (warnings admission.Warnings, err error)
 }
 
 // RegisterContextualValidator leverages many of the patterns and code from the
@@ -57,10 +69,10 @@ func RegisterContextualValidator(
 }
 
 // A validatorForType mimics the
-// [`validatorForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go)
+// [`validatorForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/validator_custom.go)
 // code, but understands to pass the `admission.Request` object into the `Default()` function.
 //
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L43-L47
+// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/validator_custom.go#L57-L61
 type validatorForType struct {
 	object  IContextuallyValidatableObject
 	decoder *admission.Decoder
@@ -84,28 +96,25 @@ func (h *validatorForType) Handle(_ context.Context, req admission.Request) admi
 	}
 
 	// Get the object in the request
-	//
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/validator.go#L63-L79
 	obj := h.object.DeepCopyObject().(IContextuallyValidatableObject)
-	if req.Operation == v1.Create {
-		err := h.decoder.Decode(req, obj)
-		if err != nil {
+
+	var err error
+	var warnings []string
+
+	switch req.Operation {
+	case v1.Connect:
+		// No validation for connect requests.
+		// TODO(vincepri): Should we validate CONNECT requests? In what cases?
+	case v1.Create:
+		if err = h.decoder.Decode(req, obj); err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = obj.ValidateCreate(req)
-		if err != nil {
-			var apiStatus apierrors.APIStatus
-			if errors.As(err, &apiStatus) {
-				return validationResponseFromStatus(false, apiStatus.Status())
-			}
-			return admission.Denied(err.Error())
-		}
-	}
-	if req.Operation == v1.Update {
+		warnings, err = obj.ValidateCreate(req)
+	case v1.Update:
 		oldObj := obj.DeepCopyObject()
 
-		err := h.decoder.DecodeRaw(req.Object, obj)
+		err = h.decoder.DecodeRaw(req.Object, obj)
 		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
@@ -114,33 +123,26 @@ func (h *validatorForType) Handle(_ context.Context, req admission.Request) admi
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = obj.ValidateUpdate(req, oldObj)
-		if err != nil {
-			var apiStatus apierrors.APIStatus
-			if errors.As(err, &apiStatus) {
-				return validationResponseFromStatus(false, apiStatus.Status())
-			}
-			return admission.Denied(err.Error())
-		}
-	}
-
-	if req.Operation == v1.Delete {
+		warnings, err = obj.ValidateUpdate(req, oldObj)
+	case v1.Delete:
 		// In reference to PR: https://github.com/kubernetes/kubernetes/pull/76346
 		// OldObject contains the object being deleted
-		err := h.decoder.DecodeRaw(req.OldObject, obj)
+		err = h.decoder.DecodeRaw(req.OldObject, obj)
 		if err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 
-		err = obj.ValidateDelete(req)
-		if err != nil {
-			var apiStatus apierrors.APIStatus
-			if errors.As(err, &apiStatus) {
-				return validationResponseFromStatus(false, apiStatus.Status())
-			}
-			return admission.Denied(err.Error())
-		}
+		warnings, err = obj.ValidateDelete(req)
+	default:
+		return admission.Errored(http.StatusBadRequest, fmt.Errorf("unknown operation %q", req.Operation))
 	}
 
-	return admission.Allowed("")
+	if err != nil {
+		var apiStatus apierrors.APIStatus
+		if errors.As(err, &apiStatus) {
+			return validationResponseFromStatus(false, apiStatus.Status()).WithWarnings(warnings...)
+		}
+		return admission.Denied(err.Error()).WithWarnings(warnings...)
+	}
+	return admission.Allowed("").WithWarnings(warnings...)
 }

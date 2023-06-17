@@ -268,24 +268,24 @@ type TestValidatorList struct{}
 func (*TestValidatorList) GetObjectKind() schema.ObjectKind { return nil }
 func (*TestValidatorList) DeepCopyObject() runtime.Object   { return nil }
 
-func (d *TestValidator) ValidateCreate(req admission.Request) error {
+func (d *TestValidator) ValidateCreate(req admission.Request) (warnings admission.Warnings, err error) {
 	if d.Requestor != req.UserInfo.DeepCopy().Username {
-		return errors.New("must have userinfo context")
+		return nil, errors.New("must have userinfo context")
 	}
-	return nil
+	return nil, nil
 }
 
-func (d *TestValidator) ValidateDelete(_ admission.Request) error {
+func (d *TestValidator) ValidateDelete(_ admission.Request) (warnings admission.Warnings, err error) {
 	if d.Requestor == "" {
-		return errors.New("cannot delete")
+		return nil, errors.New("cannot delete")
 	}
-	return nil
+	return nil, nil
 }
 
-func (d *TestValidator) ValidateUpdate(_ admission.Request, oldObj runtime.Object) error {
+func (d *TestValidator) ValidateUpdate(_ admission.Request, oldObj runtime.Object) (warnings admission.Warnings, err error) {
 	old := oldObj.(*TestValidator)
 	if d.Requestor != old.Requestor {
-		return errors.New("requestor field immutable")
+		return nil, errors.New("requestor field immutable")
 	}
-	return nil
+	return nil, nil
 }

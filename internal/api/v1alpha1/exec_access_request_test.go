@@ -156,7 +156,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 					},
 				},
 			}
-			err = request.ValidateCreate(*admissionRequest)
+			_, err = request.ValidateCreate(*admissionRequest)
 			Expect(err).To(Not(HaveOccurred()))
 		})
 
@@ -176,7 +176,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 					},
 				},
 			}
-			err = request.ValidateCreate(*admissionRequest)
+			_, err = request.ValidateCreate(*admissionRequest)
 			Expect(err).To(Not(HaveOccurred()))
 		})
 
@@ -203,7 +203,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 					},
 				},
 			}
-			err = request.ValidateUpdate(*admissionRequest, request)
+			_, err = request.ValidateUpdate(*admissionRequest, request)
 			Expect(err).To(Not(HaveOccurred()))
 		})
 
@@ -223,7 +223,7 @@ var _ = Describe("ExecAccessRequest", Ordered, func() {
 					},
 				},
 			}
-			err = request.ValidateUpdate(*admissionRequest, request)
+			_, err = request.ValidateUpdate(*admissionRequest, request)
 			Expect(err).To(Not(HaveOccurred()))
 		})
 	})

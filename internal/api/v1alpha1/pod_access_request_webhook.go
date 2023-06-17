@@ -61,7 +61,7 @@ func (r *PodAccessRequest) Default(_ admission.Request) error {
 var _ webhook.IContextuallyValidatableObject = &PodAccessRequest{}
 
 // ValidateCreate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *PodAccessRequest) ValidateCreate(req admission.Request) error {
+func (r *PodAccessRequest) ValidateCreate(req admission.Request) (admission.Warnings, error) {
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
 			fmt.Sprintf("Create PodAccessRequest from %s", req.UserInfo.Username),
@@ -70,11 +70,11 @@ func (r *PodAccessRequest) ValidateCreate(req admission.Request) error {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
 		podaccessrequestlog.Info("WARNING - Create ExecAccessRequest with missing user identity")
 	}
-	return nil
+	return nil, nil
 }
 
 // ValidateUpdate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Object) error {
+func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Object) (admission.Warnings, error) {
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
 			fmt.Sprintf("Update PodAccessRequest from %s", req.UserInfo.Username),
@@ -83,13 +83,13 @@ func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Objec
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
 		podaccessrequestlog.Info("WARNING - Update ExecAccessRequest with missing user identity")
 	}
-	return nil
+	return nil, nil
 }
 
 // ValidateDelete implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *PodAccessRequest) ValidateDelete(req admission.Request) error {
+func (r *PodAccessRequest) ValidateDelete(req admission.Request) (admission.Warnings, error) {
 	podaccessrequestlog.Info(
 		fmt.Sprintf("Delete PodAccessRequest from %s", req.UserInfo.Username),
 	)
-	return nil
+	return nil, nil
 }
