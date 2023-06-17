@@ -22,6 +22,6 @@ jobs:
 
   publish:
     uses: ./.github/workflows/publish.yaml
-    needs: [test-e2e, unit-tests, lint, build]
+    needs: [unit-tests, lint, build]
     with:
       publish: false
