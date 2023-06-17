@@ -18,7 +18,7 @@ import (
 )
 
 var _ = Describe("PodWatcher", Ordered, func() {
-	decoder, _ := admission.NewDecoder(scheme.Scheme)
+	decoder := admission.NewDecoder(scheme.Scheme)
 
 	Context("Functional Unit Tests", func() {
 		var (

@@ -1,4 +1,4 @@
-name: Reusable Workflow
+name: Build Artifacts
 
 on:
   workflow_call: {}
@@ -20,3 +20,9 @@ jobs:
 
       - name: Check for diff
         run: git diff --exit-code
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/**

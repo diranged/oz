@@ -86,11 +86,17 @@ release: $(GORELEASER)
 
 .PHONY: build
 build: $(GORELEASER)
-	PUBLISH=false $(MAKE) release
+	PUBLISH=false $(MAKE) release dist/docker.tar
 
 .PHONY: docker-load
 docker-load:
-	kind load docker-image $(IMG)
+	docker load --input dist/docker.tar && kind load docker-image $(IMG)
+
+dist/docker.tar:
+	docker save -o dist/docker.tar $(IMG)
+
+.PHONY: docker-save
+docker-save: dist/docker.tar
 
 gen-crd-api-reference-docs: $(GEN_CRD_API_DOCS)
 $(GEN_CRD_API_DOCS):

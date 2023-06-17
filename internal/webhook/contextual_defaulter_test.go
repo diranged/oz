@@ -18,7 +18,7 @@ import (
 var _ = Describe("Defaulter Handler", func() {
 	It("should return mutated object with username in create", func() {
 		obj := &TestDefaulter{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &defaulterForType{object: obj, decoder: decoder},
 		}
@@ -46,7 +46,7 @@ var _ = Describe("Defaulter Handler", func() {
 	It("should return ok if received delete verb in defaulter handler", func() {
 		obj := &TestDefaulter{}
 		handler := &admission.Webhook{
-			Handler: &defaulterForType{object: obj},
+			Handler: &defaulterForType{object: obj, decoder: admission.NewDecoder(scheme.Scheme)},
 		}
 
 		resp := handler.Handle(context.TODO(), admission.Request{
@@ -63,7 +63,7 @@ var _ = Describe("Defaulter Handler", func() {
 	It("should fail if decode() fails", func() {
 		obj := &TestDefaulter{}
 		handler := &admission.Webhook{
-			Handler: &defaulterForType{object: obj},
+			Handler: &defaulterForType{object: obj, decoder: admission.NewDecoder(scheme.Scheme)},
 		}
 
 		resp := handler.Handle(context.TODO(), admission.Request{
@@ -79,7 +79,7 @@ var _ = Describe("Defaulter Handler", func() {
 
 	It("should panic if no object passed in", func() {
 		handler := &admission.Webhook{
-			Handler: &defaulterForType{object: nil},
+			Handler: &defaulterForType{object: nil, decoder: admission.NewDecoder(scheme.Scheme)},
 		}
 		Expect(func() {
 			handler.Handle(context.TODO(), admission.Request{
@@ -92,7 +92,7 @@ var _ = Describe("Defaulter Handler", func() {
 
 	It("should fail if default() returns error", func() {
 		obj := &TestDefaulter{}
-		decoder, _ := admission.NewDecoder(scheme.Scheme)
+		decoder := admission.NewDecoder(scheme.Scheme)
 		handler := &admission.Webhook{
 			Handler: &defaulterForType{object: obj, decoder: decoder},
 		}

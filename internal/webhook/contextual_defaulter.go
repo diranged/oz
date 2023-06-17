@@ -6,9 +6,8 @@ import (
 	"errors"
 	"net/http"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-
 	admissionv1 "k8s.io/api/admission/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -17,14 +16,14 @@ import (
 )
 
 // IContextuallyDefaultableObject implements a similar pattern to the
-// [`controller-runtime`](https://github.com/kubernetes-sigs/controller-runtime/tree/v0.13.1/pkg/webhook)
+// [`controller-runtime`](https://github.com/kubernetes-sigs/controller-runtime/tree/v0.15.0/pkg/webhook)
 // webhook pattern. The difference is that the `Default()` function is not only
 // supplied the request resource, but also the request context in the form of
 // an
-// [`admission.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/webhook.go#L43-L66)
+// [`admission.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/webhook.go#L43-L66)
 // object.
 //
-// Modified from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go#L29-L32
+// Modified from https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L31-L34
 type IContextuallyDefaultableObject interface {
 	runtime.Object
 	Default(req admission.Request) error
@@ -46,7 +45,7 @@ func RegisterContextualDefaulter(
 
 	// Create a Webhook{} resource with our Handler.
 	mwh := &admission.Webhook{
-		Handler: &defaulterForType{object: obj},
+		Handler: &defaulterForType{object: obj, decoder: admission.NewDecoder(mgr.GetScheme())},
 	}
 
 	// Insert the path into the webhook server and point it at our mutating
@@ -58,39 +57,31 @@ func RegisterContextualDefaulter(
 }
 
 // A defaulterForType mimics the
-// [`defaulterForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go)
+// [`defaulterForType`](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go)
 // code, but understands to pass the `admission.Request` object into the `Default()` function.
 //
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter_custom.go#L41-L45
+// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter_custom.go#L43-L47
 type defaulterForType struct {
 	object  IContextuallyDefaultableObject
 	decoder *admission.Decoder
 }
 
-// InjectDecoder injects the decoder into a mutatingHandler.
-//
-// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/inject.go
-func (h *defaulterForType) InjectDecoder(d *admission.Decoder) error {
-	h.decoder = d
-	return nil
-}
-
-var _ admission.DecoderInjector = &defaulterForType{}
-
-// Handle manages the inbound request from the API server. It's responsible for
 // decoding the request into an
 // [`admission.Request`](https://pkg.go.dev/k8s.io/api/admission/v1#AdmissionRequest)
 // object, calling the `Default()` function on that object, and then returning
 // back the patched response to the API server.
 func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admission.Response {
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L57-L59
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter.go#L49-L54
+	if h.decoder == nil {
+		panic("decoder should never be nil")
+	}
 	if h.object == nil {
 		panic("object should never be nil")
 	}
 
 	// always skip when a DELETE operation received in mutation handler
 	// describe in https://github.com/kubernetes-sigs/controller-runtime/issues/1762
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L61-L70
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter.go#L56-L65
 	if req.Operation == admissionv1.Delete {
 		return admission.Response{AdmissionResponse: admissionv1.AdmissionResponse{
 			Allowed: true,
@@ -101,7 +92,8 @@ func (h *defaulterForType) Handle(_ context.Context, req admission.Request) admi
 	}
 
 	// Get the object in the request
-	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.13.1/pkg/webhook/admission/defaulter.go#L72-L76
+	//
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/v0.15.0/pkg/webhook/admission/defaulter.go#L67-L71
 	obj := h.object.DeepCopyObject().(IContextuallyDefaultableObject)
 	if err := h.decoder.Decode(req, obj); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
