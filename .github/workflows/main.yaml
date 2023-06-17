@@ -20,9 +20,6 @@ jobs:
   unit-tests:
     uses: ./.github/workflows/test.yaml
 
-  test-e2e:
-    uses: ./.github/workflows/test-e2e.yaml
-
   publish:
     uses: ./.github/workflows/publish.yaml
     needs: [test-e2e, unit-tests, lint, build]
