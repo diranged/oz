@@ -26,7 +26,6 @@ const (
 //
 // TODO: Add podAnnotations
 // TODO: Add podLabels
-// TODO: Add nodeSelector
 // TODO: Add affinity
 type PodTemplateSpecMutationConfig struct {
 	// DefaultContainerName allows the operator to define which container is considered the default
@@ -110,6 +109,12 @@ type PodTemplateSpecMutationConfig struct {
 	//
 	// +kubebuilder:default:=false
 	KeepStartupProbe bool `json:"keepStartupProbe,omitempty"`
+
+	// If supplied, Oz will insert these
+	// [nodeSelector](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling)
+	// into the target
+	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
+	NodeSelector *map[string]string `json:"nodeSelector,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
@@ -216,6 +221,16 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 		for k, v := range *c.PodAnnotations {
 			logger.V(1).Info(fmt.Sprintf("Setting metadata.annotations.%s: %s", k, v))
 			n.ObjectMeta.Annotations[k] = v
+		}
+	}
+
+	if c.NodeSelector != nil {
+		if n.Spec.NodeSelector == nil {
+			n.Spec.NodeSelector = map[string]string{}
+		}
+		for k, v := range *c.NodeSelector {
+			logger.V(1).Info(fmt.Sprintf("Setting spec.nodeselector.%s: %s", k, v))
+			n.Spec.NodeSelector[k] = v
 		}
 	}
 
