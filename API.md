@@ -1098,7 +1098,6 @@ that is launched for the user. However, the operator may want to make modificati
 PodSpec at launch time (eg, change the entrypoint command or arguments).</p>
 <p>TODO: Add podAnnotations
 TODO: Add podLabels
-TODO: Add nodeSelector
 TODO: Add affinity</p>
 </div>
 <table>
@@ -1279,6 +1278,20 @@ bool
 configuration for the default container so that the container does not
 get terminated if the main application is not running or passing checks.
 This setting overrides that behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>nodeSelector</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>If supplied, Oz will insert these
+<a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling">nodeSelector</a>
+into the target
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core"><code>PodTemplateSpec</code></a>.</p>
 </td>
 </tr>
 </tbody>

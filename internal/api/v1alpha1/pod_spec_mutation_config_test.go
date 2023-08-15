@@ -240,5 +240,52 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// VERIFY: Unmutated
 			Expect(ret).To(Equal(podTemplateSpec))
 		})
+
+		It("PatchPodTemplateSpec should add node selectors if requested (not initially present)", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{
+				PurgeAnnotations: true,
+				NodeSelector: &map[string]string{
+					"selector": "value",
+				},
+			}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: Only one annotation found
+			Expect(ret.Spec.NodeSelector).To(Equal(
+				map[string]string{
+					"selector": "value",
+				},
+			))
+		})
+
+		It("PatchPodTemplateSpec should add node selectors if requested (initially present)", func() {
+			// Basic resource with no mutation config
+			config := &PodTemplateSpecMutationConfig{
+				PurgeAnnotations: true,
+				NodeSelector: &map[string]string{
+					"selector": "value",
+				},
+			}
+
+			// Run it
+			podTemplateSpec.Spec.NodeSelector = map[string]string{
+				"already": "there",
+			}
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: Only one annotation found
+			Expect(ret.Spec.NodeSelector).To(Equal(
+				map[string]string{
+					"already":  "there",
+					"selector": "value",
+				},
+			))
+		})
+
 	})
 })
