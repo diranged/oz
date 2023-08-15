@@ -14,6 +14,7 @@ import (
 //+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete;bind;escalate
 //+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=argoproj.io,resources=rollouts,verbs=get;list;watch
 
 // defaultReadyWaitTime is the default time in which we wait for resources to
 // become Ready in the AccessResourcesAreReady() method.

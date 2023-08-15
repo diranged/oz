@@ -93,6 +93,7 @@ spec:
                     - Deployment
                     - DaemonSet
                     - StatefulSet
+                    - Rollout
                     type: string
                   name:
                     description: Defines the "metadata.Name" of the target resource.

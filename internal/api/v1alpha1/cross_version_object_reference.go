@@ -22,7 +22,7 @@ type CrossVersionObjectReference struct {
 
 	// Defines the "Kind" of resource being referred to.
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=Deployment;DaemonSet;StatefulSet
+	// +kubebuilder:validation:Enum=Deployment;DaemonSet;StatefulSet;Rollout
 	Kind ControllerKind `json:"kind"`
 
 	// Defines the "metadata.Name" of the target resource.
@@ -68,7 +68,7 @@ func (r *CrossVersionObjectReference) GetGroupVersionKind() schema.GroupVersionK
 	}
 }
 
-// GetObject returns a generic unstrucutred resource that points to the desired API object. Because
+// GetObject returns a generic unstructured resource that points to the desired API object. Because
 // this is unstructured (for now), you can really only use this to get metadata back from the API
 // about the resource.
 //

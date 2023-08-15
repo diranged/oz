@@ -18,6 +18,7 @@ import (
 //   - Deployment
 //   - DaemonSet
 //   - StatefulSet
+//   - Rollout
 //
 // https://medium.com/coding-kubernetes/using-k8s-label-selectors-in-go-the-right-way-733cde7e8630
 //
@@ -25,6 +26,8 @@ import (
 //
 //   - labels.Selector: A populated labels.Selector which can be used when searching for Pods
 //   - error
+//
+// revive:disable:cyclomatic
 func GetSelectorLabels(
 	ctx context.Context,
 	client client.Client,
@@ -44,6 +47,14 @@ func GetSelectorLabels(
 		controller, err := getDeployment(ctx, client, targetController)
 		if err != nil {
 			log.Error(err, "Failed to find target Deployment")
+			return nil, err
+		}
+		return metav1.LabelSelectorAsSelector(controller.Spec.Selector)
+
+	case "Rollout":
+		controller, err := getRollout(ctx, client, targetController)
+		if err != nil {
+			log.Error(err, "Failed to find target Rollout")
 			return nil, err
 		}
 		return metav1.LabelSelectorAsSelector(controller.Spec.Selector)
