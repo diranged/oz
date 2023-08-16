@@ -10,10 +10,10 @@ endif
 REVIVE_VER ?= v1.3.1
 REVIVE     ?= $(LOCALBIN)/revive
 
-GOLANGCI_VER ?= v1.52.2
+GOLANGCI_VER ?= v1.54.1
 GOLANGCI    ?= $(LOCALBIN)/golangci-lint
 
-GOFUMPT_VER ?= v0.4.0
+GOFUMPT_VER ?= v0.5.0
 GOFUMPT     ?= $(LOCALBIN)/gofumpt
 
 GOLINES_VER ?= v0.11.0
