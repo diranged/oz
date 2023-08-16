@@ -12,14 +12,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 var _ = Describe("PodWatcher", Ordered, func() {
-	decoder := admission.NewDecoder(scheme.Scheme)
-
 	Context("Functional Unit Tests", func() {
 		var (
 			admissionRequest *admission.Request
@@ -28,7 +25,6 @@ var _ = Describe("PodWatcher", Ordered, func() {
 			recorder         = record.NewFakeRecorder(50)
 			watcher          = &PodWatcher{
 				Client:   k8sClient,
-				decoder:  decoder,
 				recorder: recorder,
 			}
 			resource = metav1.GroupVersionResource{

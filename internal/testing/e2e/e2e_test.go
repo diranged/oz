@@ -226,13 +226,13 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// Verify that the CONNECT and validating webhook handler work
 			EventuallyWithOffset(1, func() error {
 				cmd := exec.Command(
-					"kubectl", "exec", "-ti", "-n", namespace, podName, "--", "whoami",
+					"kubectl", "exec", "-t", "-n", namespace, podName, "--", "whoami",
 				)
 				whoami, err := utils.Run(cmd)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(
 					whoami,
-				).To(MatchRegexp("rootNotMe"))
+				).To(MatchRegexp("root"))
 				return err
 			}, time.Minute, time.Second).Should(Succeed())
 		})

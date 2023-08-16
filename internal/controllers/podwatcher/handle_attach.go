@@ -17,7 +17,8 @@ func (w *PodWatcher) HandleAttach(ctx context.Context, req admission.Request) ad
 	logger := log.FromContext(ctx)
 
 	opts := &corev1.PodAttachOptions{}
-	err := w.decoder.Decode(req, opts)
+	decoder := admission.NewDecoder(w.Client.Scheme())
+	err := decoder.Decode(req, opts)
 	if err != nil {
 		logger.Error(err, "Couldnt decode")
 		return admission.Errored(http.StatusBadRequest, err)
@@ -42,5 +43,5 @@ func (w *PodWatcher) HandleAttach(ctx context.Context, req admission.Request) ad
 	w.recorder.Event(pod, "Normal", "PodAttach", eventMsg)
 	logger.Info(eventMsg)
 
-	return admission.Allowed("");
+	return admission.Allowed("")
 }

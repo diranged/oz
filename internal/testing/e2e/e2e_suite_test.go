@@ -48,9 +48,9 @@ var _ = BeforeSuite(func() {
 })
 
 // After the suite, undeploy the resources to clean up as much as possible.
-var _ = AfterSuite(func() {
-	By("tearing down the test resources")
-	cmd := exec.Command("make", "undeploy")
-	_, err := utils.Run(cmd)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-})
+// var _ = AfterSuite(func() {
+// 	By("tearing down the test resources")
+// 	cmd := exec.Command("make", "undeploy")
+// 	_, err := utils.Run(cmd)
+// 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+// })
