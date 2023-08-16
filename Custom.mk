@@ -89,7 +89,7 @@ build: $(GORELEASER)
 	PUBLISH=false $(MAKE) release dist/docker.tar
 
 .PHONY: docker-load
-docker-load: build
+docker-load: dist/docker.tar
 	docker load --input dist/docker.tar && kind load docker-image $(IMG)
 
 dist/docker.tar:

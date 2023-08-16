@@ -37,8 +37,8 @@ jobs:
           node_image: kindest/node:${{ matrix.kindVersion }}
           kubectl_version: v1.26.3
 
-      - name: Build and load Binaries
-        run: make build docker-load
+      - name: Load docker image
+        run: make docker-load
         env:
           KIND_CLUSTER_NAME: chart-testing
 
