@@ -1,25 +1,25 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 
 ifeq (true,$(PUBLISH))
-GORELEASER_FLAGS := --rm-dist
+GORELEASER_FLAGS := --clean
 else
-GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
+GORELEASER_FLAGS := --skip-publish --snapshot --clean
 endif
 
 ## Tool Binaries
 REVIVE_VER ?= v1.3.1
 REVIVE     ?= $(LOCALBIN)/revive
 
-GOLANGCI_VER ?= v1.52.2
+GOLANGCI_VER ?= v1.54.1
 GOLANGCI    ?= $(LOCALBIN)/golangci-lint
 
-GOFUMPT_VER ?= v0.4.0
+GOFUMPT_VER ?= v0.5.0
 GOFUMPT     ?= $(LOCALBIN)/gofumpt
 
 GOLINES_VER ?= v0.11.0
 GOLINES     ?= $(LOCALBIN)/golines
 
-GORELEASER_VER ?= v1.13.1
+GORELEASER_VER ?= v1.20.0
 GORELEASER     ?= $(LOCALBIN)/goreleaser
 
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
@@ -89,7 +89,7 @@ build: $(GORELEASER)
 	PUBLISH=false $(MAKE) release dist/docker.tar
 
 .PHONY: docker-load
-docker-load:
+docker-load: dist/docker.tar
 	docker load --input dist/docker.tar && kind load docker-image $(IMG)
 
 dist/docker.tar:

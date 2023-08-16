@@ -85,9 +85,9 @@ func GetNonEmptyLines(output string) []string {
 
 // RandomString is a function for generating a random string for certain tests
 func RandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, length)
-	rand.Read(b)
+	random.Read(b)
 	return fmt.Sprintf("%x", b)[:length]
 }
 

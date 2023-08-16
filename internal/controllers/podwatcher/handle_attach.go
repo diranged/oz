@@ -42,5 +42,5 @@ func (w *PodWatcher) HandleAttach(ctx context.Context, req admission.Request) ad
 	w.recorder.Event(pod, "Normal", "PodAttach", eventMsg)
 	logger.Info(eventMsg)
 
-	return admission.Allowed("");
+	return admission.Allowed("")
 }

@@ -18,17 +18,8 @@ import (
 // layer of security for Pod Exec access.
 type PodWatcher struct {
 	Client   client.Client
-	decoder  *admission.Decoder
+	decoder  admission.Decoder
 	recorder record.EventRecorder
-}
-
-// PodWatcher implements admission.DecoderInjector.
-// A decoder will be automatically injected.
-
-// InjectDecoder injects the decoder.
-func (w *PodWatcher) InjectDecoder(d *admission.Decoder) error {
-	w.decoder = d
-	return nil
 }
 
 // NewPodWatcherRegistration creates a PodWatcher{} object and registers it at the supplied path.
@@ -43,6 +34,7 @@ func NewPodWatcherRegistration(
 		&webhook.Admission{
 			Handler: &PodWatcher{
 				Client:   mgr.GetClient(),
+				decoder:  *admission.NewDecoder(mgr.GetScheme()),
 				recorder: mgr.GetEventRecorderFor(controllers.EventRecorderName),
 			},
 		},
