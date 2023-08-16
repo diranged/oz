@@ -1,9 +1,9 @@
 SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 
 ifeq (true,$(PUBLISH))
-GORELEASER_FLAGS := --rm-dist
+GORELEASER_FLAGS := --clean
 else
-GORELEASER_FLAGS := --skip-publish --snapshot --rm-dist
+GORELEASER_FLAGS := --skip-publish --snapshot --clean
 endif
 
 ## Tool Binaries
@@ -89,7 +89,7 @@ build: $(GORELEASER)
 	PUBLISH=false $(MAKE) release dist/docker.tar
 
 .PHONY: docker-load
-docker-load:
+docker-load: build
 	docker load --input dist/docker.tar && kind load docker-image $(IMG)
 
 dist/docker.tar:

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -126,6 +127,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			}
 		})
 	})
+
 	Context("PodAccessTemplate / PodAccessRequest", func() {
 		template := filepath.Join(projectDir, "examples/pod_access_template.yaml")
 		request := filepath.Join(projectDir, "examples/pod_access_request.yaml")
@@ -158,9 +160,9 @@ var _ = Describe("oz-controller", Ordered, func() {
 		})
 
 		//
-		// AccessRequest tests are next - create the PodAccessRquest and wait until they have had
-		// their various Conditions marked True, indicating that the Oz Controller has processed
-		// them properly.
+		// PodAccessRequest tests are next - create the PodAccessRquest and
+		// wait until they have had their various Conditions marked True,
+		// indicating that the Oz Controller has processed them properly.
 		//
 		It("Should allow creating the Access Request", func() {
 			By("Creating PodAccessRequest")
@@ -198,6 +200,41 @@ var _ = Describe("oz-controller", Ordered, func() {
 			Expect(
 				message,
 			).To(MatchRegexp("kubectl exec -ti -n oz-system deployment-example-.* -- /bin/bash"))
+		})
+
+		It("Should allow CONNECTing to the Pod", func() {
+			By("Execing into the pod")
+			var podName string
+
+			EventuallyWithOffset(1, func() error {
+				cmd := exec.Command(
+					"kubectl", "get", "-f", request, "-n", namespace, "-o", "jsonpath='{.status.podName}'",
+				)
+
+				// Get the podname from the template. Note, it comes back wrapped in single quotes.
+				podName, err = utils.Run(cmd)
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(podName).NotTo(BeEmpty())
+
+				// Strip the single quotes from the podName string.
+				podName = strings.Replace(podName, "'", "", -1)
+				Expect(podName).NotTo(BeEmpty())
+
+				return err
+			}, time.Minute, time.Second).Should(Succeed())
+
+			// Verify that the CONNECT and validating webhook handler work
+			EventuallyWithOffset(1, func() error {
+				cmd := exec.Command(
+					"kubectl", "exec", "-ti", "-n", namespace, podName, "--", "whoami",
+				)
+				whoami, err := utils.Run(cmd)
+				Expect(err).To(Not(HaveOccurred()))
+				Expect(
+					whoami,
+				).To(MatchRegexp("rootNotMe"))
+				return err
+			}, time.Minute, time.Second).Should(Succeed())
 		})
 	})
 })
