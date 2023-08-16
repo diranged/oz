@@ -37,11 +37,6 @@ jobs:
           node_image: kindest/node:${{ matrix.kindVersion }}
           kubectl_version: v1.26.3
 
-      - name: Load docker image
-        run: make docker-load
-        env:
-          KIND_CLUSTER_NAME: chart-testing
-
       - name: Run E2E Tests
         run: make test-e2e
         env:
