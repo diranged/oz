@@ -17,8 +17,7 @@ func (w *PodWatcher) HandleAttach(ctx context.Context, req admission.Request) ad
 	logger := log.FromContext(ctx)
 
 	opts := &corev1.PodAttachOptions{}
-	decoder := admission.NewDecoder(w.Client.Scheme())
-	err := decoder.Decode(req, opts)
+	err := w.decoder.Decode(req, opts)
 	if err != nil {
 		logger.Error(err, "Couldnt decode")
 		return admission.Errored(http.StatusBadRequest, err)

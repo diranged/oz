@@ -25,6 +25,7 @@ var _ = Describe("PodWatcher", Ordered, func() {
 			recorder         = record.NewFakeRecorder(50)
 			watcher          = &PodWatcher{
 				Client:   k8sClient,
+				decoder:  *admission.NewDecoder(runtime.NewScheme()),
 				recorder: recorder,
 			}
 			resource = metav1.GroupVersionResource{

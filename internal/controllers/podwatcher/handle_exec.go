@@ -16,9 +16,8 @@ func (w *PodWatcher) HandleExec(ctx context.Context, req admission.Request) admi
 	logger := log.FromContext(ctx)
 
 	// Parse the request into a set of PodExecOptions that we can understand
-	decoder := admission.NewDecoder(w.Client.Scheme())
 	opts := &corev1.PodExecOptions{}
-	err := decoder.Decode(req, opts)
+	err := w.decoder.Decode(req, opts)
 	if err != nil {
 		logger.Error(err, "Couldnt decode")
 		return admission.Errored(http.StatusBadRequest, err)
