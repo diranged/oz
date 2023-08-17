@@ -26,6 +26,18 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			},
 			Spec: corev1.PodSpec{
 				TerminationGracePeriodSeconds: &termPeriod,
+				TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
+					{
+						TopologyKey:       "topology.kubernetes.io/zone",
+						MaxSkew:           1,
+						WhenUnsatisfiable: corev1.DoNotSchedule,
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"test": "test",
+							},
+						},
+					},
+				},
 				Containers: []corev1.Container{
 					{
 						Name:  "contA",
@@ -142,6 +154,8 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			expectedPodTemplateSpec.Spec.Containers[0].StartupProbe = nil
 			// Wipe: metadata.labels
 			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+			// Wipe: topologySpreadConstraints
+			expectedPodTemplateSpec.Spec.TopologySpreadConstraints = nil
 
 			// VERIFY: Unmutated by default
 			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
@@ -150,10 +164,11 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 		It("PatchPodTemplateSpec should allow skipping the default mutations", func() {
 			// Basic resource with no mutation config
 			config := &PodTemplateSpecMutationConfig{
-				KeepTerminationGracePeriod: true,
-				KeepLivenessProbe:          true,
-				KeepStartupProbe:           true,
-				KeepReadinessProbe:         true,
+				KeepTerminationGracePeriod:    true,
+				KeepLivenessProbe:             true,
+				KeepStartupProbe:              true,
+				KeepReadinessProbe:            true,
+				KeepTopologySpreadConstraints: true,
 			}
 
 			// Run it
@@ -286,6 +301,5 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 				},
 			))
 		})
-
 	})
 })

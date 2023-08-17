@@ -246,6 +246,12 @@ spec:
                       setting on Pods to ensure that they can be killed as soon as
                       the AccessRequest expires. This flag overrides that behavior.
                     type: boolean
+                  keepTopologySpreadConstraints:
+                    description: By default, Oz wipes out the PodSpec [`topologySpreadConstraints`](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling)
+                      configuration for the Pod because these access pods are not
+                      part of the same group of pods that are passing traffic. This
+                      setting overrides that behavior.
+                    type: boolean
                   nodeSelector:
                     additionalProperties:
                       type: string

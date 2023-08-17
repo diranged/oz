@@ -110,6 +110,12 @@ type PodTemplateSpecMutationConfig struct {
 	// +kubebuilder:default:=false
 	KeepStartupProbe bool `json:"keepStartupProbe,omitempty"`
 
+	// By default, Oz wipes out the PodSpec
+	// [`topologySpreadConstraints`](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling)
+	// configuration for the Pod because these access pods are not part of the
+	// same group of pods that are passing traffic. This setting overrides that behavior.
+	KeepTopologySpreadConstraints bool `json:"keepTopologySpreadConstraints,omitempty"`
+
 	// If supplied, Oz will insert these
 	// [nodeSelector](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling)
 	// into the target
@@ -210,6 +216,12 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 		logger.V(1).
 			Info(fmt.Sprintf("Purging spec.containers[%d].startupProbe...", defContainerID))
 		n.Spec.Containers[defContainerID].StartupProbe = nil
+	}
+
+	if !c.KeepTopologySpreadConstraints {
+		logger.V(1).
+			Info("Purging spec.topologySpreadConstraints...")
+		n.Spec.TopologySpreadConstraints = nil
 	}
 
 	if c.PurgeAnnotations {

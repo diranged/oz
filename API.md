@@ -1282,6 +1282,20 @@ This setting overrides that behavior.</p>
 </tr>
 <tr>
 <td>
+<code>keepTopologySpreadConstraints</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>By default, Oz wipes out the PodSpec
+<a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling"><code>topologySpreadConstraints</code></a>
+configuration for the Pod because these access pods are not part of the
+same group of pods that are passing traffic. This setting overrides that behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>nodeSelector</code><br/>
 <em>
 string
