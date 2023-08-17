@@ -18,6 +18,7 @@ type CrossVersionObjectReference struct {
 	// TODO: Figure out how to regex validate that it has a "/" in it
 	//
 	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=apps/v1;argoproj.io/v1alpha1
 	APIVersion string `json:"apiVersion"`
 
 	// Defines the "Kind" of resource being referred to.

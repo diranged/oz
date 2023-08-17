@@ -86,6 +86,9 @@ spec:
                     description: "Defines the \"APIVersion\" of the resource being
                       referred to. Eg, \"apps/v1\". \n TODO: Figure out how to regex
                       validate that it has a \"/\" in it"
+                    enum:
+                    - apps/v1
+                    - argoproj.io/v1alpha1
                     type: string
                   kind:
                     description: Defines the "Kind" of resource being referred to.
