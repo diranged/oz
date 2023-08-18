@@ -66,10 +66,8 @@ var _ = BeforeSuite(func() {
 	var err error
 
 	// grab go mod directory with Argo rollout CRD to be installed into test environment cluster
-	argoRolloutPath, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/argoproj/argo-rollouts").Output()
+	argoCRDPath, err := extractCRDPath("github.com/argoproj/argo-rollouts", "manifests/crds")
 	Expect(err).NotTo(HaveOccurred())
-	argoCRDPath := fmt.Sprintf("%s/manifests/crds", string(argoRolloutPath))
-	argoCRDPath = strings.ReplaceAll(argoCRDPath, "\n", "")
 
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
@@ -101,3 +99,14 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+// extractCRDPath returns an absolute path to CRD path given a package dependency
+func extractCRDPath(dep string, crdRelativePath string) (string, error) {
+	p, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", dep).Output()
+	if err != nil {
+		return "", err
+	}
+	crdPath := fmt.Sprintf("%s/%s", string(p), crdRelativePath)
+	crdPath = strings.ReplaceAll(crdPath, "\n", "")
+	return crdPath, nil
+}
