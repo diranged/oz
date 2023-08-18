@@ -17,14 +17,16 @@ limitations under the License.
 package podaccessbuilder
 
 import (
+	"fmt"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	rolloutsv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
-
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -60,12 +62,23 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(logger)
 
 	By("bootstrapping test environment")
+
+	var err error
+
+	// grab go mod directory with Argo rollout CRD to be installed into test environment cluster
+	argoRolloutPath, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/argoproj/argo-rollouts").Output()
+	Expect(err).NotTo(HaveOccurred())
+	argoCRDPath := fmt.Sprintf("%s/manifests/crds", string(argoRolloutPath))
+	argoCRDPath = strings.ReplaceAll(argoCRDPath, "\n", "")
+
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "..", "..", "config", "crd", "bases"),
+			argoCRDPath,
+		},
 		ErrorIfCRDPathMissing: true,
 	}
 
-	var err error
 	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
@@ -78,7 +91,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
-
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
