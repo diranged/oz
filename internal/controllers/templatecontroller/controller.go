@@ -24,6 +24,7 @@ import (
 //+kubebuilder:rbac:groups=crds.wizardofoz.co,resources=podaccesstemplates/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;statefulsets,verbs=get;list;watch
+//+kubebuilder:rbac:groups=argoproj.io,resources=rollouts,verbs=get;list;watch
 
 // Reconcile is a high level entrypoint triggered by Watches on particular
 // Custom Resources within the cluster. This wrapper handles a few common

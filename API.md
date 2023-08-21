@@ -1096,9 +1096,7 @@ that should be applied. The primary use case is in the PodAccessTemplate, where 
 controller (Deployment, DaemonSet, StatefulSet) can be used as the reference for the PodSpec
 that is launched for the user. However, the operator may want to make modifications to the
 PodSpec at launch time (eg, change the entrypoint command or arguments).</p>
-<p>TODO: Add podAnnotations
-TODO: Add podLabels
-TODO: Add affinity</p>
+<p>TODO: Add affinity</p>
 </div>
 <table>
 <thead>

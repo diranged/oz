@@ -23,6 +23,7 @@ import (
 	"os"
 	"time"
 
+	rolloutsv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -56,6 +57,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(rolloutsv1alpha1.AddToScheme(scheme))
 
 	utilruntime.Must(crdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme

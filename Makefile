@@ -101,6 +101,7 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate envtest ## Run tests.
+	go mod download
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -v $(shell go list ./... | grep -v 'e2e') -coverprofile cover.out -covermode=atomic -race
 
 ##@ Build

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -12,7 +12,9 @@ import (
 )
 
 // GetPodTemplateFromController will return a PodTemplate resource from an
-// understood controller type (Deployment, DaemonSet or StatefulSet).
+// understood controller type (Deployment, DaemonSet, Rollout, or StatefulSet).
+//
+// revive:disable:cyclomatic
 func GetPodTemplateFromController(
 	ctx context.Context,
 	client client.Client,
@@ -36,6 +38,15 @@ func GetPodTemplateFromController(
 		}
 		return *controller.Spec.Template.DeepCopy(), nil
 
+	case "Rollout":
+		controller, err := getRollout(ctx, client, targetController)
+		if err != nil {
+			log.Error(err, "Failed to find target Rollout")
+			return corev1.PodTemplateSpec{}, err
+		}
+
+		return *controller.Spec.Template.DeepCopy(), nil
+
 	case "DaemonSet":
 		controller, err := getDaemonSet(ctx, client, targetController)
 		if err != nil {
@@ -53,6 +64,6 @@ func GetPodTemplateFromController(
 		return *controller.Spec.Template.DeepCopy(), nil
 
 	default:
-		return corev1.PodTemplateSpec{}, errors.New("invalid input")
+		return corev1.PodTemplateSpec{}, fmt.Errorf("invalid input %s", kind)
 	}
 }

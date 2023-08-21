@@ -17,13 +17,16 @@ limitations under the License.
 package podaccessbuilder
 
 import (
+	"fmt"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	rolloutsv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
-
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -59,12 +62,21 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(logger)
 
 	By("bootstrapping test environment")
+
+	var err error
+
+	// grab go mod directory with Argo rollout CRD to be installed into test environment cluster
+	argoCRDPath, err := extractCRDPath("github.com/argoproj/argo-rollouts", "manifests/crds")
+	Expect(err).NotTo(HaveOccurred())
+
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "..", "..", "config", "crd", "bases"),
+			argoCRDPath,
+		},
 		ErrorIfCRDPathMissing: true,
 	}
 
-	var err error
 	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
@@ -73,8 +85,10 @@ var _ = BeforeSuite(func() {
 	err = crdsv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	//+kubebuilder:scaffold:scheme
+	err = rolloutsv1alpha1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 
+	//+kubebuilder:scaffold:scheme
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
@@ -85,3 +99,14 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+// extractCRDPath returns an absolute path to CRD path given a package dependency
+func extractCRDPath(dep string, crdRelativePath string) (string, error) {
+	p, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", dep).Output()
+	if err != nil {
+		return "", err
+	}
+	crdPath := fmt.Sprintf("%s/%s", string(p), crdRelativePath)
+	crdPath = strings.ReplaceAll(crdPath, "\n", "")
+	return crdPath, nil
+}

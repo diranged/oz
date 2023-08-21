@@ -24,8 +24,6 @@ const (
 // that is launched for the user. However, the operator may want to make modifications to the
 // PodSpec at launch time (eg, change the entrypoint command or arguments).
 //
-// TODO: Add podAnnotations
-// TODO: Add podLabels
 // TODO: Add affinity
 type PodTemplateSpecMutationConfig struct {
 	// DefaultContainerName allows the operator to define which container is considered the default
