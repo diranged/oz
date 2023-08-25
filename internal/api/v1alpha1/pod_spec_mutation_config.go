@@ -57,6 +57,12 @@ type PodTemplateSpecMutationConfig struct {
 	PodAnnotations *map[string]string `json:"podAnnotations,omitempty"`
 
 	// If supplied, Oz will insert these
+	// [podsecuritycontext](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+	// into the target
+	// [`SecurityContext`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
+	SecurityContext *corev1.SecurityContext `json:"securityContext,omitempty"`
+
+	// If supplied, Oz will insert these
 	// [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
 	// into the target
 	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
@@ -232,6 +238,11 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 			logger.V(1).Info(fmt.Sprintf("Setting metadata.annotations.%s: %s", k, v))
 			n.ObjectMeta.Annotations[k] = v
 		}
+	}
+
+	if c.SecurityContext != nil {
+		logger.V(1).Info(fmt.Sprintf("Setting pod security context. %+v", c.SecurityContext))
+		n.Spec.Containers[defContainerID].SecurityContext = c.SecurityContext
 	}
 
 	if c.NodeSelector != nil {

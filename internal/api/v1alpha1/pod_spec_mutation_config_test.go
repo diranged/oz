@@ -38,6 +38,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 						},
 					},
 				},
+				SecurityContext: &corev1.PodSecurityContext{},
 				Containers: []corev1.Container{
 					{
 						Name:  "contA",
@@ -300,6 +301,25 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 					"selector": "value",
 				},
 			))
+		})
+
+		It("PatchPodTemplateSpec should pod security context if supplied", func() {
+			// Basic resource with no mutation config
+			sc := &corev1.SecurityContext{
+				Capabilities: &corev1.Capabilities{
+					Add: []corev1.Capability{"SYS_PTRACE"},
+				},
+			}
+			config := &PodTemplateSpecMutationConfig{
+				SecurityContext: sc,
+			}
+
+			// Run it
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: container security context is modified
+			Expect(ret.Spec.Containers[0].SecurityContext).To(Equal(sc))
 		})
 	})
 })
