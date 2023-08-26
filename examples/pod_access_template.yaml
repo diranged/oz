@@ -29,6 +29,10 @@ spec:
       requests:
         memory: 42Mi
         cpu: 100m
+    securityContext:
+      capabilities:
+        add:
+          - SYS_PTRACE
 
   maxMemory: 1Gi
   maxCpu: 1

@@ -1190,6 +1190,22 @@ the annotations, make sure to set the <code>purgeAnnotations</code> flag to <cod
 </tr>
 <tr>
 <td>
+<code>securityContext</code><br/>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core">
+Kubernetes core/v1.SecurityContext
+</a>
+</em>
+</td>
+<td>
+<p>If supplied, Oz will insert these
+<a href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">podsecuritycontext</a>
+into the target
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core"><code>SecurityContext</code></a>.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>podLabels</code><br/>
 <em>
 string
