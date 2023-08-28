@@ -40,12 +40,12 @@ import (
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	"github.com/diranged/oz/internal/controllers/templatecontroller"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	//+kubebuilder:scaffold:imports
 )
 
 const (
 	defaultReconciliationInterval = 5
-	metricsPort                   = 9443
 	controllerKey                 = "controller"
 	unableToCreateMsg             = "unable to create controller"
 )
@@ -124,9 +124,10 @@ func Main() {
 	ctrl.SetLogger(rootLogger)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   metricsPort,
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 		HealthProbeBindAddress: probeAddr,
 
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
