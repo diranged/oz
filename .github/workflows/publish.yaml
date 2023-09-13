@@ -25,7 +25,7 @@ jobs:
         uses: ./.github/actions/setup-go
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
