@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/argoproj/argo-rollouts v1.6.0
 	github.com/fatih/color v1.15.0
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.3.0
 	github.com/ivanpirog/coloredcobra v1.0.1
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.0
