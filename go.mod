@@ -8,7 +8,7 @@ require (
 	github.com/go-logr/logr v1.3.0
 	github.com/ivanpirog/coloredcobra v1.0.1
 	github.com/onsi/ginkgo/v2 v2.13.0
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/spf13/cobra v1.7.0
 	go.uber.org/zap v1.26.0
 	k8s.io/api v0.28.3
