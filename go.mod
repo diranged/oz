@@ -3,7 +3,7 @@ module github.com/diranged/oz
 go 1.20
 
 require (
-	github.com/argoproj/argo-rollouts v1.6.2
+	github.com/argoproj/argo-rollouts v1.6.3
 	github.com/fatih/color v1.16.0
 	github.com/go-logr/logr v1.3.0
 	github.com/ivanpirog/coloredcobra v1.0.1
