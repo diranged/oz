@@ -1221,6 +1221,18 @@ to <code>true.</code></p>
 </tr>
 <tr>
 <td>
+<code>patchSpecOperations</code><br/>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>PatchSpecOperations contains a list of JSON patch operations to apply to the PodSpec.
+<a href="https://www.rfc-editor.org/rfc/rfc6902.html"><code>JSONPatch</code></a></p>
+</td>
+</tr>
+<tr>
+<td>
 <code>keepTerminationGracePeriod</code><br/>
 <em>
 bool
