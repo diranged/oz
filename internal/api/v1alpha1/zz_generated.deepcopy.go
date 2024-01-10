@@ -507,6 +507,19 @@ func (in *PodTemplateSpecMutationConfig) DeepCopyInto(out *PodTemplateSpecMutati
 			}
 		}
 	}
+	if in.PatchSpecOperations != nil {
+		in, out := &in.PatchSpecOperations, &out.PatchSpecOperations
+		*out = make([]map[string]string, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = make(map[string]string, len(*in))
+				for key, val := range *in {
+					(*out)[key] = val
+				}
+			}
+		}
+	}
 	if in.NodeSelector != nil {
 		in, out := &in.NodeSelector, &out.NodeSelector
 		*out = new(map[string]string)

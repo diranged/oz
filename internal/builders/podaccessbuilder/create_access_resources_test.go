@@ -138,6 +138,13 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 								"cpu": cpuReq,
 							},
 						},
+						PatchSpecOperations: []map[string]string{
+							{
+								"op":    "replace",
+								"path":  "/spec/containers/0/name",
+								"value": "oz",
+							},
+						},
 					},
 				},
 			}
@@ -238,6 +245,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(foundPod.GetOwnerReferences()).ToNot(BeNil())
 			Expect(foundPod.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
 			Expect(foundPod.Spec.Containers[0].Args[0]).To(Equal("100"))
+			Expect(foundPod.Spec.Containers[0].Name).To(Equal("oz"))
 
 			// VERIFY: Role Created as expected
 			foundRole := &rbacv1.Role{}

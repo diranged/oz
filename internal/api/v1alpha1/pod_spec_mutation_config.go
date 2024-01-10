@@ -2,9 +2,11 @@ package v1alpha1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 
+	jsonpatch "github.com/evanphx/json-patch"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -72,6 +74,10 @@ type PodTemplateSpecMutationConfig struct {
 	//
 	// +kubebuilder:default:=false
 	PurgeAnnotations bool `json:"purgeAnnotations,omitempty"`
+
+	// PatchSpecOperations contains a list of JSON patch operations to apply to the PodSpec.
+	// [`JSONPatch`](https://www.rfc-editor.org/rfc/rfc6902.html)
+	PatchSpecOperations []map[string]string `json:"patchSpecOperations,omitempty"`
 
 	// By default, Oz wipes out the PodSpec
 	// [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
@@ -280,6 +286,36 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 		n.Spec.Containers[defContainerID].Env = append(
 			n.Spec.Containers[defContainerID].Env,
 			c.Env...)
+	}
+
+	if len(c.PatchSpecOperations) > 0 {
+		p, err := json.Marshal(c.PatchSpecOperations)
+		if err != nil {
+			return n, err
+		}
+
+		patches, err := jsonpatch.DecodePatch(p)
+		if err != nil {
+			return n, err
+		}
+
+		origPodSpec, err := json.Marshal(n)
+		if err != nil {
+			return n, err
+		}
+
+		modified, err := patches.Apply(origPodSpec)
+		if err != nil {
+			return n, err
+		}
+
+		var podTemplateSpec corev1.PodTemplateSpec
+		if err := json.Unmarshal(modified, &podTemplateSpec); err != nil {
+			return n, err
+		}
+
+		logger.V(1).Info(fmt.Sprintf("Applied JSON patch operations, containerID: %d, patches: %+v", defContainerID, string(p)))
+		return podTemplateSpec, nil
 	}
 
 	return n, nil

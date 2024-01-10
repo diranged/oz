@@ -266,7 +266,7 @@ spec:
       - name: FOO
         value: bar
 
-    # Override the default resources requested 
+    # Override the default resources requested
     resources:
       limits:
         memory: 2Gi
@@ -274,6 +274,12 @@ spec:
       requests:
         memory: 512Mi
         cpu: 0
+
+    # patchSpecOperations contains a list of JSON patch operations to apply to the PodSpec.
+    patchSpecOperations:
+      - op: replace
+        path: '/spec/containers/0/name'
+        value: oz
 
   # The maximum memory a PodAccessRequest can request?
   #

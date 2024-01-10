@@ -29,6 +29,10 @@ spec:
       requests:
         memory: 42Mi
         cpu: 100m
+    patchSpecOperations:
+      - op: replace
+        path: '/spec/containers/0/name'
+        value: dennis
 
   maxMemory: 1Gi
   maxCpu: 1
