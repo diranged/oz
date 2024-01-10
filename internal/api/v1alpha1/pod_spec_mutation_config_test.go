@@ -277,6 +277,53 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			))
 		})
 
+		It("PatchPodTemplateSpec should apply JSON patches if patchSpecOperations is supplied", func() {
+			// Basic resource with patchSpecOperations
+			config := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []map[string]string{
+					{
+						"op":    "replace",
+						"path":  "/spec/containers/0/name",
+						"value": "oz",
+					},
+				},
+			}
+
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: json patch replaced container name
+			Expect(ret.Spec.Containers[0].Name).To(Equal("oz"))
+
+			// Basic resource with invalid json patch operation
+			invalidOp := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []map[string]string{
+					{
+						"op":    "invalid",
+						"path":  "/spec/containers/0/name",
+						"value": "oz",
+					},
+				},
+			}
+
+			_, err = invalidOp.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(HaveOccurred())
+
+			// Basic resource with invalid json patch path
+			invalidPath := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []map[string]string{
+					{
+						"op":    "replace",
+						"path":  "/spec/containers/name",
+						"value": "oz",
+					},
+				},
+			}
+
+			_, err = invalidPath.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(HaveOccurred())
+		})
+
 		It("PatchPodTemplateSpec should add node selectors if requested (initially present)", func() {
 			// Basic resource with no mutation config
 			config := &PodTemplateSpecMutationConfig{
