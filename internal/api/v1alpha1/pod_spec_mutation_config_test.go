@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("PodSpecMutationConfig", Ordered, func() {
@@ -279,12 +280,16 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 		It("PatchPodTemplateSpec should apply JSON patches if patchSpecOperations is supplied", func() {
 			// Basic resource with patchSpecOperations
+			patchValue := intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "oz",
+			}
 			config := &PodTemplateSpecMutationConfig{
-				PatchSpecOperations: []map[string]string{
+				PatchSpecOperations: []JSONPatchOperation{
 					{
-						"op":    "replace",
-						"path":  "/spec/containers/0/name",
-						"value": "oz",
+						Operation: "replace",
+						Path:      "/spec/containers/0/name",
+						Value:     patchValue,
 					},
 				},
 			}
@@ -297,11 +302,11 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 			// Basic resource with invalid json patch operation
 			invalidOp := &PodTemplateSpecMutationConfig{
-				PatchSpecOperations: []map[string]string{
+				PatchSpecOperations: []JSONPatchOperation{
 					{
-						"op":    "invalid",
-						"path":  "/spec/containers/0/name",
-						"value": "oz",
+						Operation: "invalid",
+						Path:      "/spec/containers/0/name",
+						Value:     patchValue,
 					},
 				},
 			}
@@ -311,11 +316,11 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 			// Basic resource with invalid json patch path
 			invalidPath := &PodTemplateSpecMutationConfig{
-				PatchSpecOperations: []map[string]string{
+				PatchSpecOperations: []JSONPatchOperation{
 					{
-						"op":    "replace",
-						"path":  "/spec/containers/name",
-						"value": "oz",
+						Operation: "replace",
+						Path:      "/spec/containers/name",
+						Value:     patchValue,
 					},
 				},
 			}

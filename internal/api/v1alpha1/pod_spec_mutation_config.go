@@ -8,6 +8,7 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -77,7 +78,7 @@ type PodTemplateSpecMutationConfig struct {
 
 	// PatchSpecOperations contains a list of JSON patch operations to apply to the PodSpec.
 	// [`JSONPatch`](https://www.rfc-editor.org/rfc/rfc6902.html)
-	PatchSpecOperations []map[string]string `json:"patchSpecOperations,omitempty"`
+	PatchSpecOperations []JSONPatchOperation `json:"patchSpecOperations,omitempty"`
 
 	// By default, Oz wipes out the PodSpec
 	// [`terminationGracePeriodSeconds`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podspec-v1-core)
@@ -125,6 +126,16 @@ type PodTemplateSpecMutationConfig struct {
 	// into the target
 	// [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
 	NodeSelector *map[string]string `json:"nodeSelector,omitempty"`
+}
+
+// JSONPatchOperation represents a JSON Patch operation defined in https://www.rfc-editor.org/rfc/rfc6902.html
+type JSONPatchOperation struct {
+	// +kubebuilder:validation:Required
+	Operation string `json:"op"`
+	// +kubebuilder:validation:Required
+	Path string `json:"path"`
+	// +kubebuilder:validation:Optional
+	Value intstr.IntOrString `json:"value,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
@@ -314,7 +325,6 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 			return n, err
 		}
 
-		logger.V(1).Info(fmt.Sprintf("Applied JSON patch operations, containerID: %d, patches: %+v", defContainerID, string(p)))
 		return podTemplateSpec, nil
 	}
 

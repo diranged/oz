@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
@@ -110,6 +111,10 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			By("Should have an PodAccessTemplate to test against")
 			cpuReq, _ := resource.ParseQuantity("1")
+			patchValue := intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "oz",
+			}
 			template = &v1alpha1.PodAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      utils.RandomString(8),
@@ -138,11 +143,11 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 								"cpu": cpuReq,
 							},
 						},
-						PatchSpecOperations: []map[string]string{
+						PatchSpecOperations: []v1alpha1.JSONPatchOperation{
 							{
-								"op":    "replace",
-								"path":  "/spec/containers/0/name",
-								"value": "oz",
+								Operation: "replace",
+								Path:      "/spec/containers/0/name",
+								Value:     patchValue,
 							},
 						},
 					},
