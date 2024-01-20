@@ -262,7 +262,7 @@ spec:
                     description: PatchSpecOperations contains a list of JSON patch
                       operations to apply to the PodSpec. [`JSONPatch`](https://www.rfc-editor.org/rfc/rfc6902.html)
                     items:
-                      description: JSONPatchOperation  represents a JSON Patch operation
+                      description: JSONPatchOperation represents a JSON Patch operation
                         defined in https://www.rfc-editor.org/rfc/rfc6902.html
                       properties:
                         op:
