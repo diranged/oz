@@ -128,10 +128,24 @@ type PodTemplateSpecMutationConfig struct {
 	NodeSelector *map[string]string `json:"nodeSelector,omitempty"`
 }
 
+// JSONPatchOperationType represents a JSON Patch operation defined in
+// https://www.rfc-editor.org/rfc/rfc6902.html. Eg, "add", "remove", etc.
+type JSONPatchOperationType string
+
+// Valid Operation Types
+const (
+	JSONPatchOperationTypeAdd     JSONPatchOperationType = "add"
+	JSONPatchOperationTypeRemove  JSONPatchOperationType = "remove"
+	JSONPatchOperationTypeReplace JSONPatchOperationType = "replace"
+	JSONPatchOperationTypeMove    JSONPatchOperationType = "move"
+	JSONPatchOperationTypeCopy    JSONPatchOperationType = "copy"
+	JSONPatchOperationTypeTest    JSONPatchOperationType = "test"
+)
+
 // JSONPatchOperation represents a JSON Patch operation defined in https://www.rfc-editor.org/rfc/rfc6902.html
 type JSONPatchOperation struct {
-	// +kubebuilder:validation:Required
-	Operation string `json:"op"`
+	// +kubebuilder:validation:Enum=add;remove;replace;move;copy;test
+	Operation JSONPatchOperationType `json:"op"`
 	// +kubebuilder:validation:Required
 	Path string `json:"path"`
 	// +kubebuilder:validation:Optional

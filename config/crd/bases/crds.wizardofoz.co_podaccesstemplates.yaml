@@ -266,6 +266,16 @@ spec:
                         defined in https://www.rfc-editor.org/rfc/rfc6902.html
                       properties:
                         op:
+                          description: JSONPatchOperationType represents a JSON Patch
+                            operation defined in https://www.rfc-editor.org/rfc/rfc6902.html.
+                            Eg, "add", "remove", etc.
+                          enum:
+                          - add
+                          - remove
+                          - replace
+                          - move
+                          - copy
+                          - test
                           type: string
                         path:
                           type: string
