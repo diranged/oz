@@ -22,5 +22,14 @@
   // https://github.com/segmentio/golines#visual-studio-code
   "emeraldwalk.runonsave": {
     "commands": [{ "match": "\\.go$", "cmd": "golines ${file} -w" }]
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/node_modules": true
   }
 }

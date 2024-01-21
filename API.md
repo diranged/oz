@@ -630,6 +630,86 @@ OzTemplateReconciler.</p>
 <p>ITemplateStatus provides a more specific Status interface for Access
 Templates. Functionality to come in the future.</p>
 </div>
+<h3 id="crds.wizardofoz.co/v1alpha1.JSONPatchOperation">JSONPatchOperation
+</h3>
+<p>
+(<em>Appears on:</em><a href="#crds.wizardofoz.co/v1alpha1.PodTemplateSpecMutationConfig">PodTemplateSpecMutationConfig</a>)
+</p>
+<div>
+<p>JSONPatchOperation represents a JSON Patch operation defined in <a href="https://www.rfc-editor.org/rfc/rfc6902.html">https://www.rfc-editor.org/rfc/rfc6902.html</a></p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>op</code><br/>
+<em>
+<a href="#crds.wizardofoz.co/v1alpha1.JSONPatchOperationType">
+JSONPatchOperationType
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>path</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>value</code><br/>
+<em>
+k8s.io/apimachinery/pkg/util/intstr.IntOrString
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="crds.wizardofoz.co/v1alpha1.JSONPatchOperationType">JSONPatchOperationType
+(<code>string</code> alias)</h3>
+<p>
+(<em>Appears on:</em><a href="#crds.wizardofoz.co/v1alpha1.JSONPatchOperation">JSONPatchOperation</a>)
+</p>
+<div>
+<p>JSONPatchOperationType represents a JSON Patch operation defined in
+<a href="https://www.rfc-editor.org/rfc/rfc6902.html">https://www.rfc-editor.org/rfc/rfc6902.html</a>. Eg, &ldquo;add&rdquo;, &ldquo;remove&rdquo;, etc.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr><td><p>&#34;add&#34;</p></td>
+<td></td>
+</tr><tr><td><p>&#34;copy&#34;</p></td>
+<td></td>
+</tr><tr><td><p>&#34;move&#34;</p></td>
+<td></td>
+</tr><tr><td><p>&#34;remove&#34;</p></td>
+<td></td>
+</tr><tr><td><p>&#34;replace&#34;</p></td>
+<td></td>
+</tr><tr><td><p>&#34;test&#34;</p></td>
+<td></td>
+</tr></tbody>
+</table>
 <h3 id="crds.wizardofoz.co/v1alpha1.PodAccessRequest">PodAccessRequest
 </h3>
 <div>
@@ -1223,7 +1303,9 @@ to <code>true.</code></p>
 <td>
 <code>patchSpecOperations</code><br/>
 <em>
-[]string
+<a href="#crds.wizardofoz.co/v1alpha1.JSONPatchOperation">
+[]JSONPatchOperation
+</a>
 </em>
 </td>
 <td>
