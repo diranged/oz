@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/argoproj/argo-rollouts v1.6.4
-	github.com/evanphx/json-patch v5.6.0+incompatible
+	github.com/evanphx/json-patch v5.8.1+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-logr/logr v1.4.1
 	github.com/ivanpirog/coloredcobra v1.0.1
