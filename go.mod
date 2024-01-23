@@ -6,6 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/argoproj/argo-rollouts v1.6.4
+	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-logr/logr v1.4.1
 	github.com/ivanpirog/coloredcobra v1.0.1
@@ -26,7 +27,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
-	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.8.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect

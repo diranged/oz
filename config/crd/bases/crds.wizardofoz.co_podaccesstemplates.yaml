@@ -258,6 +258,37 @@ spec:
                     description: If supplied, Oz will insert these [nodeSelector](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling)
                       into the target [`PodTemplateSpec`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#podtemplatespec-v1-core).
                     type: object
+                  patchSpecOperations:
+                    description: PatchSpecOperations contains a list of JSON patch
+                      operations to apply to the PodSpec. [`JSONPatch`](https://www.rfc-editor.org/rfc/rfc6902.html)
+                    items:
+                      description: JSONPatchOperation represents a JSON Patch operation
+                        defined in https://www.rfc-editor.org/rfc/rfc6902.html
+                      properties:
+                        op:
+                          description: JSONPatchOperationType represents a JSON Patch
+                            operation defined in https://www.rfc-editor.org/rfc/rfc6902.html.
+                            Eg, "add", "remove", etc.
+                          enum:
+                          - add
+                          - remove
+                          - replace
+                          - move
+                          - copy
+                          - test
+                          type: string
+                        path:
+                          type: string
+                        value:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                      required:
+                      - op
+                      - path
+                      type: object
+                    type: array
                   podAnnotations:
                     additionalProperties:
                       type: string
