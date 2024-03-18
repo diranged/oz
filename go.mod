@@ -11,7 +11,7 @@ require (
 	github.com/go-logr/logr v1.4.1
 	github.com/ivanpirog/coloredcobra v1.0.1
 	github.com/onsi/ginkgo/v2 v2.16.0
-	github.com/onsi/gomega v1.31.1
+	github.com/onsi/gomega v1.32.0
 	github.com/spf13/cobra v1.8.0
 	go.uber.org/zap v1.27.0
 	k8s.io/api v0.29.3
