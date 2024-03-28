@@ -91,7 +91,7 @@ var _ = BeforeSuite(func() {
 			Port:    webhookInstallOptions.LocalServingPort,
 			Host:    webhookInstallOptions.LocalServingHost,
 			CertDir: webhookInstallOptions.LocalServingCertDir,
-			TLSOpts: []func(*tls.Config){func(config *tls.Config) {}},
+			TLSOpts: []func(*tls.Config){func(_ *tls.Config) {}},
 		}),
 		Metrics: metricsserver.Options{BindAddress: "0"},
 	})

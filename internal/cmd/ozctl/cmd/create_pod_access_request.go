@@ -30,7 +30,7 @@ var createPodAccessRequestCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 
 	// Static validation of the inputs - cannot be used to set state in the Run function.
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(_ *cobra.Command, _ []string) error {
 		// Request name prefix must start with letters a-z, can contain dashes, and must end in a
 		// letter or number.
 		re, err := regexp.Compile(`^[a-z][a-z0-9-][a-z0-9]+`)
