@@ -34,7 +34,7 @@ func NewPodWatcherRegistration(
 		&webhook.Admission{
 			Handler: &PodWatcher{
 				Client:   mgr.GetClient(),
-				decoder:  *admission.NewDecoder(mgr.GetScheme()),
+				decoder:  admission.NewDecoder(mgr.GetScheme()),
 				recorder: mgr.GetEventRecorderFor(controllers.EventRecorderName),
 			},
 		},
