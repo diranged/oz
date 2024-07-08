@@ -47,7 +47,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --snapshot
+          args: release --snapshot --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Just to make the .goreleaser.yml pass when not using `make ..` targets.
@@ -58,7 +58,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Just to make the .goreleaser.yml pass when not using `make ..` targets.
