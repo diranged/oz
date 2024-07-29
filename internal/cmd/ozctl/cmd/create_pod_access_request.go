@@ -91,7 +91,7 @@ func init() {
 	createPodAccessRequestCmd.Flags().
 		StringVarP(&waitTime, "wait", "w", "5m", "Duration to wait for the access request to be fully ready. Valid time units are: ns, us, ms, s, m, h.")
 	createPodAccessRequestCmd.Flags().
-		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
+		StringVarP(&requestNamePrefix, "request-name", "N", fmt.Sprintf("oz-%s", usernameEnv), "Prefix name to use when creating the `AccessRequest` objects.")
 
 	kubeConfigFlags.AddFlags(createPodAccessRequestCmd.Flags())
 
