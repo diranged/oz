@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.2
 
 require (
-	github.com/argoproj/argo-rollouts v1.7.1
+	github.com/argoproj/argo-rollouts v1.7.2
 	github.com/evanphx/json-patch v5.9.0+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/go-logr/logr v1.4.2
