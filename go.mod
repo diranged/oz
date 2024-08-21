@@ -10,7 +10,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/go-logr/logr v1.4.2
 	github.com/ivanpirog/coloredcobra v1.0.1
-	github.com/onsi/ginkgo/v2 v2.20.0
+	github.com/onsi/ginkgo/v2 v2.20.1
 	github.com/onsi/gomega v1.34.1
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
