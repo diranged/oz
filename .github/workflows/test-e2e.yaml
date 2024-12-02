@@ -11,10 +11,12 @@ jobs:
       max-parallel: 4
       matrix:
         kindVersion:
-          - v1.29.0
-          - v1.28.0
-          - v1.27.3
-          - v1.26.3
+          - v1.31.2
+          - v1.30.4
+          - v1.29.7
+          - v1.28.9
+          - v1.27.16
+          - v1.26.14
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
