@@ -1,4 +1,13 @@
 {{ template "chart.header" . }}
+
+## Repository Setup
+
+    $ helm repo add oz https://diranged.github.io/oz
+    $ helm repo update
+    $ helm search repo oz
+    NAME                        CHART VERSION   APP VERSION     DESCRIPTION
+    oz/oz       	0.5.2        	0.5.2      	Installation for the Oz RBAC Controller
+
 {{ template "chart.deprecationWarning" . }}
 
 {{ template "chart.badgesSection" . }}

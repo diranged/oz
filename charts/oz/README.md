@@ -1,5 +1,13 @@
 # oz
 
+## Repository Setup
+
+    $ helm repo add oz https://diranged.github.io/oz
+    $ helm repo update
+    $ helm search repo oz
+    NAME                        CHART VERSION   APP VERSION     DESCRIPTION
+    oz/oz       	0.5.2        	0.5.2      	Installation for the Oz RBAC Controller
+
 ![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
 Installation for the Oz RBAC Controller
