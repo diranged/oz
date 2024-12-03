@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/diranged/oz
-  newTag: 0.0.1
+  newTag: 0.4.3
