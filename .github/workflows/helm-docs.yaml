@@ -4,6 +4,8 @@ on:
 jobs:
   helm-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -13,3 +15,20 @@ jobs:
 
       - name: Run helm-docs
         run: make helm-docs
+
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code || echo "self_mutation_happened=true" >> "$GITHUB_OUTPUT"
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.self_mutation.outputs.self_mutation_happened
+        with:
+          commit_message: Automated Commit
+
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
+          exit 1
