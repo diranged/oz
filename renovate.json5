@@ -15,5 +15,13 @@
   "automergeType": "pr",
   "platformAutomerge": true,
   "prConcurrentLimit": 1,
-  "prHourlyLimit": 1
+  "prHourlyLimit": 1,
+  "packageRules": [
+    {
+      "enabled": false,
+      "matchDepTypes": ["Kustomization"],
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["ghcr.io/diranged/oz"],
+    }
+  ]
 }
