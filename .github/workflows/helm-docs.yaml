@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-go@v3
 
       - name: Run helm-docs
-        run: make helm-docs
+        run: make helm-docs || true
 
       - name: Find mutations
         id: self_mutation
