@@ -55,7 +55,7 @@ spec:
       {{- end }}
       containers:
       - name: kube-rbac-proxy
-        image: {{ .Values.controllerManager.kubeRbacProxy.image.repository }}:{{ .Values.controllerManager.kubeRbacProxy.image.tag | default .Chart.version .Chart.AppVersion }}
+        image: {{ .Values.controllerManager.kubeRbacProxy.image.repository }}:{{ .Values.controllerManager.kubeRbacProxy.image.tag }}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -82,7 +82,7 @@ spec:
         {{- end }}
 
       - name: manager
-        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.AppVersion }}
+        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.Version }}
         command:
           - /manager
         args:

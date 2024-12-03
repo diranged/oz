@@ -38,8 +38,8 @@ helm.sh/chart: {{ include "oz.chart" . }}
 app.kubernetes.io/created-by: oz
 app.kubernetes.io/part-of: oz
 {{ include "oz.selectorLabels" . }}
-{{- if .Chart.version }}
-app.kubernetes.io/version: {{ .Chart.version | quote }}
+{{- with .Chart.Version }}
+app.kubernetes.io/version: {{ . | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
