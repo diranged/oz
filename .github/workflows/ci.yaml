@@ -54,11 +54,11 @@ jobs:
       publish: false
 
   helm-docs:
-    needs: build
+    needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/helm-docs.yaml
 
   helm-test:
-    needs: build
+    needs: detect-noop
     if: needs.detect-noop.outputs.noop != 'true'
     uses: ./.github/workflows/helm-test.yaml
