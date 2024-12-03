@@ -22,7 +22,7 @@ jobs:
           NEW_VERSION="${{ github.event.release.tag_name }}"
           sed -i "s/^version:.*/version: $NEW_VERSION/" charts/oz/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: $NEW_VERSION/" charts/oz/Chart.yaml
-          make helm-docs
+          make helm-docs || true
 
       - name: Install Helm
         uses: azure/setup-helm@v3
