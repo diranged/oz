@@ -4,12 +4,29 @@ on:
 jobs:
   helm-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # required for ct helm tool
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Set up Go
         uses: actions/setup-go@v3
 
       - name: Run helm-docs
-        run: make helm-docs
+        run: make helm-docs || true
+
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code || echo "self_mutation_happened=true" >> "$GITHUB_OUTPUT"
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.self_mutation.outputs.self_mutation_happened
+        with:
+          commit_message: Automated Commit
