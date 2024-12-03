@@ -1,0 +1,60 @@
+{{- if .Values.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "oz.fullname" . }}-view-access
+  labels:
+    {{- toYaml .Values.rbac.viewAccess.aggregateTo | nindent 4 }}
+rules:
+  - apiGroups:
+      - crds.wizardofoz.co
+    resources:
+      - execaccessrequests
+      - execaccesstemplates
+      - podaccessrequests
+      - podaccesstemplates
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "oz.fullname" . }}-template-manager-role
+  labels:
+    {{- toYaml .Values.rbac.templateManager.aggregateTo | nindent 4 }}
+rules:
+  - apiGroups:
+      - crds.wizardofoz.co
+    resources:
+      - execaccesstemplates
+      - podaccesstemplates
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "oz.fullname" . }}-request-access
+  labels:
+    {{- toYaml .Values.rbac.requestAccess.aggregateTo | nindent 4 }}
+rules:
+  - apiGroups:
+      - crds.wizardofoz.co
+    resources:
+      - execaccessrequests
+      - podaccessrequests
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+{{- end }}

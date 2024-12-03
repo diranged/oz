@@ -1,0 +1,140 @@
+controllerManager:
+  # -- (`int`) Number of Oz Controllers to run. If more than one is used,
+  # leader-election is used to ensure only one controller is operating at a
+  # time.
+  replicas: 1
+
+  # -- (`[]map]`) A list of Tolerations that will be applied to the
+  # controller-manager pods. See https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/.
+  tolerations: []
+
+  # -- (`map`) A nodeSepector to apply to the controller-manager pods. See
+  # https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/.
+  nodeSelector:
+
+  manager:
+    image:
+      # -- (`string`) Docker Image repository and name to use for the controller.
+      repository: ghcr.io/diranged/oz
+
+      # -- (`string`) If set, overrides the .Chart.AppVersion field to set the
+      # target image version for the Oz controller.
+      tag:
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+  kubeRbacProxy:
+    image:
+      repository: gcr.io/kubebuilder/kube-rbac-proxy
+      tag: v0.13.0
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 5m
+        memory: 64Mi
+
+# Configuration for the oz-controller-manager-metrics-service, used for
+# collecting metrics from the controller.
+metricsService:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: https
+
+# Configuration for the oz-controller-manager-webhook-service, used for
+# handling ValidatingWebhookConfiguration and MutatingWebhookConfiguration
+# calls from the Kubernetes API.
+webhookService:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: webhook-server
+
+# Configuration for the ValidatingWebhookConfiguration and
+# MutatingWebhookConfiguration resources, along with certificates and other
+# dependencies.
+webhook:
+  # -- (`bool`) Whether or not to create the `Certificate` and
+  # `ValidatingWebhookConfiguration` and `MutatingWebhookConfiguration`
+  # resources or not. If not, significant audit and granular permissions
+  # functionality of *Oz* will be lost.
+  create: true
+
+  secret:
+    # -- (`string`) Configures the name of a Secret (type: `kubernetes.io/tls`)
+    # within the Namespace that holds a valid private key, certificate and CA
+    # bundle. The default behavior is for this to be created by a third party
+    # plugin (https://cert-manager.io/) that is extremely common and considered
+    # the defacto standard for certificate management within Kubernetes.
+    name: oz-serving-cert
+
+  # -- (`bool`) By default, use the [Cert-Manager](https://cert-manager.io) to
+  # manage `Certificate` and `Issuer` resouces, which will ultimately populate
+  # the `Secret` for the manager service. If you disable this, you must
+  # populate the `Secret` yourself.
+  certManager: true
+
+  # Settings to configure the optional
+  # [`PodExecWatcher`](https://github.com/diranged/oz/blob/main/controllers/pod_watcher.go).
+  # This additional ValidatingWebhookConfiguration tracks `CREATE`, `UPDATE`
+  # and `CONNECT` calls to the `pods/exec` and `pods/attach` resources. The
+  # purpose is to provide audit logging and (in the future) additional identity
+  # verification to a Pod when a person logs into the pod via the `kubectl
+  # exec` command.
+  #
+  # This is an optional feature - but disabling it may limit the functionality
+  # of the Oz controller.
+  podExecWatcher:
+    # -- (`bool`) Whether or not to create the webhook configuration.
+    create: true
+
+    # -- (`string`) Either `Fail` or `Ignore`. Defines what happens to an
+    # `Exec` request if the Webhook endpoint fails to respond.
+    failurePolicy: Fail
+
+# -- (`string`) Configures the KUBERNETES_CLUSTER_DOMAIN environment variable.
+kubernetesClusterDomain: cluster.local
+
+rbac:
+  # -- (`bool`) If true, the chart will create aggregated roles for accessing
+  # the access templates and access request resources.
+  create: true
+
+  viewAccess:
+    # -- (`map`) These labels are applied to the "view-access" ClusterRole and
+    # are used to define how to aggregate up the privileges to your RBAC
+    # system. The default settings here are reasonably sane.
+    aggregateTo:
+      rbac.authorization.k8s.io/aggregate-to-view: "true"
+      rbac.authorization.k8s.io/aggregate-to-edit: "true"
+      rbac.authorization.k8s.io/aggregate-to-admin: "true"
+
+  templateManager:
+    # -- (`map`) These labels are applied to the "template-manager"
+    # ClusterRole and are used to define how to aggregate up the privileges
+    # for managing Access Templates.
+    aggregateTo:
+      rbac.authorization.k8s.io/aggregate-to-edit: "true"
+      rbac.authorization.k8s.io/aggregate-to-admin: "true"
+
+  requestAccess:
+    # -- (`map`) These labels are applied to the "request-access" ClusterRole
+    # and are intended to grant developers the permission to make an Access
+    # Request. These can be fairly widely granted because the true permissions
+    # for who has access to use an Access Request are defined in the Access
+    # Template resouces themselves.
+    aggregateTo:
+      rbac.authorization.k8s.io/aggregate-to-edit: "true"
+      rbac.authorization.k8s.io/aggregate-to-admin: "true"

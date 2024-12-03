@@ -1,0 +1,18 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: ExecAccessTemplate
+metadata:
+  name: deployment-example
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "0"
+spec:
+  accessConfig:
+    maxDuration: 2h
+    defaultDuration: 1h
+    allowedGroups:
+      - admins
+      - devs
+  controllerTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example

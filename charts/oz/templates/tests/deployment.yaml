@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "-1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      oz-examples: example
+  template:
+    metadata:
+      labels:
+        oz-examples: example
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx

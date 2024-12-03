@@ -12,3 +12,7 @@ jobs:
     uses: ./.github/workflows/publish.yaml
     with:
       publish: true
+
+  helm-publish:
+    needs: publish
+    uses: ./.github/workflows/helm-release.yaml
