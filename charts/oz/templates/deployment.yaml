@@ -82,7 +82,7 @@ spec:
         {{- end }}
 
       - name: manager
-        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.Version }}
+        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.Version .Chart.AppVersion }}
         command:
           - /manager
         args:
