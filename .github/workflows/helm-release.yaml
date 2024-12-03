@@ -1,0 +1,39 @@
+name: Helm Chart Release
+
+on:
+  workflow_call: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Update Helm Chart version
+        run: |
+          NEW_VERSION="${{ github.event.release.tag_name }}"
+          sed -i "s/^version:.*/version: $NEW_VERSION/" charts/oz/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: $NEW_VERSION/" charts/oz/Chart.yaml
+          make helm-docs
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 3.10.2
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: charts
+        env:
+          CR_SKIP_EXISTING: "true"
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NAME_TEMPLATE: "oz-chart-{{ .Version }}"

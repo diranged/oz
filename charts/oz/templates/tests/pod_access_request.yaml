@@ -1,0 +1,10 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: PodAccessRequest
+metadata:
+  name: deployment-example
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+spec:
+  templateName: deployment-example
+  duration: 5m

@@ -30,3 +30,6 @@ dist
 *.swp
 *.swo
 *~
+
+# chart releaser
+.cr-release-packages

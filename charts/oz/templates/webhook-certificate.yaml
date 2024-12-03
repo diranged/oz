@@ -1,0 +1,29 @@
+{{- if and .Values.webhook.create .Values.webhook.certManager }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "oz.fullname" . }}-serving-cert
+  labels:
+    app.kubernetes.io/component: certificate
+    {{- include "oz.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oz.fullname" . }}-serving-cert
+  labels:
+    app.kubernetes.io/component: certificate
+    {{- include "oz.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.webhook.secret.name }}
+  issuerRef:
+    kind: Issuer
+    name: {{ include "oz.fullname" . }}-serving-cert
+  dnsNames:
+  - {{ include "oz.fullname" . }}-controller-manager-webhook-service.{{ .Release.Namespace }}.svc
+  - {{ include "oz.fullname" . }}-controller-manager-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
