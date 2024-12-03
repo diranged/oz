@@ -1,7 +1,0 @@
-apiVersion: crds.wizardofoz.co/v1alpha1
-kind: PodAccessRequest
-metadata:
-  name: deployment-example
-spec:
-  templateName: deployment-example
-  duration: 5m
