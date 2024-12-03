@@ -26,6 +26,12 @@
     },
 
     {
+      "groupName": "k8s.io",
+      "matchDatasources": ["go"],
+      "matchPackageNames": ["k8s.io/*", "sigs.k8s.io/*"]
+    },
+
+    {
       "enabled": false,
       "matchDepTypes": ["Kustomization"],
       "matchDatasources": ["docker"],
