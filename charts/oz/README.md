@@ -33,7 +33,7 @@ Kubernetes: `>=1.26.0-0`
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | controllerManager.kubeRbacProxy.image.repository | string | `"gcr.io/kubebuilder/kube-rbac-proxy"` |  |
-| controllerManager.kubeRbacProxy.image.tag | string | `"v0.13.1"` |  |
+| controllerManager.kubeRbacProxy.image.tag | string | `"v0.16.0"` |  |
 | controllerManager.kubeRbacProxy.resources.limits.cpu | string | `"500m"` |  |
 | controllerManager.kubeRbacProxy.resources.limits.memory | string | `"128Mi"` |  |
 | controllerManager.kubeRbacProxy.resources.requests.cpu | string | `"5m"` |  |
