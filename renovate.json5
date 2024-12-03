@@ -18,6 +18,14 @@
   "prHourlyLimit": 1,
   "packageRules": [
     {
+      "matchDatasources": ["go"],
+      "postUpdateOptions": ["gomodTidy"],
+      "gomod": {
+        "enabled": true
+      }
+    },
+
+    {
       "enabled": false,
       "matchDepTypes": ["Kustomization"],
       "matchDatasources": ["docker"],
