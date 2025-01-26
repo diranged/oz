@@ -30,7 +30,7 @@ jobs:
           infile: cover.out
 
       - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v2.3.4
+        uses: coverallsapp/github-action@v2.3.6
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
