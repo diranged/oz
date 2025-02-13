@@ -2,6 +2,28 @@ apiVersion: v1
 entries:
   oz:
   - apiVersion: v2
+    appVersion: 0.5.7
+    created: "2025-02-13T03:55:09.498284173Z"
+    description: Installation for the Oz RBAC Controller
+    digest: b2c8deac4d1d013f2da9c96c8c1f9b47d9f297d01fc1642c9eabe7312f52eaa5
+    home: https://github.com/diranged/oz
+    keywords:
+    - rbac
+    - kubernetes
+    - oz
+    - exec
+    - kubectl
+    kubeVersion: '>=1.26.0-0'
+    maintainers:
+    - name: diranged
+      url: https://github.com/diranged
+    name: oz
+    sources:
+    - https://github.com/diranged/oz
+    urls:
+    - https://github.com/diranged/oz/releases/download/oz-chart-0.5.7/oz-0.5.7.tgz
+    version: 0.5.7
+  - apiVersion: v2
     appVersion: 0.5.6
     created: "2025-01-21T18:46:17.423037408Z"
     description: Installation for the Oz RBAC Controller
@@ -111,4 +133,4 @@ entries:
     urls:
     - https://github.com/diranged/oz/releases/download/oz-chart-0.5.2/oz-0.5.2.tgz
     version: 0.5.2
-generated: "2025-01-21T18:46:17.423063667Z"
+generated: "2025-02-13T03:55:09.498316033Z"
