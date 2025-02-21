@@ -78,8 +78,10 @@ var _ = Describe("Defaulter Handler", func() {
 	})
 
 	It("should panic if no object passed in", func() {
+		f := false
 		handler := &admission.Webhook{
-			Handler: &defaulterForType{object: nil, decoder: admission.NewDecoder(scheme.Scheme)},
+			Handler:      &defaulterForType{object: nil, decoder: admission.NewDecoder(scheme.Scheme)},
+			RecoverPanic: &f,
 		}
 		Expect(func() {
 			handler.Handle(context.TODO(), admission.Request{

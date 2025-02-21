@@ -1,20 +1,26 @@
 # Add 'repo' label to any root file changes
 repo:
-- '*'
+- changed-files:
+  - any-glob-to-any-file: '*'
 
 github_actions:
-- '.github/**/*'
+- changed-files:
+  - any-glob-to-any-file: '.github/**/*'
 
 build:
-- '.github/*'
-- Makefile
-- Common.mk
-- go.mod
-- go.sum
+- changed-files:
+  - any-glob-to-any-file: '.github/*'
+  - any-glob-to-any-file: Makefile
+  - any-glob-to-any-file: Common.mk
+  - any-glob-to-any-file: go.mod
+  - any-glob-to-any-file: go.sum
 
 documentation:
-- '*.md'
-- '**/*.md'
-
+- changed-files:
+  - any-glob-to-any-file: '*.md'
+  - any-glob-to-any-file: '**/*.md'
+  
 go:
-- '*.go'
+- changed-files:
+  - any-glob-to-any-file: '*.go'
+  - any-glob-to-any-file: '**/*.go'

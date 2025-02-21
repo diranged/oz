@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
@@ -110,6 +111,10 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			By("Should have an PodAccessTemplate to test against")
 			cpuReq, _ := resource.ParseQuantity("1")
+			patchValue := intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "oz",
+			}
 			template = &v1alpha1.PodAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      utils.RandomString(8),
@@ -136,6 +141,13 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
 								"cpu": cpuReq,
+							},
+						},
+						PatchSpecOperations: []v1alpha1.JSONPatchOperation{
+							{
+								Operation: "replace",
+								Path:      "/spec/containers/0/name",
+								Value:     patchValue,
 							},
 						},
 					},
@@ -238,6 +250,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(foundPod.GetOwnerReferences()).ToNot(BeNil())
 			Expect(foundPod.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
 			Expect(foundPod.Spec.Containers[0].Args[0]).To(Equal("100"))
+			Expect(foundPod.Spec.Containers[0].Name).To(Equal("oz"))
 
 			// VERIFY: Role Created as expected
 			foundRole := &rbacv1.Role{}

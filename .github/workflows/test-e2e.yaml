@@ -11,19 +11,20 @@ jobs:
       max-parallel: 4
       matrix:
         kindVersion:
-          - v1.26.3
-          - v1.25.3
-          - v1.24.7
-          - v1.23.13
-          - v1.22.13
+          - v1.31.2
+          - v1.30.4
+          - v1.29.7
+          - v1.28.9
+          - v1.27.16
+          - v1.26.14
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
@@ -32,10 +33,10 @@ jobs:
         uses: ./.github/actions/setup-go
 
       - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
+        uses: helm/kind-action@v1.12.0
         with:
           node_image: kindest/node:${{ matrix.kindVersion }}
-          kubectl_version: v1.26.3
+          kubectl_version: v1.28.0
 
       - name: Run E2E Tests
         run: make test-e2e

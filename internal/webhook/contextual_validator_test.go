@@ -222,8 +222,10 @@ var _ = Describe("Validator Handler", func() {
 	})
 
 	It("should panic if no object passed in", func() {
+		f := false
 		handler := &admission.Webhook{
-			Handler: &validatorForType{object: nil},
+			Handler:      &validatorForType{object: nil},
+			RecoverPanic: &f,
 		}
 		Expect(func() {
 			handler.Handle(context.TODO(), admission.Request{

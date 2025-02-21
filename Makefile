@@ -1,3 +1,7 @@
+# Tool Binaries
+HELM_DOCS_VER ?= v1.11.0
+HELM_DOCS     ?= $(LOCALBIN)/helm-docs
+
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
@@ -63,6 +67,19 @@ SHELL = /usr/bin/env bash -o pipefail
 
 .PHONY: all
 all: build
+
+##@ Docs
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(@)
+
+$(HELM_DOCS): $(LOCALBIN) Makefile
+	GO111MODULE=on GOBIN=$(LOCALBIN) go install github.com/norwoodj/helm-docs/cmd/helm-docs@$(HELM_DOCS_VER)
+
+.PHONY: helm-docs
+helm-docs: $(HELM_DOCS)
+	$(HELM_DOCS)
+	git diff --exit-code
 
 ##@ General
 
@@ -183,8 +200,8 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_TOOLS_VERSION ?= v0.10.0
+KUSTOMIZE_VERSION ?= v5.5.0
+CONTROLLER_TOOLS_VERSION ?= v0.16.5
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize

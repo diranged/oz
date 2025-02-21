@@ -33,7 +33,10 @@ spec:
       capabilities:
         add:
           - SYS_PTRACE
-
+    patchSpecOperations:
+      - op: replace
+        path: '/spec/containers/0/name'
+        value: dennis
   maxMemory: 1Gi
   maxCpu: 1
   maxStorage: 1Gi

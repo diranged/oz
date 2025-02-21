@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Fetch History
         run: git fetch --prune --unshallow
@@ -30,7 +30,7 @@ jobs:
           infile: cover.out
 
       - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v2.2.1
+        uses: coverallsapp/github-action@v2.3.6
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov

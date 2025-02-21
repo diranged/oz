@@ -1,0 +1,30 @@
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: PodAccessTemplate
+metadata:
+  name: deployment-example
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "0"
+spec:
+  accessConfig:
+    maxDuration: 2h
+    defaultDuration: 1h
+    allowedGroups:
+      - admins
+      - devs
+  controllerTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example
+  controllerTargetMutationConfig:
+    command: [/bin/sleep, '999999']
+    env:
+      - name: FOO
+        value: bar
+    resources:
+      requests:
+        memory: 10Mi
+        cpu: 10m
+  maxMemory: 1Gi
+  maxCpu: 1
+  maxStorage: 1Gi

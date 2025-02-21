@@ -2,7 +2,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
 - apiGroups:
@@ -46,83 +45,8 @@ rules:
   - crds.wizardofoz.co
   resources:
   - execaccessrequests
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - execaccessrequests/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - execaccessrequests/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
   - execaccesstemplates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - execaccesstemplates/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - execaccesstemplates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
   - podaccessrequests
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - podaccessrequests/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
-  - podaccessrequests/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - crds.wizardofoz.co
-  resources:
   - podaccesstemplates
   verbs:
   - create
@@ -135,12 +59,18 @@ rules:
 - apiGroups:
   - crds.wizardofoz.co
   resources:
+  - execaccessrequests/finalizers
+  - execaccesstemplates/finalizers
+  - podaccessrequests/finalizers
   - podaccesstemplates/finalizers
   verbs:
   - update
 - apiGroups:
   - crds.wizardofoz.co
   resources:
+  - execaccessrequests/status
+  - execaccesstemplates/status
+  - podaccessrequests/status
   - podaccesstemplates/status
   verbs:
   - get

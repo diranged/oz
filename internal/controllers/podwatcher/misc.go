@@ -12,12 +12,11 @@ import (
 func getPod(req admission.Request) *corev1.Pod {
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: req.Name,
+			Name:      req.Name,
 			Namespace: req.Namespace,
 		},
-	};
+	}
 }
-
 
 // ObjectToJSON is a quick helper function for pretty-printing an entire K8S object in JSON form.
 // Used in certain debug log statements primarily.

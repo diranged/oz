@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("PodSpecMutationConfig", Ordered, func() {
@@ -276,6 +277,57 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 					"selector": "value",
 				},
 			))
+		})
+
+		It("PatchPodTemplateSpec should apply JSON patches if patchSpecOperations is supplied", func() {
+			// Basic resource with patchSpecOperations
+			patchValue := intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "oz",
+			}
+			config := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []JSONPatchOperation{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/name",
+						Value:     patchValue,
+					},
+				},
+			}
+
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: json patch replaced container name
+			Expect(ret.Spec.Containers[0].Name).To(Equal("oz"))
+
+			// Basic resource with invalid json patch operation
+			invalidOp := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []JSONPatchOperation{
+					{
+						Operation: "invalid",
+						Path:      "/spec/containers/0/name",
+						Value:     patchValue,
+					},
+				},
+			}
+
+			_, err = invalidOp.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(HaveOccurred())
+
+			// Basic resource with invalid json patch path
+			invalidPath := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []JSONPatchOperation{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/name",
+						Value:     patchValue,
+					},
+				},
+			}
+
+			_, err = invalidPath.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("PatchPodTemplateSpec should add node selectors if requested (initially present)", func() {

@@ -14,7 +14,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/diranged/oz/badge.svg?branch=main)](https://coveralls.io/github/diranged/oz?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/diranged/oz)](https://goreportcard.com/report/github.com/diranged/oz)
 
-_The Wizard of Oz_: The "Great and Powerfull Oz", or also known as the "man
+_The Wizard of Oz_: The "Great and Powerful Oz", or also known as the "man
 behind the curtain."
 
 **"Oz RBAC Controller"** is a Kubernetes operator that provides short-term
@@ -24,7 +24,7 @@ carefully creating `Roles`, `RoleBindings` and `Pods` on-demand that enable
 developers to quickly get their jobs done, and administrators to ensure that
 the principal of least privilege is honored.
 
-**Oz** primarly works with two resource constructs - **Access Requests** and
+**Oz** primarily works with two resource constructs - **Access Requests** and
 **Access Templates**.
 
 **Access Templates** are defined by the cluster operators or application owners
@@ -266,7 +266,7 @@ spec:
       - name: FOO
         value: bar
 
-    # Override the default resources requested 
+    # Override the default resources requested
     resources:
       limits:
         memory: 2Gi
@@ -274,6 +274,12 @@ spec:
       requests:
         memory: 512Mi
         cpu: 0
+
+    # patchSpecOperations contains a list of JSON patch operations to apply to the PodSpec.
+    patchSpecOperations:
+      - op: replace
+        path: '/spec/containers/0/name'
+        value: oz
 
   # The maximum memory a PodAccessRequest can request?
   #

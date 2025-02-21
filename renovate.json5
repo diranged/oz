@@ -1,0 +1,41 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":automergePr",
+    ":automergePatch",
+    ":automergeRequireAllStatusChecks"
+  ],
+  "gitIgnoredAuthors": [
+    "29139614+renovate[bot]@users.noreply.github.com",
+    "renovate[bot]@users.noreply.github.com"
+  ],
+  "rebaseWhen": "behind-base-branch",
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": true,
+  "prConcurrentLimit": 1,
+  "prHourlyLimit": 1,
+  "gomod": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["go"],
+      "postUpdateOptions": ["gomodTidy"],
+    },
+
+    {
+      "groupName": "k8s.io",
+      "matchDatasources": ["go"],
+      "matchPackageNames": ["k8s.io/*", "sigs.k8s.io/*"]
+    },
+
+    {
+      "enabled": false,
+      "matchDepTypes": ["Kustomization"],
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["ghcr.io/diranged/oz"],
+    }
+  ]
+}
