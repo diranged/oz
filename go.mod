@@ -1,11 +1,11 @@
 module github.com/diranged/oz
 
-go 1.23.0
+go 1.23.4
 
 toolchain go1.24.1
 
 require (
-	github.com/argoproj/argo-rollouts v1.8.0
+	github.com/argoproj/argo-rollouts v1.8.1
 	github.com/evanphx/json-patch v5.9.11+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/go-logr/logr v1.4.2

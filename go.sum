@@ -1,7 +1,7 @@
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25UVaW/CKtUDjefjrs0SPonmDGUVOYP0=
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
-github.com/argoproj/argo-rollouts v1.8.0 h1:a427nBeVPMEdYnO9YpELV1mc4yhO9BLZLuTvq2QX8Ps=
-github.com/argoproj/argo-rollouts v1.8.0/go.mod h1:/pGTE0Y8j3rkRXkL08vVngkvSw2oDLwKFcHj077a4SA=
+github.com/argoproj/argo-rollouts v1.8.1 h1:2l6CKTQngIq2r4Ea3nQ4A6TnXqbLYU9Vo1UNDpoOPGg=
+github.com/argoproj/argo-rollouts v1.8.1/go.mod h1:xZIw+dg+B4IqMv5fNPenIBUiPb9xljL2st1xxkjhaC0=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
