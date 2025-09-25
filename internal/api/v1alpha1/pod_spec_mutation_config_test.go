@@ -1,13 +1,14 @@
 package v1alpha1
 
 import (
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("PodSpecMutationConfig", Ordered, func() {
@@ -280,10 +281,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 		It("PatchPodTemplateSpec should apply JSON patches if patchSpecOperations is supplied", func() {
 			// Basic resource with patchSpecOperations
-			patchValue := intstr.IntOrString{
-				Type:   intstr.String,
-				StrVal: "oz",
-			}
+			patchValue := json.RawMessage(`"oz"`)
 			config := &PodTemplateSpecMutationConfig{
 				PatchSpecOperations: []JSONPatchOperation{
 					{
@@ -327,6 +325,60 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 			_, err = invalidPath.PatchPodTemplateSpec(ctx, podTemplateSpec)
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("PatchPodTemplateSpec should apply JSON patch 'add' operation with array values", func() {
+			// Test RFC 6902 compliance - add operation with array value
+			arrayValue := json.RawMessage(`[{"name": "PORT1", "containerPort": 8080}, {"name": "PORT2", "containerPort": 9090}]`)
+			config := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []JSONPatchOperation{
+					{
+						Operation: "add",
+						Path:      "/spec/containers/0/ports",
+						Value:     arrayValue,
+					},
+				},
+			}
+
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: json patch added array of ports to container
+			Expect(len(ret.Spec.Containers[0].Ports)).To(Equal(2))
+			Expect(ret.Spec.Containers[0].Ports[0].Name).To(Equal("PORT1"))
+			Expect(ret.Spec.Containers[0].Ports[0].ContainerPort).To(Equal(int32(8080)))
+			Expect(ret.Spec.Containers[0].Ports[1].Name).To(Equal("PORT2"))
+			Expect(ret.Spec.Containers[0].Ports[1].ContainerPort).To(Equal(int32(9090)))
+		})
+
+		It("PatchPodTemplateSpec should apply JSON patch 'add' operation with object and numeric values", func() {
+			// Test RFC 6902 compliance - add operation with object and numeric values
+			config := &PodTemplateSpecMutationConfig{
+				PatchSpecOperations: []JSONPatchOperation{
+					{
+						Operation: "add",
+						Path:      "/spec/containers/0/resources",
+						Value:     json.RawMessage(`{"limits": {"cpu": "500m", "memory": "128Mi"}, "requests": {"cpu": "100m", "memory": "64Mi"}}`),
+					},
+					{
+						Operation: "add",
+						Path:      "/spec/activeDeadlineSeconds",
+						Value:     json.RawMessage(`3600`),
+					},
+				},
+			}
+
+			ret, err := config.PatchPodTemplateSpec(ctx, podTemplateSpec)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// VERIFY: json patch added object value (resources)
+			Expect(ret.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("500m"))
+			Expect(ret.Spec.Containers[0].Resources.Limits.Memory().String()).To(Equal("128Mi"))
+			Expect(ret.Spec.Containers[0].Resources.Requests.Cpu().String()).To(Equal("100m"))
+			Expect(ret.Spec.Containers[0].Resources.Requests.Memory().String()).To(Equal("64Mi"))
+
+			// VERIFY: json patch added numeric value (activeDeadlineSeconds)
+			Expect(*ret.Spec.ActiveDeadlineSeconds).To(Equal(int64(3600)))
 		})
 
 		It("PatchPodTemplateSpec should add node selectors if requested (initially present)", func() {

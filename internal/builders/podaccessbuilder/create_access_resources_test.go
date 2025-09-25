@@ -2,6 +2,7 @@ package podaccessbuilder
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -14,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
@@ -111,10 +111,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 
 			By("Should have an PodAccessTemplate to test against")
 			cpuReq, _ := resource.ParseQuantity("1")
-			patchValue := intstr.IntOrString{
-				Type:   intstr.String,
-				StrVal: "oz",
-			}
+			patchValue := json.RawMessage(`"oz"`)
 			template = &v1alpha1.PodAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      utils.RandomString(8),
