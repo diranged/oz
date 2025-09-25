@@ -8,7 +8,6 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -148,8 +147,10 @@ type JSONPatchOperation struct {
 	Operation JSONPatchOperationType `json:"op"`
 	// +kubebuilder:validation:Required
 	Path string `json:"path"`
+	// Value holds the value to be used by the JSON patch operation.
+	// This can be any valid JSON value: string, number, boolean, array, object, or null.
 	// +kubebuilder:validation:Optional
-	Value intstr.IntOrString `json:"value,omitempty"`
+	Value json.RawMessage `json:"value,omitempty"`
 }
 
 // getDefaultContainerID returns the numerical identifier of the container within the
