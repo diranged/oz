@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders/execaccessbuilder/podselection"
+	"github.com/diranged/oz/internal/builders/execaccessbuilder/internal"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
 	"github.com/diranged/oz/internal/testing/utils"
 )
@@ -33,7 +33,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 		)
 
 		// For Envtest
-		podselection.PodPhaseRunning = "Pending"
+		internal.PodPhaseRunning = "Pending"
 
 		BeforeAll(func() {
 			By("Should have a namespace to execute tests in")

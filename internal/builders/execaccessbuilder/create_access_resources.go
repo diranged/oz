@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders/execaccessbuilder/podselection"
+	"github.com/diranged/oz/internal/builders/execaccessbuilder/internal"
 	"github.com/diranged/oz/internal/builders/utils"
 )
 
@@ -26,7 +26,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	execTmpl := tmpl.(*v1alpha1.ExecAccessTemplate)
 
 	// Get the target Pod Name that the user is going to have access to
-	targetPod, err := podselection.GetPod(ctx, client, execReq, execTmpl)
+	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
 	if err != nil {
 		return statusString, err
 	}
