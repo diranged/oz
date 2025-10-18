@@ -9,7 +9,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders/utils"
+	bldutil "github.com/diranged/oz/internal/builders/utils"
 )
 
 func getSpecificPod(
@@ -22,7 +22,7 @@ func getSpecificPod(
 	log.Info(fmt.Sprintf("Looking for Pod %s", podName))
 
 	// https://medium.com/coding-kubernetes/using-k8s-label-selectors-in-go-the-right-way-733cde7e8630
-	selector, err := utils.GetSelectorLabels(ctx, cl, tmpl)
+	selector, err := bldutil.GetSelectorLabels(ctx, cl, tmpl)
 	if err != nil {
 		log.Error(err, "Failed to find label selector, cannot automatically discover pods")
 		return nil, err

@@ -10,7 +10,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/builders/utils"
+	bldutil "github.com/diranged/oz/internal/builders/utils"
 )
 
 // CreateAccessResources implements the IBuilder interface
@@ -28,7 +28,7 @@ func (b *PodAccessBuilder) CreateAccessResources(
 	podTmpl := tmpl.(*v1alpha1.PodAccessTemplate)
 
 	// First, get the desired PodSpec. If there's a failure at this point, return it.
-	podTemplateSpec, err := utils.GetPodTemplateFromController(ctx, client, tmpl)
+	podTemplateSpec, err := bldutil.GetPodTemplateFromController(ctx, client, tmpl)
 	if err != nil {
 		log.Error(err, "Failed to generate PodSpec for PodAccessRequest")
 		return "", err
@@ -45,7 +45,7 @@ func (b *PodAccessBuilder) CreateAccessResources(
 	}
 
 	// Generate a Pod for the user to access
-	pod, err := utils.CreatePod(ctx, client, podReq, podTemplateSpec)
+	pod, err := bldutil.CreatePod(ctx, client, podReq, podTemplateSpec)
 	if err != nil {
 		log.Error(err, "Failed to create Pod for AccessRequest")
 		return statusString, err
@@ -70,18 +70,18 @@ func (b *PodAccessBuilder) CreateAccessResources(
 	}
 
 	// Get the Role, or error out
-	role, err := utils.CreateRole(ctx, client, podReq, rules)
+	role, err := bldutil.CreateRole(ctx, client, podReq, rules)
 	if err != nil {
 		return statusString, err
 	}
 
 	// Get the Binding, or error out
-	rb, err := utils.CreateRoleBinding(ctx, client, podReq, tmpl, role)
+	rb, err := bldutil.CreateRoleBinding(ctx, client, podReq, tmpl, role)
 	if err != nil {
 		return statusString, err
 	}
 
-	accessString, err := utils.CreateAccessCommand(podTmpl.Spec.AccessConfig.AccessCommand, pod.ObjectMeta)
+	accessString, err := bldutil.CreateAccessCommand(podTmpl.Spec.AccessConfig.AccessCommand, pod.ObjectMeta)
 	if err != nil {
 		return "", err
 	}

@@ -20,7 +20,7 @@ import (
 )
 
 var _ = Describe("oz-controller", Ordered, func() {
-	projectDir, _ := utils.GetProjectDir()
+	projectDir, _ := testutil.GetProjectDir()
 
 	var (
 		err error
@@ -50,7 +50,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 		By("Creating target Deployment for tests")
 		EventuallyWithOffset(1, func() error {
 			cmd := exec.Command("kubectl", "apply", "-f", deploymentTemplate, "-n", namespace)
-			_, err = utils.Run(cmd)
+			_, err = testutil.Run(cmd)
 			return err
 		}, time.Minute, time.Second).Should(Succeed())
 		EventuallyWithOffset(1, func() error {
@@ -58,7 +58,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				"kubectl", "wait", "-f", deploymentTemplate, "-n", namespace, "--timeout=1s",
 				"--for=condition=Available",
 			)
-			_, err = utils.Run(cmd)
+			_, err = testutil.Run(cmd)
 			return err
 		}, (5 * time.Minute), time.Second).Should(Succeed())
 	})
@@ -66,7 +66,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 	AfterAll(func() {
 		By("Removing test target deployment")
 		cmd := exec.Command("kubectl", "apply", "-f", deploymentTemplate, "-n", namespace)
-		_, _ = utils.Run(cmd)
+		_, _ = testutil.Run(cmd)
 	})
 
 	Context("ExecAccessTemplate / ExecAccessRequest", func() {
@@ -83,7 +83,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// Create the Resource
 			EventuallyWithOffset(1, func() error {
 				cmd := exec.Command("kubectl", "apply", "-f", template, "-n", namespace)
-				_, err = utils.Run(cmd)
+				_, err = testutil.Run(cmd)
 				return err
 			}, time.Minute, time.Second).Should(Succeed())
 
@@ -94,7 +94,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 						"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
-					_, err = utils.Run(cmd)
+					_, err = testutil.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
 			}
@@ -110,7 +110,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// Create the Resource
 			EventuallyWithOffset(1, func() error {
 				cmd := exec.Command("kubectl", "apply", "-f", request, "-n", namespace)
-				_, err = utils.Run(cmd)
+				_, err = testutil.Run(cmd)
 				return err
 			}, time.Minute, time.Second).Should(Succeed())
 
@@ -121,7 +121,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
-					_, err = utils.Run(cmd)
+					_, err = testutil.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
 			}
@@ -142,7 +142,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// Create the Resource
 			EventuallyWithOffset(1, func() error {
 				cmd := exec.Command("kubectl", "apply", "-f", template, "-n", namespace)
-				_, err = utils.Run(cmd)
+				_, err = testutil.Run(cmd)
 				return err
 			}, time.Minute, time.Second).Should(Succeed())
 
@@ -153,7 +153,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 						"kubectl", "wait", "-f", template, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
-					_, err = utils.Run(cmd)
+					_, err = testutil.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
 			}
@@ -169,7 +169,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 			// Create the Resource
 			EventuallyWithOffset(1, func() error {
 				cmd := exec.Command("kubectl", "apply", "-f", request, "-n", namespace)
-				_, err = utils.Run(cmd)
+				_, err = testutil.Run(cmd)
 				return err
 			}, time.Minute, time.Second).Should(Succeed())
 
@@ -180,7 +180,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 						"kubectl", "wait", "-f", request, "-n", namespace, "--timeout=1s",
 						fmt.Sprintf("--for=condition=%s", cond),
 					)
-					_, err = utils.Run(cmd)
+					_, err = testutil.Run(cmd)
 					return err
 				}, time.Minute, time.Second).Should(Succeed())
 			}
@@ -195,7 +195,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				namespace,
 				"-o=jsonpath={.status.accessMessage}",
 			)
-			message, err := utils.Run(cmd)
+			message, err := testutil.Run(cmd)
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(
 				message,
@@ -212,7 +212,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				)
 
 				// Get the podname from the template. Note, it comes back wrapped in single quotes.
-				podName, err = utils.Run(cmd)
+				podName, err = testutil.Run(cmd)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(podName).NotTo(BeEmpty())
 
@@ -228,7 +228,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				cmd := exec.Command(
 					"kubectl", "exec", "-t", "-n", namespace, podName, "--", "whoami",
 				)
-				whoami, err := utils.Run(cmd)
+				whoami, err := testutil.Run(cmd)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(
 					whoami,

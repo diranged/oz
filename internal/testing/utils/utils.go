@@ -1,5 +1,5 @@
-// Package utils provides a few common utilities used during our end to end tests
-package utils
+// Package testutil provides common utilities used during end to end tests
+package testutil
 
 import (
 	"context"

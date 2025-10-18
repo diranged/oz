@@ -25,7 +25,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 			By("Should have a namespace to execute tests in")
 			ns = &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: utils.RandomString(8),
+					Name: testutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, ns)
@@ -64,7 +64,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 			By("Creating an ExecAccessRequest object")
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessRequestSpec{
@@ -88,7 +88,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 			invalidtemplate := &v1alpha1.ExecAccessTemplate{}
 			request := &v1alpha1.ExecAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessRequestSpec{

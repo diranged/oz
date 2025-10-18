@@ -1,5 +1,5 @@
-// Package utils provides some common utility functions for our controllers
-package utils
+// Package ctrlutil provides common utility functions for our controllers
+package ctrlutil
 
 import (
 	"context"

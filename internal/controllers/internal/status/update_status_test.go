@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/internal/utils"
+	ctrlutil "github.com/diranged/oz/internal/controllers/internal/utils"
 	testingutils "github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -43,7 +43,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 			By("Creating the Namespace to perform the tests")
 			namespace = &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: testingutils.RandomString(8),
+					Name: testingtestutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, namespace)
@@ -54,7 +54,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 			// Initial test configmap
 			cm := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testingutils.RandomString(8),
+					Name:      testingtestutil.RandomString(8),
 					Namespace: namespace.Name,
 				},
 				Data: map[string]string{
@@ -89,7 +89,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 			Expect(origResourceVer).To(Not(Equal(newResourceVer)))
 
 			// Now, refetch the data
-			_, _ = utils.Refetch(ctx, reconciler.GetAPIReader(), cm)
+			_, _ = testutil.Refetch(ctx, reconciler.GetAPIReader(), cm)
 
 			// Verify that the new object has the new resource version
 			Expect(newResourceVer).To(Equal(cm.ResourceVersion))
@@ -98,7 +98,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 		It("UpdateStatus() should work", func() {
 			originalReq := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testingutils.RandomString(8),
+					Name:      testingtestutil.RandomString(8),
 					Namespace: namespace.Name,
 				},
 				Spec: api.PodAccessRequestSpec{
@@ -138,7 +138,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 		It("UpdateStatus() should return failures properly", func() {
 			request := &api.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testingutils.RandomString(8),
+					Name:      testingtestutil.RandomString(8),
 					Namespace: namespace.Name,
 				},
 				Spec: api.PodAccessRequestSpec{
