@@ -1,0 +1,39 @@
+run:
+  timeout: 5m
+  tests: true
+  build-tags: []
+
+linters:
+  disable-all: false
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+issues:
+  # Exclude test files from typecheck issues since Ginkgo/Gomega use dot imports
+  # which can cause type resolution problems in golangci-lint
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - typecheck
+    - path: internal/testing/
+      linters:
+        - typecheck
+
+  # Maximum count of issues with the same text. Set to 0 to disable.
+  max-same-issues: 0
+
+  # Show only new issues created after git revision or in specific commit range
+  new: false
+
+  # Maximum issues count per one linter. Set to 0 to disable.
+  max-issues-per-linter: 0
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
