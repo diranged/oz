@@ -5,16 +5,8 @@ run:
   tests: true
 
 linters:
-  # Start with no linters and explicitly enable the ones we want
-  default: none
-
-  enable:
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
+  # Use all default linters (includes errcheck, govet, ineffassign, staticcheck, unused, etc)
+  default: all
 
   # Exclude test files from typecheck issues since Ginkgo/Gomega use dot imports
   # which can cause type resolution problems in golangci-lint
