@@ -33,7 +33,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 		)
 
 		// For Envtest
-		internal.PodPhaseRunning = "Pending"
+		podselection.PodPhaseRunning = "Pending"
 
 		BeforeAll(func() {
 			By("Should have a namespace to execute tests in")

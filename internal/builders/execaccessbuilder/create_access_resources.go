@@ -26,7 +26,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	execTmpl := tmpl.(*v1alpha1.ExecAccessTemplate)
 
 	// Get the target Pod Name that the user is going to have access to
-	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
+	targetPod, err := podselection.GetPod(ctx, client, execReq, execTmpl)
 	if err != nil {
 		return statusString, err
 	}
