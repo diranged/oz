@@ -10,7 +10,7 @@ import (
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders/execaccessbuilder/internal"
-	"github.com/diranged/oz/internal/builders/utils"
+	bldutil "github.com/diranged/oz/internal/builders/utils"
 )
 
 // CreateAccessResources implements the IBuilder interface
@@ -26,7 +26,7 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	execTmpl := tmpl.(*v1alpha1.ExecAccessTemplate)
 
 	// Get the target Pod Name that the user is going to have access to
-	targetPod, err := internal.GetPod(ctx, client, execReq, execTmpl)
+	targetPod, err := podselection.GetPod(ctx, client, execReq, execTmpl)
 	if err != nil {
 		return statusString, err
 	}
@@ -50,18 +50,18 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 	}
 
 	// Get the Role, or error out
-	role, err := utils.CreateRole(ctx, client, execReq, rules)
+	role, err := bldutil.CreateRole(ctx, client, execReq, rules)
 	if err != nil {
 		return statusString, err
 	}
 
 	// Get the Binding, or error out
-	rb, err := utils.CreateRoleBinding(ctx, client, execReq, tmpl, role)
+	rb, err := bldutil.CreateRoleBinding(ctx, client, execReq, tmpl, role)
 	if err != nil {
 		return statusString, err
 	}
 
-	accessString, err := utils.CreateAccessCommand(execTmpl.Spec.AccessConfig.AccessCommand, targetPod.ObjectMeta)
+	accessString, err := bldutil.CreateAccessCommand(execTmpl.Spec.AccessConfig.AccessCommand, targetPod.ObjectMeta)
 	if err != nil {
 		return "", err
 	}

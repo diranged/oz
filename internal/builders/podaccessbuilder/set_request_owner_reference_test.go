@@ -25,7 +25,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 			By("Should have a namespace to execute tests in")
 			ns = &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: utils.RandomString(8),
+					Name: testutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, ns)
@@ -64,7 +64,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 			By("Creating an PodAccessRequest object")
 			request := &v1alpha1.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.PodAccessRequestSpec{
@@ -88,7 +88,7 @@ var _ = Describe("PodAccessBuilder", Ordered, func() {
 			invalidtemplate := &v1alpha1.PodAccessTemplate{}
 			request := &v1alpha1.PodAccessRequest{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.PodAccessRequestSpec{

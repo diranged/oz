@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/internal/utils"
+	ctrlutil "github.com/diranged/oz/internal/controllers/internal/utils"
 	testingutils "github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -89,7 +89,7 @@ var _ = Describe("UpdateStatus()", Ordered, func() {
 			Expect(origResourceVer).To(Not(Equal(newResourceVer)))
 
 			// Now, refetch the data
-			_, _ = utils.Refetch(ctx, reconciler.GetAPIReader(), cm)
+			_, _ = ctrlutil.Refetch(ctx, reconciler.GetAPIReader(), cm)
 
 			// Verify that the new object has the new resource version
 			Expect(newResourceVer).To(Equal(cm.ResourceVersion))

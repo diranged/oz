@@ -1,0 +1,38 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  # Explicitly enable only the linters we want (matching original v1 config)
+  default: none
+
+  enable:
+    - errcheck
+    # gosimple no longer exists in v2 - functionality merged into staticcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+  # Exclude test files from typecheck issues since Ginkgo/Gomega use dot imports
+  # which can cause type resolution problems in golangci-lint
+  exclusions:
+    rules:
+      - path: '_test\.go'
+        linters:
+          - typecheck
+      - path: 'internal/testing/'
+        linters:
+          - typecheck
+
+  settings:
+    errcheck:
+      check-type-assertions: false
+      check-blank: false
+
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1001"  # Allow dot imports (needed for Ginkgo)

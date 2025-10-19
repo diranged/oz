@@ -28,11 +28,11 @@ var _ = BeforeSuite(func() {
 	_ = exec.Command("kubectl", "create", "ns", namespace)
 
 	cmdDockerLoad := exec.Command("make", "docker-load")
-	_, err := utils.Run(cmdDockerLoad)
+	_, err := testutil.Run(cmdDockerLoad)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	cmdDeploy := exec.Command("make", "deploy")
-	_, err = utils.Run(cmdDeploy)
+	_, err = testutil.Run(cmdDeploy)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	EventuallyWithOffset(1, func() error {
@@ -42,7 +42,7 @@ var _ = BeforeSuite(func() {
 			"-n", namespace, "--timeout=1s",
 			"--for=condition=Available",
 		)
-		_, err = utils.Run(cmd)
+		_, err = testutil.Run(cmd)
 		return err
 	}, (5 * time.Minute), time.Second).Should(Succeed())
 })
@@ -51,6 +51,6 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	By("tearing down the test resources")
 	cmd := exec.Command("make", "undeploy")
-	_, err := utils.Run(cmd)
+	_, err := testutil.Run(cmd)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 })

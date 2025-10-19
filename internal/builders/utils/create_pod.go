@@ -1,4 +1,4 @@
-package utils
+package bldutil
 
 import (
 	"context"
@@ -52,8 +52,8 @@ func CreatePod(
 
 	// Finish filling out the desired PodSpec at this point.
 	pod.Spec = *podTemplateSpec.Spec.DeepCopy()
-	pod.ObjectMeta.Annotations = podTemplateSpec.ObjectMeta.Annotations
-	pod.ObjectMeta.Labels = podTemplateSpec.ObjectMeta.Labels
+	pod.Annotations = podTemplateSpec.Annotations
+	pod.Labels = podTemplateSpec.Labels
 
 	// Set the ownerRef for the Deployment
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/

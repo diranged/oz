@@ -3,7 +3,6 @@ package v1alpha1
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +10,7 @@ import (
 )
 
 var _ = Describe("PodSpecMutationConfig", Ordered, func() {
-	var podTemplateSpec corev1.PodTemplateSpec
+	var podTemplateSpec v1.PodTemplateSpec
 
 	BeforeEach(func() {
 		// Create a fake podTemplateSpec target
@@ -25,13 +24,13 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 					"testLabel": "testValue",
 				},
 			},
-			Spec: corev1.PodSpec{
+			Spec: v1.PodSpec{
 				TerminationGracePeriodSeconds: &termPeriod,
-				TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
+				TopologySpreadConstraints: []v1.TopologySpreadConstraint{
 					{
 						TopologyKey:       "topology.kubernetes.io/zone",
 						MaxSkew:           1,
-						WhenUnsatisfiable: corev1.DoNotSchedule,
+						WhenUnsatisfiable: v1.DoNotSchedule,
 						LabelSelector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{
 								"test": "test",
@@ -39,7 +38,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 						},
 					},
 				},
-				Containers: []corev1.Container{
+				Containers: []v1.Container{
 					{
 						Name:  "contA",
 						Image: "nginx:latest",
@@ -154,7 +153,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			// Wipe: startupProbe
 			expectedPodTemplateSpec.Spec.Containers[0].StartupProbe = nil
 			// Wipe: metadata.labels
-			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+			expectedPodTemplateSpec.Labels = map[string]string{}
 			// Wipe: topologySpreadConstraints
 			expectedPodTemplateSpec.Spec.TopologySpreadConstraints = nil
 
@@ -178,7 +177,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 
 			// Wipe: metadata.labels (not optional)
 			expectedPodTemplateSpec := podTemplateSpec.DeepCopy()
-			expectedPodTemplateSpec.ObjectMeta.Labels = map[string]string{}
+			expectedPodTemplateSpec.Labels = map[string]string{}
 
 			// VERIFY: Unmutated by default
 			Expect(ret.DeepCopy()).To(Equal(expectedPodTemplateSpec))
@@ -210,9 +209,9 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 			config := &PodTemplateSpecMutationConfig{
 				Command: &[]string{"/bin/sleep"},
 				Args:    &[]string{"100"},
-				Resources: corev1.ResourceRequirements{
-					Limits: corev1.ResourceList{
-						corev1.ResourceCPU: *resource.NewQuantity(1, resource.Format("DecimalExponent")),
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU: *resource.NewQuantity(1, resource.Format("DecimalExponent")),
 					},
 				},
 				PodAnnotations: &map[string]string{
@@ -221,7 +220,7 @@ var _ = Describe("PodSpecMutationConfig", Ordered, func() {
 				PodLabels: &map[string]string{
 					"TestLabelTwo": "bar",
 				},
-				Env: []corev1.EnvVar{
+				Env: []v1.EnvVar{
 					{Name: "FOO", Value: "BAR"},
 				},
 			}

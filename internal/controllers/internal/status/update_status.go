@@ -6,7 +6,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
-	"github.com/diranged/oz/internal/controllers/internal/utils"
+	ctrlutil "github.com/diranged/oz/internal/controllers/internal/utils"
 )
 
 // UpdateStatus pushes the client.Object.Status field into Kubernetes if it has been updated, and
@@ -25,7 +25,7 @@ func UpdateStatus(ctx context.Context, rec hasStatusReconciler, res api.ICoreRes
 	}
 
 	// Re-fetch the object when we're done to make sure we are working with the latest version
-	if _, err := utils.Refetch(ctx, rec.GetAPIReader(), res); err != nil {
+	if _, err := ctrlutil.Refetch(ctx, rec.GetAPIReader(), res); err != nil {
 		log.Error(err, "Failed to refetch object")
 		return err
 	}

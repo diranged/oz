@@ -10,10 +10,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
-func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
+func createAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 	// Get our Kubernetes Client
 	client, _ := getKubeClient()
 
@@ -32,7 +31,7 @@ func createAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
 	cmd.Printf(logNotice("%s created!\n"), req.GetName())
 }
 
-func waitForAccessRequest(cmd *cobra.Command, req api.IRequestResource) {
+func waitForAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 	// Cast the ICoreStatus interface into an IRequestStatus interface
 	status := req.GetStatus().(v1alpha1.IRequestStatus)
 

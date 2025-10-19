@@ -1,7 +1,7 @@
 package templatecontroller
 
 import (
-	"github.com/diranged/oz/internal/controllers/internal/utils"
+	ctrlutil "github.com/diranged/oz/internal/controllers/internal/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -9,6 +9,6 @@ import (
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(r.TemplateType).
-		WithEventFilter(utils.IgnoreStatusUpdatesAndDeletion()).
+		WithEventFilter(ctrlutil.IgnoreStatusUpdatesAndDeletion()).
 		Complete(r)
 }

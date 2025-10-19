@@ -30,7 +30,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			By("Should have a namespace to execute tests in")
 			ns = &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: utils.RandomString(8),
+					Name: testutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, ns)
@@ -57,7 +57,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			By("Should have an ExecAccessTemplate built to test against")
 			template := &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessTemplateSpec{
@@ -108,7 +108,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			By("Should have an ExecAccessTemplate built to test against")
 			template := &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessTemplateSpec{
@@ -168,7 +168,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			By("Should have an ExecAccessTemplate built to test against")
 			template := &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessTemplateSpec{
@@ -228,7 +228,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			By("Should have an ExecAccessTemplate built to test against")
 			template := &v1alpha1.ExecAccessTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      utils.RandomString(8),
+					Name:      testutil.RandomString(8),
 					Namespace: ns.GetName(),
 				},
 				Spec: v1alpha1.ExecAccessTemplateSpec{

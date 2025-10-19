@@ -171,7 +171,7 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 	// If the user did not supply a DefaultContainerName spec, then try to find
 	// the well known annotation.
 	if c.DefaultContainerName == "" {
-		if val, ok := pod.ObjectMeta.Annotations[DefaultContainerAnnotationKey]; ok {
+		if val, ok := pod.Annotations[DefaultContainerAnnotationKey]; ok {
 			if ok {
 				logger.V(1).
 					Info(fmt.Sprintf("%s annotation detected, using %s", DefaultContainerAnnotationKey, val))
@@ -255,13 +255,13 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 
 	if c.PurgeAnnotations {
 		logger.V(1).Info("Purging metadata.annotations...")
-		n.ObjectMeta.Annotations = map[string]string{}
+		n.Annotations = map[string]string{}
 	}
 
 	if c.PodAnnotations != nil {
 		for k, v := range *c.PodAnnotations {
 			logger.V(1).Info(fmt.Sprintf("Setting metadata.annotations.%s: %s", k, v))
-			n.ObjectMeta.Annotations[k] = v
+			n.Annotations[k] = v
 		}
 	}
 
@@ -281,12 +281,12 @@ func (c *PodTemplateSpecMutationConfig) PatchPodTemplateSpec(
 	//
 	// TODO: Figure out how to use controller selector labels to purge more
 	// selectively in the future.
-	n.ObjectMeta.Labels = map[string]string{}
+	n.Labels = map[string]string{}
 
 	if c.PodLabels != nil {
 		for k, v := range *c.PodLabels {
 			logger.V(1).Info(fmt.Sprintf("Setting metadata.labels.%s: %s", k, v))
-			n.ObjectMeta.Labels[k] = v
+			n.Labels[k] = v
 		}
 	}
 

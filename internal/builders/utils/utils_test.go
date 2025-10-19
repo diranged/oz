@@ -1,4 +1,4 @@
-package utils
+package bldutil
 
 import (
 	"context"
@@ -31,7 +31,7 @@ var _ = Describe("IBuilder / Utils", Ordered, func() {
 			By("Creating the Namespace to perform the tests")
 			namespace = &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: utils.RandomString(8),
+					Name: testutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, namespace)

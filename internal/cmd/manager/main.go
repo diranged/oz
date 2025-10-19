@@ -34,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	crdsv1alpha1 "github.com/diranged/oz/internal/api/v1alpha1"
 	"github.com/diranged/oz/internal/builders/execaccessbuilder"
 	"github.com/diranged/oz/internal/builders/podaccessbuilder"
 	"github.com/diranged/oz/internal/controllers/podwatcher"
@@ -59,7 +58,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(rolloutsv1alpha1.AddToScheme(scheme))
 
-	utilruntime.Must(crdsv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -148,11 +147,11 @@ func Main() {
 	// package. These webhooks are registered so that we can pre-populate (or
 	// validate) our custom resources before they ever get to the Reconcile()
 	// functions.
-	if err = (&crdsv1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&v1alpha1.PodAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "PodAccessRequest")
 		os.Exit(1)
 	}
-	if err = (&crdsv1alpha1.ExecAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&v1alpha1.ExecAccessRequest{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "ExecAccessRequest")
 		os.Exit(1)
 	}

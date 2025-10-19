@@ -1,5 +1,5 @@
-// Package utils provides a few common utilities used during our end to end tests
-package utils
+// Package testutil provides common utilities used during end to end tests
+package testutil
 
 import (
 	"context"
@@ -21,17 +21,17 @@ import (
 func Run(cmd *exec.Cmd) (string, error) {
 	dir, _ := GetProjectDir()
 	cmd.Dir = dir
-	fmt.Fprintf(GinkgoWriter, "running dir: %s\n", cmd.Dir)
+	_, _ = fmt.Fprintf(GinkgoWriter, "running dir: %s\n", cmd.Dir)
 
 	// To allow make commands be executed from the project directory which is subdir on SDK repo
 	// TODO:(user) You might not need the following code
 	if err := os.Chdir(cmd.Dir); err != nil {
-		fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+		_, _ = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
 	}
 
 	cmd.Env = append(os.Environ(), "GO111MODULE=on")
 	command := strings.Join(cmd.Args, " ")
-	fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+	_, _ = fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(
@@ -53,7 +53,7 @@ func GetProjectDir() (string, error) {
 	if err != nil {
 		return wd, err
 	}
-	wd = strings.Replace(wd, "/internal/testing/e2e", "", -1)
+	wd = strings.ReplaceAll(wd, "/internal/testing/e2e", "")
 	return wd, nil
 }
 
@@ -116,5 +116,5 @@ func FindUnstructuredByOwner(
 			}
 		}
 	}
-	return nil, fmt.Errorf("Not found")
+	return nil, fmt.Errorf("not found")
 }

@@ -26,7 +26,7 @@ var _ = Describe("ExecAccessBuilder", Ordered, func() {
 			By("Should have a namespace to execute tests in")
 			ns = &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: utils.RandomString(8),
+					Name: testutil.RandomString(8),
 				},
 			}
 			err := k8sClient.Create(ctx, ns)
