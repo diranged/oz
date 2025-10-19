@@ -26,7 +26,7 @@ jobs:
           git add .
           git diff --staged --patch --exit-code || echo "self_mutation_happened=true" >> "$GITHUB_OUTPUT"
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         if: steps.self_mutation.outputs.self_mutation_happened
         with:
           commit_message: Automated Commit
