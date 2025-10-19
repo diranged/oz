@@ -3,7 +3,7 @@ SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 ifeq (true,$(PUBLISH))
 	GORELEASER_FLAGS := --clean
 else
-	GORELEASER_FLAGS := --skip-publish --snapshot --clean
+	GORELEASER_FLAGS := --snapshot --clean
 endif
 
 ## Tool Binaries
