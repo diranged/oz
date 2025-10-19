@@ -19,7 +19,7 @@ jobs:
       # such error. Cache is to be enabled once the fix is available for
       # this issue.
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           cache: false
           go-version-file: "go.mod"
