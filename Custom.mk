@@ -3,7 +3,7 @@ SOURCE := $(wildcard api/*/*.go controller/*.go ozctl/*.go ozctl/*/*.go)
 ifeq (true,$(PUBLISH))
 	GORELEASER_FLAGS := --clean
 else
-	GORELEASER_FLAGS := --skip-publish --snapshot --clean
+	GORELEASER_FLAGS := --snapshot --clean
 endif
 
 ## Tool Binaries
@@ -19,7 +19,7 @@ GOFUMPT     ?= $(LOCALBIN)/gofumpt
 GOLINES_VER ?= v0.11.0
 GOLINES     ?= $(LOCALBIN)/golines
 
-GORELEASER_VER ?= v1.20.0
+GORELEASER_VER ?= v2.12.5
 GORELEASER     ?= $(LOCALBIN)/goreleaser
 
 GEN_CRD_API_DOCS_VER ?= v0.3.1-0.20220223025230-af7c5e0048a3
@@ -53,7 +53,7 @@ cert-manager:
 .PHONY: goreleaser
 goreleaser: $(GORELEASER)
 $(GORELEASER):
-	GOBIN=$(LOCALBIN) go install github.com/goreleaser/goreleaser@$(GORELEASER_VER)
+	GOBIN=$(LOCALBIN) go install github.com/goreleaser/goreleaser/v2@$(GORELEASER_VER)
 
 .PHONY: gofumpt
 gofumpt: $(GOFUMPT)
