@@ -12,7 +12,10 @@ import (
 
 // Requeue represents that a request should be requeued for further processing.
 func Requeue(requeue bool) (ctrl.Result, error) {
-	return ctrl.Result{Requeue: requeue}, nil
+	if requeue {
+		return ctrl.Result{RequeueAfter: time.Nanosecond}, nil
+	}
+	return ctrl.Result{}, nil
 }
 
 // RequeueError represents that a request should be requeued for further
@@ -46,5 +49,5 @@ func NoRequeue() (ctrl.Result, error) {
 
 // ShouldRequeue returns true if we should requeue the request for reconciliation.
 func ShouldRequeue(result ctrl.Result, err error) bool {
-	return err != nil || result.Requeue || result.RequeueAfter > 0
+	return err != nil || result.RequeueAfter > 0
 }

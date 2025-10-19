@@ -123,7 +123,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(shouldEndReconcile).To(BeTrue())
 
 			// VERIFY: No, do not requeue
-			Expect(result.Requeue).To(BeFalse())
+			Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 			Expect(err).To(BeNil())
 
 			// Refetch our Request object... reconiliation has mutated its
@@ -163,7 +163,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(shouldEndReconcile).To(BeTrue())
 
 			// VERIFY: No, do not requeue
-			Expect(result.Requeue).To(BeFalse())
+			Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 			Expect(err).To(BeNil())
 
 			// Refetch our Request object... reconiliation has mutated its

@@ -122,7 +122,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// VERIFY: No Requeue
-				Expect(result.Requeue).To(BeFalse())
+				Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 			})
 
 			It("Reconcile() should work", func() {
@@ -175,7 +175,7 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 			})
 
 			It(
-				"Reconcile() should mark resource as not ready if conditions fail, and not requeue",
+				"Reconcile() should mark resource as not ready if conditions fail",
 				func() {
 					By("Pointing the Template to an invalid Deployment")
 					template.Spec.ControllerTargetRef.Name = "invalid"
@@ -192,8 +192,8 @@ var _ = Describe("TemplateReconciler", Ordered, func() {
 							},
 						},
 					)
-					// VERIFY: The result is that we will NOT requeue
-					Expect(result.Requeue).To(BeFalse())
+					// VERIFY: The result is that we WILL requeue after ReconciliationInterval
+					Expect(result.RequeueAfter).To(Equal(reconciler.ReconciliationInterval))
 					Expect(err).ToNot(HaveOccurred())
 
 					// Refetch our Request object... reconiliation has mutated its

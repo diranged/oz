@@ -81,7 +81,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// VERIFY: No Requeue
-			Expect(result.Requeue).To(BeFalse())
+			Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 		})
 
 		It("Reconcile() should work", func() {
@@ -181,7 +181,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 				},
 			)
 			// VERIFY: The result is that we will NOT requeue
-			Expect(result.Requeue).To(BeFalse())
+			Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 			Expect(err).ToNot(HaveOccurred())
 
 			// Refetch our Request object... reconiliation has mutated its
