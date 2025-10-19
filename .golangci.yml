@@ -31,3 +31,8 @@ linters:
     errcheck:
       check-type-assertions: false
       check-blank: false
+
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1001"  # Allow dot imports (needed for Ginkgo)

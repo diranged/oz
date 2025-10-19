@@ -50,7 +50,7 @@ func (r *RequestReconciler) verifyAccessResources(
 			// NOTE: Blindly ignoring the error return here because we are already
 			// returning an error which will fail the reconciliation.
 			_ = status.SetAccessResourcesNotReady(rctx.Context, r, rctx.obj,
-				fmt.Errorf("Resources not yet available... will check in %s", interval))
+				fmt.Errorf("resources not yet available... will check in %s", interval))
 
 			return true, ctrl.Result{RequeueAfter: interval}, nil
 		}

@@ -13,7 +13,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -85,7 +84,7 @@ var _ = Describe("PodAccessRequest", Ordered, func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Update it and push it
-			request.ObjectMeta.SetAnnotations(map[string]string{"foo": "bar"})
+			request.SetAnnotations(map[string]string{"foo": "bar"})
 			err = k8sClient.Update(ctx, request)
 			Expect(err).To(Not(HaveOccurred()))
 		})
@@ -252,7 +251,7 @@ var _ = Describe("PodAccessRequest", Ordered, func() {
 						"testLabel": "testValue",
 					},
 				},
-				Template: v1.PodTemplateSpec{
+				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
 						Annotations: map[string]string{
 							"Foo": "bar",

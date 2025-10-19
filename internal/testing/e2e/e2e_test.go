@@ -217,7 +217,7 @@ var _ = Describe("oz-controller", Ordered, func() {
 				Expect(podName).NotTo(BeEmpty())
 
 				// Strip the single quotes from the podName string.
-				podName = strings.Replace(podName, "'", "", -1)
+				podName = strings.ReplaceAll(podName, "'", "")
 				Expect(podName).NotTo(BeEmpty())
 
 				return err

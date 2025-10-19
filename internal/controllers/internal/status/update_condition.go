@@ -9,7 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
-	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
 // UpdateCondition provides a simple way to update the .Status.Conditions field
@@ -25,7 +24,7 @@ import (
 func UpdateCondition(
 	ctx context.Context,
 	rec hasStatusReconciler,
-	res api.ICoreResource,
+	res v1alpha1.ICoreResource,
 	conditionType v1alpha1.IConditionType,
 	conditionStatus metav1.ConditionStatus,
 	reason string,

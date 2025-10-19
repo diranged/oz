@@ -9,7 +9,6 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -85,7 +84,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 					Labels:    deployment.Spec.Selector.MatchLabels,
 				},
 				Spec: deployment.Spec.Template.Spec,
-				Status: v1.PodStatus{
+				Status: corev1.PodStatus{
 					Phase: "Running",
 				},
 			}
@@ -145,7 +144,7 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 						Namespace: ns.GetName(),
 					},
 					Spec: deployment.Spec.Template.Spec,
-					Status: v1.PodStatus{
+					Status: corev1.PodStatus{
 						Phase: "Running",
 					},
 				}

@@ -19,7 +19,7 @@ func (r *TemplateReconciler) verifyTargetRef(rctx *RequestContext) error {
 	// https://blog.gripdev.xyz/2020/07/20/k8s-operator-with-dynamic-crds-using-controller-runtime-no-structs/
 	targetRef := rctx.obj.GetTargetRef().GetObject()
 
-	err := r.Client.Get(rctx.Context, types.NamespacedName{
+	err := r.Get(rctx.Context, types.NamespacedName{
 		Name:      rctx.obj.GetTargetRef().GetName(),
 		Namespace: rctx.obj.GetNamespace(),
 	}, targetRef)
