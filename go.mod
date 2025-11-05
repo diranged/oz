@@ -2,7 +2,7 @@ module github.com/diranged/oz
 
 go 1.24.0
 
-toolchain go1.25.3
+toolchain go1.25.4
 
 require (
 	github.com/argoproj/argo-rollouts v1.8.3
