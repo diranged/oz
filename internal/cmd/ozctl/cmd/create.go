@@ -7,6 +7,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Output format constants
+const (
+	OutputFormatJSON  = "json"
+	OutputFormatYAML  = "yaml"
+	OutputFormatText  = "text"
+	OutputFormatTable = "table"
+)
+
+// outputFormat holds the output format for create commands (json, yaml, text)
+var outputFormat = OutputFormatText
+
 var createExample = `
 # Create an ExecAccessRequest with ExecAccessTemplate "some-template"
 ozctl create ExecAccessRequest --target some-template
@@ -36,5 +47,7 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
+	createCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", OutputFormatText,
+		"Output format: json, yaml, or text")
 	rootCmd.AddCommand(createCmd)
 }

@@ -23,10 +23,13 @@ Error: - Invalid --template name flag passed in:
 
 func verifyTemplate(cmd *cobra.Command, req api.IRequestResource) {
 	client, _ := getKubeClient()
-	cmd.Printf(accessRequestInitMsg, req.GetTemplateName(), requestNamePrefix)
+
+	if outputFormat == OutputFormatText {
+		cmd.Printf(accessRequestInitMsg, req.GetTemplateName(), requestNamePrefix)
+		cmd.Printf(verifyingTemplateExistsMsg, req.GetTemplateName(), req.GetNamespace())
+	}
 
 	// Verify the template exists
-	cmd.Printf(verifyingTemplateExistsMsg, req.GetTemplateName(), req.GetNamespace())
 	_, err := req.GetTemplate(cmd.Context(), client)
 	if err != nil {
 		cmd.Printf(verifyingTemplateExistsFailedMsg, err)
