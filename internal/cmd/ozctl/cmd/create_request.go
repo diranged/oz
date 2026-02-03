@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/yaml"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 )
@@ -18,7 +20,9 @@ func createAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 
 	// Pretty-print the type of object we're creating...
 	reqKind := req.GetObjectKind().GroupVersionKind().GroupKind().Kind
-	cmd.Printf(logNotice("Creating %s... "), reqKind)
+	if outputFormat == OutputFormatText {
+		cmd.Printf(logNotice("Creating %s... "), reqKind)
+	}
 
 	// Make the calls to create the request
 	if err := client.Create(cmd.Context(), req); err != nil {
@@ -27,8 +31,12 @@ func createAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 			reqKind,
 			err,
 		)
+		os.Exit(1)
 	}
-	cmd.Printf(logNotice("%s created!\n"), req.GetName())
+
+	if outputFormat == OutputFormatText {
+		cmd.Printf(logNotice("%s created!\n"), req.GetName())
+	}
 }
 
 func waitForAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
@@ -39,9 +47,10 @@ func waitForAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 	client, _ := getKubeClient()
 
 	// Wait until we are either fully succesful, or we've hit our timeout.
-	//
-	// Newline intentionally missing.
-	cmd.Printf(logNotice("Waiting for %s to be ready"), req.GetName())
+	if outputFormat == OutputFormatText {
+		// Newline intentionally missing.
+		cmd.Printf(logNotice("Waiting for %s to be ready"), req.GetName())
+	}
 
 	// Create a timeout context... we'll use this to bail out of our loop after waitTime has been hit.
 	waitDuration, _ := time.ParseDuration(waitTime)
@@ -54,14 +63,16 @@ func waitForAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 			Name:      req.GetName(),
 			Namespace: req.GetNamespace(),
 		}, req); err != nil {
-			cmd.Printf(logWarning("\nError updating request status: %s\n"), err)
+			if outputFormat == OutputFormatText {
+				cmd.Printf(logWarning("\nError updating request status: %s\n"), err)
+			}
 			continue
 		}
 
 		// Check the status
 		if status.IsReady() {
-			cmd.Printf(successMsg, status.GetAccessMessage())
-			break
+			printOutput(cmd, req)
+			return
 		}
 
 		if waitCtx.Err() != nil {
@@ -79,7 +90,32 @@ func waitForAccessRequest(cmd *cobra.Command, req v1alpha1.IRequestResource) {
 		}
 
 		// See if we've run out of time or not. If we have, bail out.
-		cmd.Print(logNotice("."))
+		if outputFormat == OutputFormatText {
+			cmd.Print(logNotice("."))
+		}
 		time.Sleep(time.Duration(1 * time.Second))
+	}
+}
+
+// printOutput prints the request resource in the format specified by outputFormat
+func printOutput(cmd *cobra.Command, req v1alpha1.IRequestResource) {
+	switch outputFormat {
+	case OutputFormatYAML:
+		data, err := yaml.Marshal(req)
+		if err != nil {
+			fmt.Printf(logError("Error marshalling to YAML: %s\n"), err)
+			os.Exit(1)
+		}
+		cmd.Print(string(data))
+	case OutputFormatText:
+		status := req.GetStatus().(v1alpha1.IRequestStatus)
+		cmd.Printf(successMsg, status.GetAccessMessage())
+	default: // OutputFormatJSON
+		data, err := json.MarshalIndent(req, "", "  ")
+		if err != nil {
+			fmt.Printf(logError("Error marshalling to JSON: %s\n"), err)
+			os.Exit(1)
+		}
+		cmd.Println(string(data))
 	}
 }

@@ -1,15 +1,20 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/cli-runtime/pkg/resource"
+	"sigs.k8s.io/yaml"
 
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
+
+// getOutputFormat holds the output format for the get command (table, json, yaml)
+var getOutputFormat = OutputFormatTable
 
 var getCmd = &cobra.Command{
 	Use:   "get <resource> ...options",
@@ -47,21 +52,40 @@ var getCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
-		printr := printers.NewTypeSetter(scopedScheme).
-			ToPrinter(printers.NewTablePrinter(printers.PrintOptions{
-				Wide:          true,
-				WithNamespace: true,
-				WithKind:      true,
-			}))
+		switch getOutputFormat {
+		case OutputFormatJSON:
+			data, err := json.MarshalIndent(obj, "", "  ")
+			if err != nil {
+				fmt.Printf(logError("Error marshalling to JSON: %s\n"), err)
+				os.Exit(1)
+			}
+			cmd.Println(string(data))
+		case OutputFormatYAML:
+			data, err := yaml.Marshal(obj)
+			if err != nil {
+				fmt.Printf(logError("Error marshalling to YAML: %s\n"), err)
+				os.Exit(1)
+			}
+			cmd.Print(string(data))
+		default: // OutputFormatTable
+			printr := printers.NewTypeSetter(scopedScheme).
+				ToPrinter(printers.NewTablePrinter(printers.PrintOptions{
+					Wide:          true,
+					WithNamespace: true,
+					WithKind:      true,
+				}))
 
-		if err := printr.PrintObj(obj, os.Stdout); err != nil {
-			cmd.Printf(`Error: %s`, err)
-			os.Exit(1)
+			if err := printr.PrintObj(obj, os.Stdout); err != nil {
+				cmd.Printf(`Error: %s`, err)
+				os.Exit(1)
+			}
 		}
 	},
 }
 
 func init() {
+	getCmd.Flags().StringVarP(&getOutputFormat, "output", "o", OutputFormatTable,
+		"Output format: table, json, or yaml")
 	kubeConfigFlags.AddFlags(getCmd.Flags())
 	rootCmd.AddCommand(getCmd)
 }
