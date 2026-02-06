@@ -12,7 +12,7 @@ import (
 	"github.com/diranged/oz/internal/controllers"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -27,7 +27,7 @@ import (
 type TemplateReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
-	recorder record.EventRecorder
+	recorder events.EventRecorder
 
 	// APIReader should be generated with mgr.GetAPIReader() to create a non-cached client object.
 	// This is used for certain Get() calls where we need to ensure we are getting the latest
@@ -58,7 +58,7 @@ func NewTemplateReconciler(
 		Client:                 mgr.GetClient(),
 		Scheme:                 mgr.GetScheme(),
 		APIReader:              mgr.GetAPIReader(),
-		recorder:               mgr.GetEventRecorderFor(controllers.EventRecorderName),
+		recorder:               mgr.GetEventRecorder(controllers.EventRecorderName),
 		TemplateType:           res,
 		ReconciliationInterval: time.Duration(interval) * time.Minute,
 	}

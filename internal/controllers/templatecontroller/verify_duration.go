@@ -23,16 +23,16 @@ func (r *TemplateReconciler) verifyDuration(rctx *RequestContext) error {
 	maxDuration, err := rctx.obj.GetAccessConfig().GetMaxDuration()
 	if err != nil {
 		errStr := fmt.Sprintf("Error on spec.maxDuration: %s", err)
-		r.recorder.Event(rctx.obj, "Warning", eventStr, errStr)
+		r.recorder.Eventf(rctx.obj, nil, "Warning", eventStr, "VerifyDuration", "%s", errStr)
 		return status.SetTemplateDurationsNotValid(rctx.Context, r, rctx.obj, errStr)
 	}
 	if defaultDuration > maxDuration {
 		errStr := "Error: spec.defaultDuration can not be greater than spec.maxDuration"
-		r.recorder.Event(rctx.obj, "Warning", eventStr, errStr)
+		r.recorder.Eventf(rctx.obj, nil, "Warning", eventStr, "VerifyDuration", "%s", errStr)
 		return status.SetTemplateDurationsNotValid(rctx.Context, r, rctx.obj, errStr)
 	}
 
 	successStr := "spec.defaultDuration and spec.maxDuration valid"
-	r.recorder.Event(rctx.obj, "Normal", eventStr, successStr)
+	r.recorder.Eventf(rctx.obj, nil, "Normal", eventStr, "VerifyDuration", "%s", successStr)
 	return status.SetTemplateDurationsValid(rctx.Context, r, rctx.obj, successStr)
 }
