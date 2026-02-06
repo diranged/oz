@@ -12,7 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
@@ -22,7 +22,7 @@ var _ = Describe("PodWatcher", Ordered, func() {
 			admissionRequest *admission.Request
 			ctx              = context.Background()
 			requestName      = "test"
-			recorder         = record.NewFakeRecorder(50)
+			recorder         = events.NewFakeRecorder(50)
 			watcher          = &PodWatcher{
 				Client:   k8sClient,
 				decoder:  admission.NewDecoder(runtime.NewScheme()),
@@ -62,7 +62,7 @@ var _ = Describe("PodWatcher", Ordered, func() {
 
 		It("Handle() CONNECT calls for a pods/exec action should call HandleExec() and work", func() {
 			// Create a fresh recorder that can accept ONE event
-			recorder := record.NewFakeRecorder(1)
+			recorder := events.NewFakeRecorder(1)
 			watcher.recorder = recorder
 
 			// Pod Exec Options for the request
@@ -129,7 +129,7 @@ var _ = Describe("PodWatcher", Ordered, func() {
 
 		It("Handle() CONNECT calls for a pods/attach action should call HandleAttach() and work", func() {
 			// Create a fresh recorder that can accept ONE event
-			recorder := record.NewFakeRecorder(1)
+			recorder := events.NewFakeRecorder(1)
 			watcher.recorder = recorder
 
 			// Pod Exec Options for the request

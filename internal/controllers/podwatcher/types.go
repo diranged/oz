@@ -2,7 +2,7 @@ package podwatcher
 
 import (
 	"github.com/diranged/oz/internal/controllers"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -19,7 +19,7 @@ import (
 type PodWatcher struct {
 	Client   client.Client
 	decoder  admission.Decoder
-	recorder record.EventRecorder
+	recorder events.EventRecorder
 }
 
 // NewPodWatcherRegistration creates a PodWatcher{} object and registers it at the supplied path.
@@ -35,7 +35,7 @@ func NewPodWatcherRegistration(
 			Handler: &PodWatcher{
 				Client:   mgr.GetClient(),
 				decoder:  admission.NewDecoder(mgr.GetScheme()),
-				recorder: mgr.GetEventRecorderFor(controllers.EventRecorderName),
+				recorder: mgr.GetEventRecorder(controllers.EventRecorderName),
 			},
 		},
 	)

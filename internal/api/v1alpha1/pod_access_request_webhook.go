@@ -44,8 +44,7 @@ func (r *PodAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	}
 
 	// boilerplate
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
+	return ctrl.NewWebhookManagedBy(mgr, r).
 		Complete()
 }
 
