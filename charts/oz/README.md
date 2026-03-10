@@ -32,12 +32,6 @@ Kubernetes: `>=1.26.0-0`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| controllerManager.kubeRbacProxy.image.repository | string | `"gcr.io/kubebuilder/kube-rbac-proxy"` |  |
-| controllerManager.kubeRbacProxy.image.tag | string | `"v0.16.0"` |  |
-| controllerManager.kubeRbacProxy.resources.limits.cpu | string | `"500m"` |  |
-| controllerManager.kubeRbacProxy.resources.limits.memory | string | `"128Mi"` |  |
-| controllerManager.kubeRbacProxy.resources.requests.cpu | string | `"5m"` |  |
-| controllerManager.kubeRbacProxy.resources.requests.memory | string | `"64Mi"` |  |
 | controllerManager.manager.image.repository | `string` | `"ghcr.io/diranged/oz"` | Docker Image repository and name to use for the controller. |
 | controllerManager.manager.image.tag | `string` | `nil` | If set, overrides the .Chart.AppVersion field to set the target image version for the Oz controller. |
 | controllerManager.manager.resources.limits.cpu | string | `"500m"` |  |
