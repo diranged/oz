@@ -32,10 +32,6 @@ archives:
     builds:
       - cli
     name_template: "ozctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-  - id: manager
-    builds:
-      - manager
-    name_template: "manager_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 universal_binaries:
   - id: cli
