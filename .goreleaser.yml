@@ -27,6 +27,16 @@ builds:
     - amd64
     - arm64
 
+archives:
+  - id: cli
+    builds:
+      - cli
+    name_template: "ozctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - id: manager
+    builds:
+      - manager
+    name_template: "manager_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
 universal_binaries:
   - id: cli
     name_template: ozctl
