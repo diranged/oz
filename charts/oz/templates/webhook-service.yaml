@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ include "oz.fullname" . }}-controller-manager-webhook-service
   labels:
-    app.kubernetes.io/component: kube-rbac-proxy
+    app.kubernetes.io/component: webhook
   {{- include "oz.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.webhookService.type }}

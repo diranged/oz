@@ -39,6 +39,7 @@ import (
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	"github.com/diranged/oz/internal/controllers/templatecontroller"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	//+kubebuilder:scaffold:imports
 )
@@ -76,7 +77,13 @@ func Main() {
 	flag.StringVar(
 		&metricsAddr,
 		"metrics-bind-address",
-		":8080",
+		// Port 8443 matches the port previously used by the kube-rbac-proxy
+		// sidecar, so existing Service manifests and Prometheus scrape configs
+		// continue to work without changes. Metrics are now served securely by
+		// controller-runtime's built-in authn/authz (SecureServing +
+		// WithAuthenticationAndAuthorization) instead of the deprecated
+		// kube-rbac-proxy sidecar.
+		":8443",
 		"The address the metric endpoint binds to.",
 	)
 	flag.StringVar(
@@ -125,7 +132,9 @@ func Main() {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
-			BindAddress: metricsAddr,
+			BindAddress:    metricsAddr,
+			SecureServing:  true,
+			FilterProvider: filters.WithAuthenticationAndAuthorization,
 		},
 		HealthProbeBindAddress: probeAddr,
 
