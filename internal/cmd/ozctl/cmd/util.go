@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/fatih/color"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -37,4 +38,25 @@ func getKubeClient() (cl client.Client, ns string) {
 	ns = getDefaultKubeNamespace(kubeConfigFlags)
 	cl = client.NewNamespacedClient(rawCl, ns)
 	return cl, ns
+}
+
+// getCurrentKubeContext returns the kubeconfig context that the CLI is talking
+// to from the package-level kubeConfigFlags.
+func getCurrentKubeContext() string {
+	return kubeContextFromFlags(kubeConfigFlags)
+}
+
+// kubeContextFromFlags returns the kubeconfig context that the supplied flags
+// resolve to: the value of the standard `--context` flag if set, otherwise the
+// kubeconfig's `current-context`. Returns "" if no context is set anywhere —
+// callers should treat that as "unknown" and not error.
+func kubeContextFromFlags(flags *genericclioptions.ConfigFlags) string {
+	if flags.Context != nil && *flags.Context != "" {
+		return *flags.Context
+	}
+	rawConfig, err := flags.ToRawKubeConfigLoader().RawConfig()
+	if err != nil {
+		return ""
+	}
+	return rawConfig.CurrentContext
 }

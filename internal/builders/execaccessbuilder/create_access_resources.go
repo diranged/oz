@@ -61,7 +61,11 @@ func (b *ExecAccessBuilder) CreateAccessResources(
 		return statusString, err
 	}
 
-	accessString, err := bldutil.CreateAccessCommand(execTmpl.Spec.AccessConfig.AccessCommand, targetPod.ObjectMeta)
+	accessString, err := bldutil.CreateAccessCommand(
+		execTmpl.Spec.AccessConfig.AccessCommand,
+		targetPod.ObjectMeta,
+		execReq.Spec.ClientKubeContext,
+	)
 	if err != nil {
 		return "", err
 	}

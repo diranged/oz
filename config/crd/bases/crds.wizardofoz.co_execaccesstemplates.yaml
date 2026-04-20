@@ -55,7 +55,17 @@ spec:
                       }} -- /bin/sh
                     description: |-
                       AccessCommand is used to describe to the user how they can make use of their temporary access.
-                      The AccessCommand can reference data from a Pod ObjectMeta.
+
+                      The string is rendered as a Go text/template with the following variables available:
+
+                        - `{{ .Metadata }}`: the target Pod's ObjectMeta (e.g. `{{ .Metadata.Name }}`,
+                          `{{ .Metadata.Namespace }}`).
+                        - `{{ .ClientKubeContext }}`: the kubeconfig context the request was created in,
+                          populated automatically by `ozctl`. May be the empty string if the request was
+                          applied as raw YAML or by an older `ozctl` that did not set the field. To be
+                          safe in either case, gate references with a conditional, e.g.:
+
+                              kubectl {{ if .ClientKubeContext }}--context {{ .ClientKubeContext }} {{ end }}exec -ti -n {{ .Metadata.Namespace }} {{ .Metadata.Name }} -- /bin/sh
                     type: string
                   allowedGroups:
                     description: |-
