@@ -7,13 +7,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// CreateAccessCommand templates an access command string,
-// evaluates data from a pod.ObjectMeta
-func CreateAccessCommand(cmdString string, resource metav1.ObjectMeta) (string, error) {
-	type md struct {
-		Metadata metav1.ObjectMeta
+// CreateAccessCommand templates an access command string. The template can
+// reference `{{ .Metadata }}` (the target pod's ObjectMeta) and
+// `{{ .ClientKubeContext }}` (the kubeconfig context the request was created
+// in, populated by `ozctl`; empty string when the request was applied as raw
+// YAML).
+func CreateAccessCommand(
+	cmdString string,
+	resource metav1.ObjectMeta,
+	clientKubeContext string,
+) (string, error) {
+	type data struct {
+		Metadata          metav1.ObjectMeta
+		ClientKubeContext string
 	}
-	m := md{resource}
+	d := data{
+		Metadata:          resource,
+		ClientKubeContext: clientKubeContext,
+	}
 
 	tmpl, err := template.New("accessCommand").Parse(cmdString)
 	if err != nil {
@@ -21,7 +32,7 @@ func CreateAccessCommand(cmdString string, resource metav1.ObjectMeta) (string, 
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, m); err != nil {
+	if err := tmpl.Execute(&buf, d); err != nil {
 		return "", err
 	}
 	return buf.String(), nil

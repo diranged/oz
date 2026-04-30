@@ -45,6 +45,15 @@ type ExecAccessRequestSpec struct {
 	//
 	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 	Duration string `json:"duration,omitempty"`
+
+	// ClientKubeContext is the name of the kubeconfig context that the client (typically `ozctl`)
+	// was using when it created this request. The controller does not act on this value; it is
+	// surfaced to the `accessCommand` template as `{{ .ClientKubeContext }}` so the rendered
+	// command can include `--context <name>` and target the same cluster the request was created
+	// in. Populated automatically by `ozctl`; safe to omit when applying YAML directly.
+	//
+	// +kubebuilder:validation:Optional
+	ClientKubeContext string `json:"clientKubeContext,omitempty"`
 }
 
 // ExecAccessRequestStatus defines the observed state of ExecAccessRequest

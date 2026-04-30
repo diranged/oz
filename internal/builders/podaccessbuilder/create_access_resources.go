@@ -81,7 +81,11 @@ func (b *PodAccessBuilder) CreateAccessResources(
 		return statusString, err
 	}
 
-	accessString, err := bldutil.CreateAccessCommand(podTmpl.Spec.AccessConfig.AccessCommand, pod.ObjectMeta)
+	accessString, err := bldutil.CreateAccessCommand(
+		podTmpl.Spec.AccessConfig.AccessCommand,
+		pod.ObjectMeta,
+		podReq.Spec.ClientKubeContext,
+	)
 	if err != nil {
 		return "", err
 	}

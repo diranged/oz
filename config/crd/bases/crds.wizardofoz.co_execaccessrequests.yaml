@@ -52,6 +52,14 @@ spec:
           spec:
             description: ExecAccessRequestSpec defines the desired state of ExecAccessRequest
             properties:
+              clientKubeContext:
+                description: |-
+                  ClientKubeContext is the name of the kubeconfig context that the client (typically `ozctl`)
+                  was using when it created this request. The controller does not act on this value; it is
+                  surfaced to the `accessCommand` template as `{{ .ClientKubeContext }}` so the rendered
+                  command can include `--context <name>` and target the same cluster the request was created
+                  in. Populated automatically by `ozctl`; safe to omit when applying YAML directly.
+                type: string
               duration:
                 description: |-
                   Duration sets the length of time from the `spec.creationTimestamp` that this object will live. After the

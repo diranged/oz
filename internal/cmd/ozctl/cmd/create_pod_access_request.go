@@ -69,8 +69,9 @@ var createPodAccessRequestCmd = &cobra.Command{
 				Namespace:    namespace,
 			},
 			Spec: api.PodAccessRequestSpec{
-				TemplateName: templateName,
-				Duration:     duration,
+				TemplateName:      templateName,
+				Duration:          duration,
+				ClientKubeContext: getCurrentKubeContext(),
 			},
 		}
 

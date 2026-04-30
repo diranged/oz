@@ -83,9 +83,10 @@ var createExecAccessRequestCmd = &cobra.Command{
 				Namespace:    namespace,
 			},
 			Spec: api.ExecAccessRequestSpec{
-				TemplateName: template,
-				Duration:     duration,
-				TargetPod:    targetPod,
+				TemplateName:      template,
+				Duration:          duration,
+				TargetPod:         targetPod,
+				ClientKubeContext: getCurrentKubeContext(),
 			},
 		}
 
