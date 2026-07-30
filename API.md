@@ -776,6 +776,31 @@ time has expired, the resouce will be automatically deleted on the next reconcil
 <p>Valid time units are &ldquo;s&rdquo;, &ldquo;m&rdquo;, &ldquo;h&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>image</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Image optionally overrides the container image used for the &ldquo;default&rdquo;
+container of the Pod that Oz launches. This lets a developer run a
+purpose-built debugging, shell or migration image without an
+administrator having to author a dedicated <code>PodAccessTemplate</code> for it.</p>
+<p>The image must match one of the patterns that the Oz controller was
+deployed with (<code>--allowed-image-patterns</code>, set through the
+<code>controllerManager.manager.allowedImagePatterns</code> Helm value). If the
+controller has no patterns configured then image overrides are disabled
+entirely and this field is rejected.</p>
+<p>The rest of the PodSpec - volumes, environment, service account - is
+still inherited from the template&rsquo;s target controller, so the overriding
+image runs with the same identity and secrets as the workload it is
+standing in for. Note also that <code>imagePullSecrets</code> are inherited, so an
+image from a registry the workload cannot pull from will fail to start.</p>
+<p>This field is immutable; request a new <code>PodAccessRequest</code> to change it.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -833,6 +858,31 @@ string
 time has expired, the resouce will be automatically deleted on the next reconcilliation loop.</p>
 <p>If omitted, the spec.defautlDuration from the ExecAccessTemplate is used.</p>
 <p>Valid time units are &ldquo;s&rdquo;, &ldquo;m&rdquo;, &ldquo;h&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>image</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Image optionally overrides the container image used for the &ldquo;default&rdquo;
+container of the Pod that Oz launches. This lets a developer run a
+purpose-built debugging, shell or migration image without an
+administrator having to author a dedicated <code>PodAccessTemplate</code> for it.</p>
+<p>The image must match one of the patterns that the Oz controller was
+deployed with (<code>--allowed-image-patterns</code>, set through the
+<code>controllerManager.manager.allowedImagePatterns</code> Helm value). If the
+controller has no patterns configured then image overrides are disabled
+entirely and this field is rejected.</p>
+<p>The rest of the PodSpec - volumes, environment, service account - is
+still inherited from the template&rsquo;s target controller, so the overriding
+image runs with the same identity and secrets as the workload it is
+standing in for. Note also that <code>imagePullSecrets</code> are inherited, so an
+image from a registry the workload cannot pull from will fail to start.</p>
+<p>This field is immutable; request a new <code>PodAccessRequest</code> to change it.</p>
 </td>
 </tr>
 </tbody>

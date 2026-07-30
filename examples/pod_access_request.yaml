@@ -5,3 +5,12 @@ metadata:
 spec:
   templateName: deployment-example
   duration: 5m
+
+  # Optionally run a different image than the one the target workload uses -
+  # handy when the production image has no shell, or when you need migration
+  # tooling that is not baked into it.
+  #
+  # This only works if the cluster administrator allow-listed the registry via
+  # the controller's --allowed-image-patterns flag
+  # (controllerManager.manager.allowedImagePatterns in the Helm chart).
+  # image: registry.example.com/team/debug:v1

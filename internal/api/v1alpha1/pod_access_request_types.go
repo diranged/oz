@@ -47,6 +47,30 @@ type PodAccessRequestSpec struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Pattern="^[0-9]+(s|m|h)$"
 	Duration string `json:"duration,omitempty"`
+
+	// Image optionally overrides the container image used for the "default"
+	// container of the Pod that Oz launches. This lets a developer run a
+	// purpose-built debugging, shell or migration image without an
+	// administrator having to author a dedicated `PodAccessTemplate` for it.
+	//
+	// The image must match one of the patterns that the Oz controller was
+	// deployed with (`--allowed-image-patterns`, set through the
+	// `controllerManager.manager.allowedImagePatterns` Helm value). If the
+	// controller has no patterns configured then image overrides are disabled
+	// entirely and this field is rejected.
+	//
+	// The rest of the PodSpec - volumes, environment, service account - is
+	// still inherited from the template's target controller, so the overriding
+	// image runs with the same identity and secrets as the workload it is
+	// standing in for. Note also that `imagePullSecrets` are inherited, so an
+	// image from a registry the workload cannot pull from will fail to start.
+	//
+	// This field is immutable; request a new `PodAccessRequest` to change it.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength=512
+	// +kubebuilder:validation:Pattern="^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+	Image string `json:"image,omitempty"`
 }
 
 // PodAccessRequestStatus defines the observed state of AccessRequest
@@ -65,6 +89,7 @@ type PodAccessRequestStatus struct {
 // +kubebuilder:printcolumn:name="Template",type="string",JSONPath=".spec.templateName",description="Access Template"
 // +kubebuilder:printcolumn:name="Pod",type="string",JSONPath=".status.podName",description="Target Pod Name"
 // +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready",description="Is request ready?"
+// +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".spec.image",description="Overridden container image",priority=1
 type PodAccessRequest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
