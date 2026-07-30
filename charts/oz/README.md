@@ -32,6 +32,7 @@ Kubernetes: `>=1.26.0-0`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| controllerManager.manager.allowedImagePatterns | `[]string` | `[]` | Glob patterns describing which container images a `PodAccessRequest` is allowed to select through its `spec.image` field. This lets developers launch a purpose-built debugging or migration image without an administrator authoring a dedicated `PodAccessTemplate` for it.  `*` matches within a single path segment and `**` matches across segments, so `registry.example.com/team/*` permits `registry.example.com/team/debug:v1` but not `evil.example.com/registry.example.com/team/debug:v1`.  Patterns are compared against the reference exactly as the developer wrote it - Oz does not expand a bare `nginx` into `docker.io/library/nginx` - so write patterns for the fully qualified form your developers use.  **This is a security boundary.** An overriding image runs with the target workload's service account, secrets and network identity, so restrict this to registries you control. The default of `[]` disables image overrides entirely. |
 | controllerManager.manager.image.repository | `string` | `"ghcr.io/diranged/oz"` | Docker Image repository and name to use for the controller. |
 | controllerManager.manager.image.tag | `string` | `nil` | If set, overrides the .Chart.AppVersion field to set the target image version for the Oz controller. |
 | controllerManager.manager.resources.limits.cpu | string | `"500m"` |  |

@@ -11,6 +11,11 @@ import (
 	api "github.com/diranged/oz/internal/api/v1alpha1"
 )
 
+// Holder for the value of the --image flag. Unlike --duration and --wait, this
+// is only meaningful for a PodAccessRequest, so it is not shared with the
+// ExecAccessRequest command.
+var image = ""
+
 var createPodAccessRequestExample = `
 A PodAccessRequest always generates a new Pod for you to do your work in. You simply run:
 
@@ -19,6 +24,12 @@ $ ozctl create PodAccessRequest <existing template>
 Success, your access request is ready! Here are your access instructions:
 
 kubectl exec -ti -n default user-vd9r9-a217f263 -- /bin/sh
+
+If your cluster administrator has allow-listed one or more image registries,
+you can also run a different image than the one the target workload uses -
+handy for a container with debugging or migration tooling baked in:
+
+$ ozctl create PodAccessRequest <existing template> --image registry.example.com/team/debug:v1
 `
 
 // createPodAccessRequestCmd represents the create command
@@ -71,6 +82,7 @@ var createPodAccessRequestCmd = &cobra.Command{
 			Spec: api.PodAccessRequestSpec{
 				TemplateName: templateName,
 				Duration:     duration,
+				Image:        image,
 			},
 		}
 
@@ -92,6 +104,8 @@ func init() {
 		StringVarP(&waitTime, "wait", "w", "5m", "Duration to wait for the access request to be fully ready. Valid time units are: ns, us, ms, s, m, h.")
 	createPodAccessRequestCmd.Flags().
 		StringVarP(&requestNamePrefix, "request-name", "N", usernameEnv, "Prefix name to use when creating the `AccessRequest` objects.")
+	createPodAccessRequestCmd.Flags().
+		StringVarP(&image, "image", "i", "", "Override the container image for the Pod. Must match an image pattern allowed by the cluster administrator; if none are configured, this is rejected.")
 
 	kubeConfigFlags.AddFlags(createPodAccessRequestCmd.Flags())
 

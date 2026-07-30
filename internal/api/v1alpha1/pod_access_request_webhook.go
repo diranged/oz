@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"errors"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +25,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	"github.com/diranged/oz/internal/imagepolicy"
 	"github.com/diranged/oz/internal/webhook"
 )
 
@@ -65,6 +67,7 @@ func (r *PodAccessRequest) ValidateCreate(req admission.Request) (admission.Warn
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
 			fmt.Sprintf("Create PodAccessRequest from %s", req.UserInfo.Username),
+			"image", r.Spec.Image,
 		)
 	} else {
 		// TODO: Make this fail, after we have confidence in the code in a live environment.
@@ -72,11 +75,26 @@ func (r *PodAccessRequest) ValidateCreate(req admission.Request) (admission.Warn
 		warnings = append(warnings, w)
 		podaccessrequestlog.Info(w)
 	}
+
+	// Reject an image override that the cluster's policy does not permit. This
+	// is also enforced when the Pod is built (see the PodAccessBuilder),
+	// because this webhook is optional - the chart's `webhook.create` setting
+	// can turn it off.
+	if err := imagepolicy.Active().Validate(r.Spec.Image); err != nil {
+		podaccessrequestlog.Info(
+			"Denied PodAccessRequest image override",
+			"user", req.UserInfo.Username,
+			"image", r.Spec.Image,
+			"reason", err.Error(),
+		)
+		return warnings, fmt.Errorf("spec.image is not allowed: %w", err)
+	}
+
 	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Object) (admission.Warnings, error) {
+func (r *PodAccessRequest) ValidateUpdate(req admission.Request, old runtime.Object) (admission.Warnings, error) {
 	warnings := admission.Warnings{}
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
@@ -88,6 +106,23 @@ func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Objec
 		warnings = append(warnings, w)
 		podaccessrequestlog.Info(w)
 	}
+
+	// Spec.image is immutable. The Pod is built once, when the request is
+	// first reconciled, so editing the image afterwards would silently do
+	// nothing - and worse, would leave the resource claiming to run an image
+	// that it does not. Reject the edit instead.
+	if oldRequest, ok := old.(*PodAccessRequest); ok && oldRequest != nil {
+		if oldRequest.Spec.Image != r.Spec.Image {
+			return warnings, fmt.Errorf(
+				"spec.image is immutable (%q -> %q): create a new PodAccessRequest instead",
+				oldRequest.Spec.Image,
+				r.Spec.Image,
+			)
+		}
+	} else if old != nil {
+		return warnings, errors.New("could not decode the previous PodAccessRequest to validate spec.image")
+	}
+
 	return warnings, nil
 }
 

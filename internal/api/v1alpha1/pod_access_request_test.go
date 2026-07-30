@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	"github.com/diranged/oz/internal/imagepolicy"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -204,6 +205,69 @@ var _ = Describe("PodAccessRequest", Ordered, func() {
 			}
 			_, err = request.ValidateUpdate(*admissionRequest, request)
 			Expect(err).To(Not(HaveOccurred()))
+		})
+
+		It("Create with a disallowed image override...", func() {
+			// No policy configured - the default state of the process - so any
+			// image override at all must be refused.
+			imagepolicy.SetActive(nil)
+
+			imageRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{
+					TemplateName: "",
+					Image:        "registry.example.com/team/debug:v1",
+				},
+			}
+			_, err = imageRequest.ValidateCreate(*admissionRequest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("image overrides are disabled"))
+		})
+
+		It("Create with an allowed image override...", func() {
+			policy, policyErr := imagepolicy.New([]string{"registry.example.com/team/*"})
+			Expect(policyErr).ToNot(HaveOccurred())
+			imagepolicy.SetActive(policy)
+			DeferCleanup(func() { imagepolicy.SetActive(nil) })
+
+			imageRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{
+					TemplateName: "",
+					Image:        "registry.example.com/team/debug:v1",
+				},
+			}
+			_, err = imageRequest.ValidateCreate(*admissionRequest)
+			Expect(err).ToNot(HaveOccurred())
+
+			// ... but an image outside the allow-list is still refused.
+			imageRequest.Spec.Image = "evil.example.com/backdoor:v1"
+			_, err = imageRequest.ValidateCreate(*admissionRequest)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("Update that changes the image is rejected...", func() {
+			oldRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{Image: "registry.example.com/team/debug:v1"},
+			}
+			newRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{Image: "registry.example.com/team/other:v2"},
+			}
+			_, err = newRequest.ValidateUpdate(*admissionRequest, oldRequest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.image is immutable"))
+		})
+
+		It("Update that leaves the image alone is allowed...", func() {
+			oldRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{Image: "registry.example.com/team/debug:v1"},
+			}
+			newRequest := &PodAccessRequest{
+				Spec: PodAccessRequestSpec{
+					Image:    "registry.example.com/team/debug:v1",
+					Duration: "2h",
+				},
+			}
+			_, err = newRequest.ValidateUpdate(*admissionRequest, oldRequest)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("Update without UserInfo...", func() {
