@@ -8,6 +8,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
+	"github.com/diranged/oz/internal/metrics"
 )
 
 func (r *RequestReconciler) isAccessExpired(
@@ -36,6 +37,9 @@ func (r *RequestReconciler) isAccessExpired(
 		shouldEndReconcile = true
 		result = ctrl.Result{}
 		resultErr = r.Delete(rctx.Context, rctx.obj)
+		if resultErr == nil {
+			recordTerminated(rctx, metrics.ReasonExpired)
+		}
 	} else {
 		rctx.log.V(1).Info(
 			fmt.Sprintf(

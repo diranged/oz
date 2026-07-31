@@ -39,6 +39,8 @@ import (
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	"github.com/diranged/oz/internal/controllers/templatecontroller"
+	ozmetrics "github.com/diranged/oz/internal/metrics"
+	metricscollector "github.com/diranged/oz/internal/metrics/collector"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	//+kubebuilder:scaffold:imports
@@ -72,6 +74,7 @@ func Main() {
 	var enableLeaderElection bool
 	var requestReconciliationInterval int
 	var templateReconciliationInterval int
+	var metricsIncludeUserLabel bool
 
 	// Boilerplate
 	flag.StringVar(
@@ -95,6 +98,15 @@ func Main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(
+		&metricsIncludeUserLabel,
+		"metrics-include-user-label",
+		false,
+		"Report real Kubernetes usernames in the 'user' label of the Oz usage metrics. "+
+			"Off by default because usernames are frequently email addresses, and are "+
+			"higher cardinality than the rest of the label set. When off, the label is "+
+			"reported as 'redacted'.",
+	)
 
 	// Custom
 	flag.IntVar(
@@ -128,6 +140,10 @@ func Main() {
 	flag.Parse()
 	rootLogger := zap.New(zap.UseFlagOptions(&opts))
 	ctrl.SetLogger(rootLogger)
+
+	// Must happen before the webhook server starts serving, because the
+	// webhook handlers consult this on every observation.
+	ozmetrics.SetIncludeUserLabel(metricsIncludeUserLabel)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -236,6 +252,12 @@ func Main() {
 	}
 
 	//+kubebuilder:scaffold:builder
+
+	// Report point-in-time inventory of Oz resources (how many requests are
+	// live, for which templates, for whom) by listing from the manager's
+	// informer cache at scrape time. Registered after the reconcilers so that
+	// the caches it reads from are the ones they already populate.
+	metricscollector.MustRegister(mgr.GetClient())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
