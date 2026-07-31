@@ -8,6 +8,7 @@ import (
 	"github.com/diranged/oz/internal/builders"
 	"github.com/diranged/oz/internal/controllers/internal/ctrlrequeue"
 	"github.com/diranged/oz/internal/controllers/internal/status"
+	"github.com/diranged/oz/internal/metrics"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -25,15 +26,19 @@ func (r *RequestReconciler) verifyDuration(
 	// If an error is returned, determine whether its something wrong with the
 	// user-supplied inputs, or whether it was transient.
 	if err != nil {
+		recordConditionError(rctx, v1alpha1.ConditionRequestDurationsValid)
+
 		switch errors.Unwrap(err) {
 		case builders.ErrRequestDurationInvalid:
 			rctx.log.Error(err, "RequestDurationInvalid, will not requeue.")
 			shouldEndReconcile = true
 			result, resultErr = ctrlrequeue.NoRequeue()
+			recordTerminated(rctx, metrics.ReasonDurationInvalid)
 		case builders.ErrRequestDurationTooLong:
 			rctx.log.Error(err, "RequestDurationTooLong, will not requeue.")
 			shouldEndReconcile = true
 			result, resultErr = ctrlrequeue.NoRequeue()
+			recordTerminated(rctx, metrics.ReasonDurationTooLong)
 		default:
 			rctx.log.Error(err, "Unexpected error, will requeue")
 			shouldEndReconcile = true

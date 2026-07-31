@@ -40,6 +40,47 @@ metricsService:
       protocol: TCP
       targetPort: https
 
+# Configuration for the Prometheus metrics that the Oz controller exports. In
+# addition to the standard controller-runtime metrics (reconcile counts,
+# webhook latencies, workqueue depths), Oz exports usage metrics that attribute
+# access requests to templates and users - see the `oz_*` metrics.
+metrics:
+  # -- (`bool`) Report real Kubernetes usernames in the `user` label of the
+  # `oz_*` usage metrics. Without this, per-user attribution is unavailable and
+  # the label is reported as `redacted`. This is opt-in because usernames are
+  # frequently email addresses (ie personally identifying), and because they
+  # are considerably higher cardinality than the rest of the label set - the
+  # series count of the affected metrics is multiplied by the number of
+  # distinct people using Oz.
+  includeUserLabel: false
+
+  serviceMonitor:
+    # -- (`bool`) Whether or not to create a Prometheus Operator
+    # `ServiceMonitor` resource pointing at the metrics service. Requires the
+    # Prometheus Operator CRDs to be installed in the cluster. If you scrape
+    # via some other mechanism, leave this off and point your scraper at the
+    # `-controller-manager-metrics-service` Service on port 8443.
+    create: false
+
+    # -- (`map`) Additional labels to apply to the `ServiceMonitor`. Most
+    # Prometheus Operator installations use a label selector to decide which
+    # ServiceMonitors to act on (eg `release: kube-prometheus-stack`), in which
+    # case you must set the matching label here.
+    labels: {}
+
+    # -- (`string`) How often Prometheus should scrape the controller. Defaults
+    # to the Prometheus global scrape interval when unset.
+    interval:
+
+    # -- (`string`) Per-scrape timeout. Defaults to the Prometheus global
+    # scrape timeout when unset.
+    scrapeTimeout:
+
+    # -- (`[]map`) Optional metric relabeling rules, applied by Prometheus
+    # after scraping. Useful for dropping high cardinality series you do not
+    # want to keep.
+    metricRelabelings: []
+
 # Configuration for the oz-controller-manager-webhook-service, used for
 # handling ValidatingWebhookConfiguration and MutatingWebhookConfiguration
 # calls from the Kubernetes API.

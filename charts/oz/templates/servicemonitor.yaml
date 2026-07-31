@@ -1,0 +1,56 @@
+{{- if .Values.metrics.serviceMonitor.create }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "oz.fullname" . }}-controller-manager-metrics-monitor
+  namespace: {{ .Release.Namespace }}
+  {{- /*
+    Only the labels that "oz.labels" does not already provide are listed here.
+    The sibling templates repeat several of them, but since "oz.labels" is
+    included last it wins, so the rendered output is unchanged and this avoids
+    emitting duplicate YAML keys.
+  */}}
+  labels:
+    app.kubernetes.io/component: metrics
+    control-plane: controller-manager
+  {{- include "oz.labels" . | nindent 4 }}
+  {{- with .Values.metrics.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      {{- include "oz.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - path: /metrics
+      port: https
+      scheme: https
+      {{- with .Values.metrics.serviceMonitor.interval }}
+      interval: {{ . }}
+      {{- end }}
+      {{- with .Values.metrics.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ . }}
+      {{- end }}
+      {{- /*
+        The metrics endpoint is protected by controller-runtime's built-in
+        authn/authz (SecureServing + WithAuthenticationAndAuthorization), so the
+        scraper must present a bearer token. The ServiceAccount Prometheus runs
+        as needs the `-metrics-reader` ClusterRole bound to it, otherwise every
+        scrape returns 403.
+      */}}
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      {{- /*
+        controller-runtime generates a self-signed serving certificate on
+        startup, so there is no CA for Prometheus to verify against.
+      */}}
+      tlsConfig:
+        insecureSkipVerify: true
+      {{- with .Values.metrics.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

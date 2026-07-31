@@ -42,6 +42,12 @@ Kubernetes: `>=1.26.0-0`
 | controllerManager.replicas | `int` | `1` | Number of Oz Controllers to run. If more than one is used, leader-election is used to ensure only one controller is operating at a time. |
 | controllerManager.tolerations | `[]map]` | `[]` | A list of Tolerations that will be applied to the controller-manager pods. See https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/. |
 | kubernetesClusterDomain | `string` | `"cluster.local"` | Configures the KUBERNETES_CLUSTER_DOMAIN environment variable. |
+| metrics.includeUserLabel | `bool` | `false` | Report real Kubernetes usernames in the `user` label of the `oz_*` usage metrics. Without this, per-user attribution is unavailable and the label is reported as `redacted`. This is opt-in because usernames are frequently email addresses (ie personally identifying), and because they are considerably higher cardinality than the rest of the label set - the series count of the affected metrics is multiplied by the number of distinct people using Oz. |
+| metrics.serviceMonitor.create | `bool` | `false` | Whether or not to create a Prometheus Operator `ServiceMonitor` resource pointing at the metrics service. Requires the Prometheus Operator CRDs to be installed in the cluster. If you scrape via some other mechanism, leave this off and point your scraper at the `-controller-manager-metrics-service` Service on port 8443. |
+| metrics.serviceMonitor.interval | `string` | `nil` | How often Prometheus should scrape the controller. Defaults to the Prometheus global scrape interval when unset. |
+| metrics.serviceMonitor.labels | `map` | `{}` | Additional labels to apply to the `ServiceMonitor`. Most Prometheus Operator installations use a label selector to decide which ServiceMonitors to act on (eg `release: kube-prometheus-stack`), in which case you must set the matching label here. |
+| metrics.serviceMonitor.metricRelabelings | `[]map` | `[]` | Optional metric relabeling rules, applied by Prometheus after scraping. Useful for dropping high cardinality series you do not want to keep. |
+| metrics.serviceMonitor.scrapeTimeout | `string` | `nil` | Per-scrape timeout. Defaults to the Prometheus global scrape timeout when unset. |
 | metricsService.ports[0].name | string | `"https"` |  |
 | metricsService.ports[0].port | int | `8443` |  |
 | metricsService.ports[0].protocol | string | `"TCP"` |  |

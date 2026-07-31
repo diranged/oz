@@ -83,10 +83,40 @@ var _ = Describe("PodAccessRequest", Ordered, func() {
 			}, request)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// Update it and push it
-			request.SetAnnotations(map[string]string{"foo": "bar"})
+			// Update it and push it. Note that we add an annotation rather
+			// than replacing the map wholesale - the requested-by annotation is
+			// immutable, so wiping it out is rejected (see below).
+			annotations := request.GetAnnotations()
+			annotations["foo"] = "bar"
+			request.SetAnnotations(annotations)
 			err = k8sClient.Update(ctx, request)
 			Expect(err).To(Not(HaveOccurred()))
+		})
+
+		It("PodAccessRequest records the requesting user", func() {
+			request := &PodAccessRequest{}
+			err := k8sClient.Get(ctx, types.NamespacedName{
+				Name:      requestName,
+				Namespace: template.Namespace,
+			}, request)
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(GetRequestedBy(request)).To(Not(BeEmpty()))
+		})
+
+		It("PodAccessRequest Update - Rejects a change to the requested-by annotation", func() {
+			request := &PodAccessRequest{}
+			err := k8sClient.Get(ctx, types.NamespacedName{
+				Name:      requestName,
+				Namespace: template.Namespace,
+			}, request)
+			Expect(err).To(Not(HaveOccurred()))
+
+			// Wiping the annotations (or editing just this one) would let a
+			// user disown or misattribute their own access request.
+			request.SetAnnotations(map[string]string{"foo": "bar"})
+			err = k8sClient.Update(ctx, request)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(AnnotationRequestedBy))
 		})
 		It("PodAccessRequest Delete - Passes Webhook ValidateUpdate() Call", func() {
 			// Get the request first
