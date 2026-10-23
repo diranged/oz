@@ -51,7 +51,10 @@ func (r *ExecAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.IContextuallyDefaultableObject = &ExecAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *ExecAccessRequest) Default(_ admission.Request) error {
+func (r *ExecAccessRequest) Default(req admission.Request) error {
+	// Record who asked for this access, so that the reconciler and the metrics
+	// collector can attribute it later.
+	SetRequestedBy(r, req)
 	return nil
 }
 
@@ -72,11 +75,15 @@ func (r *ExecAccessRequest) ValidateCreate(req admission.Request) (admission.War
 		warnings = append(warnings, w)
 		execaccessrequestlog.Info(w)
 	}
+	recordAccessRequestCreated(req, r)
 	return warnings, nil
 }
 
 // ValidateUpdate prevents immutable updates to the ExecAccessRequest.
-func (r *ExecAccessRequest) ValidateUpdate(_ admission.Request, old runtime.Object) (admission.Warnings, error) {
+func (r *ExecAccessRequest) ValidateUpdate(
+	_ admission.Request,
+	old runtime.Object,
+) (admission.Warnings, error) {
 	execaccessrequestlog.Info("validate update", "name", r.Name)
 
 	// https://stackoverflow.com/questions/70650677/manage-immutable-fields-in-kubebuilder-validating-webhook
@@ -86,6 +93,13 @@ func (r *ExecAccessRequest) ValidateUpdate(_ admission.Request, old runtime.Obje
 			"error - Spec.TargetPod is an immutable field, create a new PodAccessRequest instead",
 		)
 	}
+
+	// The requested-by annotation is the basis for all per-user reporting, so
+	// it must not be editable after creation.
+	if err := ValidateRequestedByUnchanged(oldRequest, r); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 

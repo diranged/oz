@@ -51,7 +51,10 @@ func (r *PodAccessRequest) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.IContextuallyDefaultableObject = &PodAccessRequest{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *PodAccessRequest) Default(_ admission.Request) error {
+func (r *PodAccessRequest) Default(req admission.Request) error {
+	// Record who asked for this access, so that the reconciler and the metrics
+	// collector can attribute it later.
+	SetRequestedBy(r, req)
 	return nil
 }
 
@@ -72,11 +75,15 @@ func (r *PodAccessRequest) ValidateCreate(req admission.Request) (admission.Warn
 		warnings = append(warnings, w)
 		podaccessrequestlog.Info(w)
 	}
+	recordAccessRequestCreated(req, r)
 	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.IContextuallyValidatableObject so a webhook will be registered for the type
-func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Object) (admission.Warnings, error) {
+func (r *PodAccessRequest) ValidateUpdate(
+	req admission.Request,
+	old runtime.Object,
+) (admission.Warnings, error) {
 	warnings := admission.Warnings{}
 	if req.UserInfo.Username != "" {
 		podaccessrequestlog.Info(
@@ -88,6 +95,15 @@ func (r *PodAccessRequest) ValidateUpdate(req admission.Request, _ runtime.Objec
 		warnings = append(warnings, w)
 		podaccessrequestlog.Info(w)
 	}
+
+	// The requested-by annotation is the basis for all per-user reporting, so
+	// it must not be editable after creation.
+	if oldRequest, ok := old.(*PodAccessRequest); ok {
+		if err := ValidateRequestedByUnchanged(oldRequest, r); err != nil {
+			return warnings, err
+		}
+	}
+
 	return warnings, nil
 }
 

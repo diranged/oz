@@ -110,9 +110,18 @@ func (r *RequestReconciler) reconcile(rctx *RequestContext) (ctrl.Result, error)
 	// FINAL: Set Status.Ready state
 	//
 	// TODO: Implement on the ICoreStatus interface a "AreAllConditionsTrue" function and check that.
+	//
+	// Status.Ready is only ever written here, and UpdateStatus() refetches the
+	// object, so the value we read now is the one persisted by the previous
+	// reconcile. That makes this a reliable edge-trigger for observing how long
+	// the user waited for their access.
+	wasReady := rctx.obj.GetStatus().IsReady()
 	err = status.SetReadyStatus(rctx, r, rctx.obj)
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+	if !wasReady && rctx.obj.GetStatus().IsReady() {
+		recordReady(rctx)
 	}
 
 	// Exit Reconciliation Loop

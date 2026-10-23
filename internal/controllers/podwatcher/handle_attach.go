@@ -41,6 +41,7 @@ func (w *PodWatcher) HandleAttach(ctx context.Context, req admission.Request) ad
 	// Log and Record the event
 	w.recorder.Eventf(pod, nil, "Normal", "PodAttach", "RecordedAttach", "%s", eventMsg)
 	logger.Info(eventMsg)
+	recordPodConnect(req, opts.TTY)
 
 	return admission.Allowed("")
 }

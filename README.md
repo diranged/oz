@@ -451,6 +451,92 @@ sequenceDiagram
     end
 ```
 
+## Metrics
+
+The controller serves Prometheus metrics on `:8443/metrics`. The endpoint is
+protected by [controller-runtime][cr]'s built-in authentication and
+authorization, so scrapers must present a bearer token belonging to a
+ServiceAccount that has the `<release>-metrics-reader` ClusterRole bound to it.
+
+Alongside the standard controller-runtime metrics (reconcile counts, webhook
+latencies, workqueue depths), **Oz** exports metrics describing how it is being
+*used*:
+
+| Metric | Type | Labels | Description |
+| ------ | ---- | ------ | ----------- |
+| `oz_access_request_created_total` | counter | `kind`, `namespace`, `template`, `user` | Access requests admitted by the validating webhook. |
+| `oz_access_request_requested_duration_seconds` | histogram | `kind`, `namespace`, `template` | Duration explicitly asked for in `spec.duration`. Requests that inherit the template default are not observed. |
+| `oz_access_request_ready_seconds` | histogram | `kind`, `namespace`, `template` | Time from creation to `Status.Ready`, ie how long the user waited before they could use their access. |
+| `oz_access_request_terminated_total` | counter | `kind`, `namespace`, `template`, `reason` | Requests that reached a terminal state. `reason` is `expired` (the happy path), `duration_invalid` or `duration_too_long`. |
+| `oz_access_request_condition_errors_total` | counter | `kind`, `namespace`, `template`, `condition` | Reconcile *attempts* that failed a verification step, labelled with the `Status.Condition` set to `False`. A permanently wedged request keeps incrementing this. |
+| `oz_access_requests` | gauge | `kind`, `namespace`, `template`, `user`, `ready` | Access requests that exist right now. |
+| `oz_access_templates` | gauge | `kind`, `namespace`, `name`, `ready` | Access templates that exist right now. |
+| `oz_pod_exec_total` | counter | `namespace`, `subresource`, `user`, `interactive` | `exec`/`attach` operations seen by the Pod watcher webhook. Covers all such traffic in the cluster, not just Oz-managed Pods. |
+
+Some examples:
+
+```promql
+# Which templates are being used, and by whom, over the last week?
+sum by (template, user) (increase(oz_access_request_created_total[7d]))
+
+# Who currently holds access? Note the `max` rather than `sum` - see the
+# caveat about replicas below.
+max by (user, template) (oz_access_requests{ready="true"})
+
+# Templates that nobody has requested access through in the last 30 days.
+# Note the join is on (namespace, name) only - the `kind` label differs between
+# the two metrics ("PodAccessTemplate" vs "PodAccessRequest").
+oz_access_templates
+  unless on (namespace, name)
+  label_replace(
+    sum by (namespace, template) (increase(oz_access_request_created_total[30d])) > 0,
+    "name", "$1", "template", "(.*)"
+  )
+
+# 95th percentile wait for a Pod-based grant to become usable
+histogram_quantile(0.95, sum by (le, template) (rate(oz_access_request_ready_seconds_bucket[1h])))
+```
+
+The two gauges (`oz_access_requests` and `oz_access_templates`) are computed by
+listing from the controller's cache at scrape time, so every replica reports the
+same inventory. If you run `controllerManager.replicas > 1`, aggregate them with
+`max by (...)` rather than `sum by (...)`, or the counts will be multiplied by
+the replica count. The counters and histograms are not affected - only the
+elected leader reconciles, and each webhook call is handled once.
+
+### Attributing usage to users
+
+The requesting user's identity is only visible inside an admission webhook, so
+**Oz** stamps it onto each request as the `crds.wizardofoz.co/requested-by`
+annotation during mutation. The annotation is set from authoritative API server
+data on create (overwriting any client-supplied value) and is rejected from
+being modified on update, so it is trustworthy for reporting - and it means you
+can also audit access with plain `kubectl`:
+
+```bash
+kubectl get podaccessrequests -A \
+  -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,TEMPLATE:.spec.templateName,USER:'.metadata.annotations.crds\.wizardofoz\.co/requested-by'
+```
+
+The `user` **metric label** is opt-in, and reported as `redacted` until you turn
+it on:
+
+```yaml
+# values.yaml
+metrics:
+  includeUserLabel: true
+  serviceMonitor:
+    create: true
+```
+
+It defaults to off for two reasons: usernames are frequently email addresses
+(ie personally identifying, and metrics tend to be far more widely readable than
+the cluster itself), and they multiply the series count of the affected metrics
+by the number of distinct people using **Oz**. The annotation is always
+populated regardless of this setting.
+
+[cr]: https://github.com/kubernetes-sigs/controller-runtime
+
 ## License
 
 Copyright 2022 Matt Wise.

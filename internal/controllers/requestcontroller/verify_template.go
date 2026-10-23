@@ -17,6 +17,7 @@ func (r *RequestReconciler) verifyTemplate(
 	tmpl, err := r.Builder.GetTemplate(rctx.Context, r.Client, rctx.obj)
 	if err != nil {
 		rctx.log.Error(err, "Unable to verify template")
+		recordConditionError(rctx, v1alpha1.ConditionTargetTemplateExists)
 
 		// Update the condition. If that fails, return the error, otherwise
 		// return nil which continues reconciliation.

@@ -26,6 +26,8 @@ func (r *RequestReconciler) verifyAccessResources(
 
 		rctx.log.V(1).Info("Making sure Access Resources have been created")
 		if statusStr, err = r.Builder.CreateAccessResources(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
+			recordConditionError(rctx, v1alpha1.ConditionAccessResourcesCreated)
+
 			// NOTE: Blindly ignoring the error return here because we are already
 			// returning an error which will fail the reconciliation.
 			_ = status.SetAccessResourcesNotCreated(rctx.Context, r, rctx.obj, err)
@@ -39,12 +41,17 @@ func (r *RequestReconciler) verifyAccessResources(
 	{ // Check if the resources are ready
 		rctx.log.V(1).Info("Checking if Access Resources are ready")
 		if areReady, err := r.Builder.AccessResourcesAreReady(rctx.Context, r.Client, rctx.obj, tmpl); err != nil {
+			recordConditionError(rctx, v1alpha1.ConditionAccessResourcesReady)
+
 			// NOTE: Blindly ignoring the error return here because we are already
 			// returning an error which will fail the reconciliation.
 			_ = status.SetAccessResourcesNotReady(rctx.Context, r, rctx.obj, err)
 			return true, result, err
 
 		} else if !areReady {
+			// Not an error - the Pod is simply still coming up. Deliberately
+			// not counted as a condition error; the wait shows up in
+			// oz_access_request_ready_seconds instead.
 			interval := r.getVerifyResourcesRequeueInterval()
 
 			// NOTE: Blindly ignoring the error return here because we are already
