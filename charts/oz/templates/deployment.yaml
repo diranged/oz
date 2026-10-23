@@ -62,6 +62,9 @@ spec:
           - --health-probe-bind-address=:8081
           - --metrics-bind-address=:8443
           - --leader-elect
+          {{- with .Values.controllerManager.manager.allowedImagePatterns }}
+          - --allowed-image-patterns={{ join "," . }}
+          {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

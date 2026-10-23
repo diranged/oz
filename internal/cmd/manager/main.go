@@ -21,6 +21,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strings"
 	"time"
 
 	rolloutsv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
@@ -39,6 +40,7 @@ import (
 	"github.com/diranged/oz/internal/controllers/podwatcher"
 	"github.com/diranged/oz/internal/controllers/requestcontroller"
 	"github.com/diranged/oz/internal/controllers/templatecontroller"
+	"github.com/diranged/oz/internal/imagepolicy"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	//+kubebuilder:scaffold:imports
@@ -72,6 +74,7 @@ func Main() {
 	var enableLeaderElection bool
 	var requestReconciliationInterval int
 	var templateReconciliationInterval int
+	var allowedImagePatterns string
 
 	// Boilerplate
 	flag.StringVar(
@@ -109,6 +112,18 @@ func Main() {
 		defaultReconciliationInterval,
 		"Access Template reconciliation interval (in minutes)",
 	)
+	flag.StringVar(
+		&allowedImagePatterns,
+		"allowed-image-patterns",
+		"",
+		// Note: the flag package treats backquotes in a usage string as the
+		// argument placeholder, so they are deliberately avoided here.
+		"Comma-separated list of glob patterns for container images that a PodAccessRequest may "+
+			"select through its spec.image field. A single star matches within one path segment, "+
+			"a double star matches across segments (eg "+
+			"\"registry.example.com/team/*,ghcr.io/example/**\"). If empty, image overrides are "+
+			"disabled entirely.",
+	)
 
 	// Reconfigure the default logger. Get rid of the JSON log and switch to a LogFmt logger
 	// configLog := uzap.NewProductionEncoderConfig()
@@ -128,6 +143,23 @@ func Main() {
 	flag.Parse()
 	rootLogger := zap.New(zap.UseFlagOptions(&opts))
 	ctrl.SetLogger(rootLogger)
+
+	// Install the image-override allow-list before anything can serve an
+	// admission request or reconcile a PodAccessRequest. An invalid pattern is
+	// fatal rather than ignored - silently dropping a pattern could either
+	// break access for developers or, far worse, be misread as "configured"
+	// when nothing is actually being restricted.
+	policy, err := imagepolicy.New(strings.Split(allowedImagePatterns, ","))
+	if err != nil {
+		setupLog.Error(err, "invalid --allowed-image-patterns")
+		os.Exit(1)
+	}
+	imagepolicy.SetActive(policy)
+	if policy.Enabled() {
+		setupLog.Info("PodAccessRequest image overrides enabled", "patterns", policy.Patterns())
+	} else {
+		setupLog.Info("PodAccessRequest image overrides disabled - no --allowed-image-patterns set")
+	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,

@@ -297,6 +297,60 @@ spec:
   maxStorage: 1Gi
 ```
 
+#### Overriding the container image
+
+By default the Pod that *Oz* launches runs the same image as the workload the
+[`PodAccessTemplate`][pod_access_template] points at. Sometimes that image is
+not what a developer needs - a distroless production image has no shell, and a
+schema migration may need tooling that is deliberately kept out of the
+production build.
+
+A [`PodAccessRequest`][pod_access_request] can therefore ask for a different
+image, without an administrator authoring a dedicated template for it:
+
+```yaml
+apiVersion: crds.wizardofoz.co/v1alpha1
+kind: PodAccessRequest
+metadata:
+  name: deployment-example
+spec:
+  templateName: deployment-example
+  duration: 5m
+  image: registry.example.com/team/debug:v1
+```
+
+or from the CLI:
+
+```bash
+$ ozctl create PodAccessRequest deployment-example \
+    --image registry.example.com/team/debug:v1
+```
+
+This is off by default. The cluster administrator opts in by allow-listing one
+or more image patterns when installing the controller, using the
+`controllerManager.manager.allowedImagePatterns` Helm value:
+
+```yaml
+controllerManager:
+  manager:
+    allowedImagePatterns:
+      - registry.example.com/team/*
+```
+
+`*` matches within a single path segment and `**` matches across segments, so
+the pattern above permits `registry.example.com/team/debug:v1` but not
+`evil.example.com/registry.example.com/team/debug:v1`. Patterns are compared
+against the reference exactly as the developer wrote it - *Oz* does not expand a
+bare `nginx` into `docker.io/library/nginx` - so write patterns for the fully
+qualified form your developers use.
+
+Treat this as a security boundary. Only the image is replaced; the Pod still
+inherits the target workload's service account, secrets, environment and
+network identity, so any image you allow-list can run code with that workload's
+privileges. Restrict the patterns to registries you control. Note also that
+`imagePullSecrets` are inherited from the target workload, so an image from a
+registry that workload cannot pull from will simply fail to start.
+
 #### [`ExecAccessTemplate`][exec_access_template]
 
 ### Exec Access into Existing Pods

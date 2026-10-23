@@ -162,6 +162,31 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 	ctx context.Context,
 	pod corev1.PodTemplateSpec,
 ) (int, error) {
+	return GetDefaultContainerID(ctx, pod, c.DefaultContainerName)
+}
+
+// GetDefaultContainerID returns the numerical identifier of the container
+// within the PodSpec.Containers[] list that Oz considers the "default"
+// container - the one that mutations and overrides apply to.
+//
+// The name is resolved in order of preference: the explicitly supplied
+// name (typically PodTemplateSpecMutationConfig.DefaultContainerName), then the
+// well-known DefaultContainerAnnotationKey annotation on the Pod, and finally
+// the first container in the list.
+//
+// This is exported (and takes the name as a parameter rather than reading it
+// off a config struct) so that callers which have no
+// PodTemplateSpecMutationConfig at all - a PodAccessTemplate is not required to
+// define one - can still resolve the same container.
+//
+// Returns:
+//
+//	int: The identifier in the PodSpec.Containers[] list of the "default" container.
+func GetDefaultContainerID(
+	ctx context.Context,
+	pod corev1.PodTemplateSpec,
+	defaultContainerName string,
+) (int, error) {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("Determining \"default\" container ID from PodTemplateSpec...")
 
@@ -170,7 +195,7 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 
 	// If the user did not supply a DefaultContainerName spec, then try to find
 	// the well known annotation.
-	if c.DefaultContainerName == "" {
+	if defaultContainerName == "" {
 		if val, ok := pod.Annotations[DefaultContainerAnnotationKey]; ok {
 			if ok {
 				logger.V(1).
@@ -179,8 +204,8 @@ func (c *PodTemplateSpecMutationConfig) getDefaultContainerID(
 			}
 		}
 	} else {
-		logger.V(1).Info(fmt.Sprintf("Using template-supplied value %s", c.DefaultContainerName))
-		defContName = c.DefaultContainerName
+		logger.V(1).Info(fmt.Sprintf("Using template-supplied value %s", defaultContainerName))
+		defContName = defaultContainerName
 	}
 
 	// At this point, if we didn't find the user supplied value OR the default

@@ -18,6 +18,7 @@ import (
 
 	"github.com/diranged/oz/internal/api/v1alpha1"
 	bldutil "github.com/diranged/oz/internal/builders/utils"
+	"github.com/diranged/oz/internal/imagepolicy"
 	"github.com/diranged/oz/internal/testing/utils"
 )
 
@@ -273,6 +274,99 @@ var _ = Describe("RequestReconciler", Ordered, func() {
 			Expect(foundRoleBinding.GetOwnerReferences()).ToNot(BeNil())
 			Expect(foundRoleBinding.RoleRef.Name).To(Equal(foundRole.GetName()))
 			Expect(foundRoleBinding.Subjects[0].Name).To(Equal("testGroupA"))
+		})
+
+		It("CreateAccessResources() should apply an allowed image override", func() {
+			By("Configuring an image policy for the duration of this test")
+			policy, err := imagepolicy.New([]string{"registry.example.com/team/*"})
+			Expect(err).ToNot(HaveOccurred())
+			imagepolicy.SetActive(policy)
+			DeferCleanup(func() { imagepolicy.SetActive(nil) })
+
+			By("Creating a request that asks for a different image")
+			imageRequest := &v1alpha1.PodAccessRequest{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "createaccessresource-image-test",
+					Namespace: ns.GetName(),
+				},
+				Spec: v1alpha1.PodAccessRequestSpec{
+					TemplateName: template.GetName(),
+					Image:        "registry.example.com/team/debug:v1",
+				},
+			}
+			err = k8sClient.Create(ctx, imageRequest)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Execute
+			_, err = builder.CreateAccessResources(ctx, k8sClient, imageRequest, template)
+			Expect(err).ToNot(HaveOccurred())
+
+			// VERIFY: The Pod runs the requested image, and the rest of the
+			// template's mutation config is still applied.
+			foundPod := &corev1.Pod{}
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      bldutil.GenerateResourceName(imageRequest),
+				Namespace: ns.GetName(),
+			}, foundPod)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(foundPod.Spec.Containers[0].Image).To(Equal("registry.example.com/team/debug:v1"))
+			Expect(foundPod.Spec.Containers[0].Command[0]).To(Equal("/bin/sleep"))
+		})
+
+		It("CreateAccessResources() should reject a disallowed image override", func() {
+			By("Configuring an image policy that does not cover the request")
+			policy, err := imagepolicy.New([]string{"registry.example.com/team/*"})
+			Expect(err).ToNot(HaveOccurred())
+			imagepolicy.SetActive(policy)
+			DeferCleanup(func() { imagepolicy.SetActive(nil) })
+
+			denyRequest := &v1alpha1.PodAccessRequest{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "createaccessresource-image-deny-test",
+					Namespace: ns.GetName(),
+				},
+				Spec: v1alpha1.PodAccessRequestSpec{
+					TemplateName: template.GetName(),
+					Image:        "evil.example.com/backdoor:v1",
+				},
+			}
+			err = k8sClient.Create(ctx, denyRequest)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Execute - the builder must refuse even though the object was
+			// accepted by the API (the validating webhook is optional).
+			_, err = builder.CreateAccessResources(ctx, k8sClient, denyRequest, template)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("is not permitted on this cluster"))
+
+			// VERIFY: No Pod was created at all.
+			foundPod := &corev1.Pod{}
+			err = k8sClient.Get(ctx, types.NamespacedName{
+				Name:      bldutil.GenerateResourceName(denyRequest),
+				Namespace: ns.GetName(),
+			}, foundPod)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("CreateAccessResources() should reject an image override when no policy is configured", func() {
+			imagepolicy.SetActive(nil)
+
+			disabledRequest := &v1alpha1.PodAccessRequest{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "createaccessresource-image-disabled-test",
+					Namespace: ns.GetName(),
+				},
+				Spec: v1alpha1.PodAccessRequestSpec{
+					TemplateName: template.GetName(),
+					Image:        "registry.example.com/team/debug:v1",
+				},
+			}
+			err := k8sClient.Create(ctx, disabledRequest)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = builder.CreateAccessResources(ctx, k8sClient, disabledRequest, template)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("image overrides are disabled"))
 		})
 
 		It("CreateAccessResources() should succeed with Rollout", func() {

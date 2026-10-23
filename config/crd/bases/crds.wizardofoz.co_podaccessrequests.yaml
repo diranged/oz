@@ -27,6 +27,11 @@ spec:
       jsonPath: .status.ready
       name: Ready
       type: boolean
+    - description: Overridden container image
+      jsonPath: .spec.image
+      name: Image
+      priority: 1
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -61,6 +66,29 @@ spec:
 
                   Valid time units are "s", "m", "h".
                 pattern: ^[0-9]+(s|m|h)$
+                type: string
+              image:
+                description: |-
+                  Image optionally overrides the container image used for the "default"
+                  container of the Pod that Oz launches. This lets a developer run a
+                  purpose-built debugging, shell or migration image without an
+                  administrator having to author a dedicated `PodAccessTemplate` for it.
+
+                  The image must match one of the patterns that the Oz controller was
+                  deployed with (`--allowed-image-patterns`, set through the
+                  `controllerManager.manager.allowedImagePatterns` Helm value). If the
+                  controller has no patterns configured then image overrides are disabled
+                  entirely and this field is rejected.
+
+                  The rest of the PodSpec - volumes, environment, service account - is
+                  still inherited from the template's target controller, so the overriding
+                  image runs with the same identity and secrets as the workload it is
+                  standing in for. Note also that `imagePullSecrets` are inherited, so an
+                  image from a registry the workload cannot pull from will fail to start.
+
+                  This field is immutable; request a new `PodAccessRequest` to change it.
+                maxLength: 512
+                pattern: ^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$
                 type: string
               templateName:
                 description: |-
